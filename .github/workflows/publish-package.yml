@@ -17,14 +17,16 @@ jobs:
         git branch --remote --contains | grep origin/main
     - name: Set VERSION variable from tag
       run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
-    - name: Go to source folder
-      run: cd src/DeckSurf.SDK
     - name: Build
+      working-directory: ./src/DeckSurf.SDK
       run: dotnet build --configuration Release /p:Version=${VERSION}
     - name: Test
+      working-directory: ./src/DeckSurf.SDK
       run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
     - name: Pack
+      working-directory: ./src/DeckSurf.SDK
       run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
     - name: Push
+      working-directory: ./src/DeckSurf.SDK
       run: dotnet nuget push NuGet.Workflow.${VERSION}.nupkg --source https://nuget.pkg.github.com/acraven/index.json --api-key ${{ secrets.NUGET_API_KEY }}
 
