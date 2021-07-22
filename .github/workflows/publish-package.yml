@@ -28,5 +28,5 @@ jobs:
       run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
     - name: Push
       working-directory: ./src/DeckSurf.SDK
-      run: dotnet nuget push DeckSurf.SDK.${VERSION}.nupkg --source https://nuget.pkg.github.com/dend/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+      run: dotnet nuget push DeckSurf.SDK.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
 
