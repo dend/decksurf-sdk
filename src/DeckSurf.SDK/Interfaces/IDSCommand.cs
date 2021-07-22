@@ -6,6 +6,9 @@ using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.Interfaces
 {
+    /// <summary>
+    /// Interface used to implement executable commands for a DeckSurf plugin.
+    /// </summary>
     public interface IDSCommand
     {
         public string Name { get; }

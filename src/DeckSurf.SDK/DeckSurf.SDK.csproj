@@ -5,7 +5,7 @@
     <Platforms>x64</Platforms>
     <Company>Den Delimarsky</Company>
     <Authors>Den Delimarsky</Authors>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <ApplicationIcon>piglet.ico</ApplicationIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -19,12 +19,15 @@
     <RootNamespace>DeckSurf.SDK</RootNamespace>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/dend/decksurf-sdk</RepositoryUrl>
-    <PackageTags>streamdeck,sdk,decksurf</PackageTags>
+    <PackageTags>streamdeck,sdk,decksurf,hid,buttons</PackageTags>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <AssemblyVersion>0.0.2.0</AssemblyVersion>
+    <FileVersion>0.0.2.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>D:\source\decksurf-sdk\src\DeckSurf.SDK\DeckSurf.SDK.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

@@ -4,6 +4,9 @@
 
 namespace DeckSurf.SDK.Models
 {
+    /// <summary>
+    /// Represents a Stream Deck button state.
+    /// </summary>
     public enum ButtonEventKind
     {
         DOWN = 0,

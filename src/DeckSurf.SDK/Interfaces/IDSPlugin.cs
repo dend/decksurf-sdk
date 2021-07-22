@@ -8,6 +8,9 @@ using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.Interfaces
 {
+    /// <summary>
+    /// Interface required by DeckSurf plugins to be recognized by DeckSurf tooling.
+    /// </summary>
     public interface IDSPlugin
     {
         public PluginMetadata Metadata { get; }

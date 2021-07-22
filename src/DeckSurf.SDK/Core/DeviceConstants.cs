@@ -4,6 +4,9 @@
 
 namespace DeckSurf.SDK.Core
 {
+    /// <summary>
+    /// Helper class that contains re-usable constants for different types of Stream Deck devices.
+    /// </summary>
     public static class DeviceConstants
     {
         public const int XLButtonCount = 32;

@@ -12,6 +12,9 @@ using HidSharp;
 
 namespace DeckSurf.SDK.Core
 {
+    /// <summary>
+    /// Class used to manage connected Stream Deck devices.
+    /// </summary>
     public class DeviceManager
     {
         private static readonly int SupportedVid = 4057;
@@ -20,7 +23,7 @@ namespace DeckSurf.SDK.Core
         private static readonly int ImageReportPayloadLength = ImageReportLength - ImageReportHeaderLength;
 
         /// <summary>
-        /// Return a list of connected devices supported by Deck.Surf.
+        /// Return a list of connected Stream Deck devices supported by DeckSurf.
         /// </summary>
         /// <returns>Enumerable containing a list of supported devices.</returns>
         public static IEnumerable<ConnectedDevice> GetDeviceList()
