@@ -27,12 +27,14 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>$(MSBuildThisFileDirectory)\bin\$(Platform)\$(Configuration)\$(TargetFramework)\DeckSurf.SDK.xml</DocumentationFile>
+    <DocumentationFile>$(MSBuildThisFileDirectory)\bin\$(Configuration)\$(TargetFramework)\DeckSurf.SDK.xml</DocumentationFile>
+    <OutputPath>$(MSBuildThisFileDirectory)\bin\$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>$(MSBuildThisFileDirectory)\bin\$(Platform)\$(Configuration)\$(TargetFramework)\DeckSurf.SDK.xml</DocumentationFile>
+    <DocumentationFile>$(MSBuildThisFileDirectory)\bin\$(Configuration)\$(TargetFramework)\DeckSurf.SDK.xml</DocumentationFile>
+    <OutputPath>$(MSBuildThisFileDirectory)\bin\$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
