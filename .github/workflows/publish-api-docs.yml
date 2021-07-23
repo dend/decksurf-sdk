@@ -52,6 +52,9 @@ jobs:
       run: ${{ github.workspace }}\_docs\scripts\mdoc-import.ps1
     - name: List data
       run: ls ${{ github.workspace }}
+    - name: Show file contents
+      working-directory: ./src/DeckSurf.SDK/bin/Release
+      run: cat frameworks.xml
     - name: Run XML generation
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ${{ github.workspace }}\_mdoc\mdoc.exe update --out _xml -frameworks frameworks.xml
