@@ -37,7 +37,7 @@ jobs:
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ls ${env:GITHUB_WORKSPACE}\_mdoc
     - name: Run mdoc bootstrap
-      working-directory: ./src/DeckSurf.SDK/bin/Release
+      working-directory: ./src/DeckSurf.SDK/bin
       run: ${{ github.workspace }}\_mdoc\mdoc.exe fx-bootstrap Release
     - name: List generated content
       working-directory: ./src/DeckSurf.SDK/bin/Release
