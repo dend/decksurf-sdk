@@ -1,0 +1,37 @@
+name: Publish In-Repo NuGet Package
+
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+  workflow_dispatch:
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Verify commit exists in origin/main
+      run: |
+        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+        git branch --remote --contains | grep origin/main
+    - name: Build
+      working-directory: ./src/DeckSurf.SDK
+      run: dotnet build --configuration Release /p:Version=${VERSION}
+    - name: Test
+      working-directory: ./src/DeckSurf.SDK
+      run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
+    - name: Pack
+      working-directory: ./src/DeckSurf.SDK
+      run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
+    - name: Push
+      working-directory: ./src/DeckSurf.SDK
+      run: dotnet nuget push *.nupkg --source https://nuget.pkg.github.com/dend/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
