@@ -35,7 +35,7 @@ jobs:
       run: ls _mdoc
     - name: List binaries
       working-directory: ./src/DeckSurf.SDK/bin/Release
-      run: $HOME\_mdoc\mdoc.exe fx-bootstrap
+      run: $env:HOME\_mdoc\mdoc.exe fx-bootstrap
     - name: List generated content
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ls
