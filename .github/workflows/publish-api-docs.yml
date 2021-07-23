@@ -25,9 +25,11 @@ jobs:
     - name: Test
       working-directory: ./src/DeckSurf.SDK
       run: dotnet test --configuration Release --no-build
-    - name: Download DocFX
-      run: Invoke-WebRequest https://github.com/dotnet/docfx/releases/download/v2.58/docfx.zip -OutFile docfx.zip
-    - name: Extract DocFX
-      run: Expand-Archive -Path docfx.zip -DestinationPath _docfx
+    - name: Download mdoc
+      run: Invoke-WebRequest https://github.com/mono/api-doc-tools/releases/download/mdoc-5.8.3/mdoc-5.8.3.zip -OutFile mdoc.zip
+    - name: Extract mdoc
+      run: Expand-Archive -Path mdoc.zip -DestinationPath _mdoc
     - name: List folder contents
       run: ls
+    - name: List mdoc folder contents
+      run: ls _mdoc  
