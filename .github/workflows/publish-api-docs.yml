@@ -42,3 +42,9 @@ jobs:
     - name: List generated content
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ls
+    - name: Checkout
+      uses: actions/checkout@v2
+      repository: dend/decksurf-docs
+      path: _docs
+    - name: List data
+      run: ls ${{ github.workspace }}
