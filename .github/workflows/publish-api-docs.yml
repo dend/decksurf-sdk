@@ -44,7 +44,8 @@ jobs:
       run: ls
     - name: Checkout
       uses: actions/checkout@v2
-      repository: dend/decksurf-docs
-      path: _docs
+      with:
+        repository: dend/decksurf-docs
+        path: _docs
     - name: List data
       run: ls ${{ github.workspace }}
