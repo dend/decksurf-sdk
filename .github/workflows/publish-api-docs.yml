@@ -51,6 +51,7 @@ jobs:
       with:
         repository: dend/decksurf-docs
         path: _docs
+        token: ${{ secrets.DOCS_PAT }}
     - name: Run import script
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ${{ github.workspace }}\_docs\scripts\mdoc-import.ps1
