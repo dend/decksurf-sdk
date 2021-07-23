@@ -52,6 +52,8 @@ jobs:
       run: ${{ github.workspace }}\_docs\scripts\mdoc-import.ps1
     - name: List data
       run: ls ${{ github.workspace }}
+    - name: List binary data
+      run: ls ${{ github.workspace }}\src\DeckSurf.SDK\bin\Release
     - name: Show file contents
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: cat frameworks.xml
