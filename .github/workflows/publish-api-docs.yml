@@ -64,3 +64,5 @@ jobs:
     - name: Run XML generation
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ${{ github.workspace }}\_mdoc\mdoc.exe update --debug --out _xml -fx (Resolve-Path frameworks.xml) --use-docid
+    - name: Run YAML generation
+      run: _ecma2yaml\tools\ecma2yaml.exe update -s ${{ github.workspace }}\src\DeckSurf.SDK\bin\Release\_xml -o _ready_yaml
