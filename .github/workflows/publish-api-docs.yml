@@ -57,4 +57,4 @@ jobs:
       run: cat frameworks.xml
     - name: Run XML generation
       working-directory: ./src/DeckSurf.SDK/bin/Release
-      run: ${{ github.workspace }}\_mdoc\mdoc.exe update --out _xml -frameworks frameworks.xml
+      run: ${{ github.workspace }}\_mdoc\mdoc.exe update --debug --out _xml -frameworks frameworks.xml
