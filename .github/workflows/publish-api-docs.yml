@@ -1,0 +1,33 @@
+name: Publish API Documentation
+
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+  workflow_dispatch:
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build
+      working-directory: ./src/DeckSurf.SDK
+      run: dotnet build --configuration Release
+    - name: Test
+      working-directory: ./src/DeckSurf.SDK
+      run: dotnet test --configuration Release --no-build
+    - name: Download DocFX
+      run: Invoke-WebRequest https://github.com/dotnet/docfx/releases/download/v2.58/docfx.zip -OutFile docfx.zip
+    - name: Extract DocFX
+      run: Expand-Archive -Path docfx.zip -DestinationPath _docfx
+    - name: List folder contents
+      run: ls
