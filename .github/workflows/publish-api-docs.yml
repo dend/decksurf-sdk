@@ -27,8 +27,12 @@ jobs:
       run: dotnet test --configuration Release --no-build
     - name: Download mdoc
       run: Invoke-WebRequest https://github.com/mono/api-doc-tools/releases/download/mdoc-5.8.3/mdoc-5.8.3.zip -OutFile mdoc.zip
+    - name: Download ECMA2YAML
+      run: Invoke-WebRequest https://www.nuget.org/api/v2/package/Microsoft.DocAsCode.ECMA2Yaml/1.0.916 -OutFile ecma2yaml.zip
     - name: Extract mdoc
       run: Expand-Archive -Path mdoc.zip -DestinationPath _mdoc
+    - name: Extract ECMA2YAML
+      run: Expand-Archive -Path ecma2yaml.zip -DestinationPath _ecma2yaml
     - name: List folder contents
       run: ls
     - name: List mdoc folder contents
