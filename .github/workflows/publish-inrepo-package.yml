@@ -25,13 +25,13 @@ jobs:
         git branch --remote --contains | grep origin/main
     - name: Build
       working-directory: ./src/DeckSurf.SDK
-      run: dotnet build --configuration Release /p:Version=${VERSION}
+      run: dotnet build --configuration Release
     - name: Test
       working-directory: ./src/DeckSurf.SDK
-      run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
+      run: dotnet test --configuration Release --no-build
     - name: Pack
       working-directory: ./src/DeckSurf.SDK
-      run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
+      run: dotnet pack --configuration Release --no-build --output .
     - name: Push
       working-directory: ./src/DeckSurf.SDK
       run: dotnet nuget push *.nupkg --source https://nuget.pkg.github.com/dend/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
