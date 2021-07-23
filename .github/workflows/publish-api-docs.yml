@@ -34,4 +34,4 @@ jobs:
     - name: List mdoc folder contents
       run: ls _mdoc
     - name: List binaries
-      run: ls src
+      run: ls src\DeckSurf.SDK
