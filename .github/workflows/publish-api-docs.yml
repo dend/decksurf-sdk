@@ -33,6 +33,9 @@ jobs:
       run: ls
     - name: List mdoc folder contents
       run: ls _mdoc
+    - name: List _mdoc from inside binary folder
+      working-directory: ./src/DeckSurf.SDK/bin/Release
+      run: ls ${{ env.GITHUB_WORKSPACE }}\_mdoc
     - name: List binaries
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ${{ env.GITHUB_WORKSPACE }}\_mdoc\mdoc.exe fx-bootstrap
