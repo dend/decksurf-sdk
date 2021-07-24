@@ -9,13 +9,34 @@ namespace DeckSurf.SDK.Core
     /// </summary>
     public static class DeviceConstants
     {
+        /// <summary>
+        /// Number of buttons on a Stream Deck XL.
+        /// </summary>
         public const int XLButtonCount = 32;
+
+        /// <summary>
+        /// Number of buttons on an original Stream Deck.
+        /// </summary>
         public const int OriginalButtonCount = 15;
+
+        /// <summary>
+        /// Number of buttons on a Stream Deck Mini.
+        /// </summary>
         public const int MiniButtonCount = 6;
 
+        /// <summary>
+        /// Universal button size, in pixels, that is used across Stream Deck devices.
+        /// </summary>
         public const int UniversalButtonSize = 72;
+
+        /// <summary>
+        /// Button size, in pixels, for Stream Deck XL.
+        /// </summary>
         public const int XLButtonSize = 96;
 
+        /// <summary>
+        /// Default black background for a Stream Deck XL button (96x96).
+        /// </summary>
         public static readonly byte[] XLDefaultBlackButton = new byte[]
         {
             0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xff, 0xdb, 0x00, 0x43,
@@ -37,6 +58,9 @@ namespace DeckSurf.SDK.Core
             0x00, 0x00, 0x00, 0x00, 0x00, 0x0f, 0xff, 0xd9,
         };
 
+        /// <summary>
+        /// Default white background for a Stream Deck XL button (96x96).
+        /// </summary>
         public static readonly byte[] XLDefaultWhiteButton = new byte[]
         {
             0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xff, 0xdb, 0x00, 0x43,

@@ -43,6 +43,13 @@ namespace DeckSurf.SDK.Core
             return connectedDevices;
         }
 
+        /// <summary>
+        /// Sets the content of a key on a Stream Deck device.
+        /// </summary>
+        /// <param name="device">Instance of a connected Stream Deck device.</param>
+        /// <param name="keyId">Numberic ID of the key that needs to be set.</param>
+        /// <param name="image">Binary content (JPEG) of the image that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
+        /// <returns>True if succesful, false if not.</returns>
         public static bool SetKey(ConnectedDevice device, int keyId, byte[] image)
         {
             var content = image ?? DeviceConstants.XLDefaultBlackButton;
