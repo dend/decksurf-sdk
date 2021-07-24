@@ -67,15 +67,16 @@ jobs:
       run: ${{ github.workspace }}\_mdoc\mdoc.exe update --debug --out _xml -fx (Resolve-Path frameworks.xml) --use-docid
     - name: Run YAML generation
       run: _ecma2yaml\tools\ecma2yaml.exe update -s ${{ github.workspace }}\src\DeckSurf.SDK\bin\Release\_xml -o _ready_yaml
-    - name: Clean old API foles
+    - name: Clean old API files
       run: Remove-Item -recurse ${{ github.workspace }}\_docs\docs\api\* -exclude *.md,.gitignore
     - name: Copy new files
       run: Copy-item -Force -Recurse -Verbose _ready_yaml\* -Destination ${{ github.workspace }}\_docs\docs\api
     - name: Commit and push all the documentation changes
       working-directory: ./_docs
       run: |
+        ls
         git add -A -v
         git config --global user.name 'Den Delimarsky'
         git config --global user.email '1389609+dend@users.noreply.github.com'
-        git commit -m "Feed update."
+        git commit -m "Docs update."
         git push origin main
