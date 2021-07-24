@@ -22,9 +22,6 @@ jobs:
     - name: Build
       working-directory: ./src/DeckSurf.SDK
       run: dotnet build --configuration Release
-    - name: Test
-      working-directory: ./src/DeckSurf.SDK
-      run: dotnet test --configuration Release --no-build
     - name: Download mdoc
       run: Invoke-WebRequest https://github.com/mono/api-doc-tools/releases/download/mdoc-5.8.3/mdoc-5.8.3.zip -OutFile mdoc.zip
     - name: Download ECMA2YAML
@@ -33,35 +30,18 @@ jobs:
       run: Expand-Archive -Path mdoc.zip -DestinationPath _mdoc
     - name: Extract ECMA2YAML
       run: Expand-Archive -Path ecma2yaml.zip -DestinationPath _ecma2yaml
-    - name: List folder contents
-      run: ls
-    - name: List mdoc folder contents
-      run: ls _mdoc
-    - name: List _mdoc from inside binary folder
-      working-directory: ./src/DeckSurf.SDK/bin/Release
-      run: ls ${env:GITHUB_WORKSPACE}\_mdoc
     - name: Run mdoc bootstrap
       working-directory: ./src/DeckSurf.SDK/bin
       run: ${{ github.workspace }}\_mdoc\mdoc.exe fx-bootstrap Release
-    - name: List generated content
-      working-directory: ./src/DeckSurf.SDK/bin/Release
-      run: ls
     - name: Checkout
       uses: actions/checkout@v2
       with:
-        repository: dend/decksurf-docs
-        path: _docs
+        repository: 'dend/decksurf-docs'
+        path: '_docs'
         token: ${{ secrets.DOCS_PAT }}
     - name: Run import script
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ${{ github.workspace }}\_docs\scripts\mdoc-import.ps1
-    - name: List data
-      run: ls ${{ github.workspace }}
-    - name: List binary data
-      run: ls ${{ github.workspace }}\src\DeckSurf.SDK\bin\Release\net5.0
-    - name: Show file contents
-      working-directory: ./src/DeckSurf.SDK/bin/Release
-      run: cat frameworks.xml
     - name: Run XML generation
       working-directory: ./src/DeckSurf.SDK/bin/Release
       run: ${{ github.workspace }}\_mdoc\mdoc.exe update --debug --out _xml -fx (Resolve-Path frameworks.xml) --use-docid
@@ -77,6 +57,8 @@ jobs:
         ls
         echo "-----"
         ls docs/api
+        git status
+        git add .
         git add -A -v
         git config --global user.name 'Den Delimarsky'
         git config --global user.email '1389609+dend@users.noreply.github.com'
