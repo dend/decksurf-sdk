@@ -52,14 +52,8 @@ jobs:
     - name: Copy new files
       run: Copy-item -Force -Recurse -Verbose _ready_yaml\* -Destination ${{ github.workspace }}\_docs\docs\api
     - name: Commit and push all the documentation changes
+      working-directory: _docs
       run: |
-        cd _docs
-        ls
-        echo "-----"
-        ls docs/api
-        git status
-        git remote show origin
-        git add .
         git add -A -v
         git config --global user.name 'Den Delimarsky'
         git config --global user.email '1389609+dend@users.noreply.github.com'
