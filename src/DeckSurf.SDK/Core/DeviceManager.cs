@@ -94,6 +94,11 @@ namespace DeckSurf.SDK.Core
             }
         }
 
+        /// <summary>
+        /// Gets a connected Stream Deck device based on a pre-defined configuration profiles.
+        /// </summary>
+        /// <param name="profile">An instance representing the pre-defined configuration profile.</param>
+        /// <returns>If the call is successful, returns a Stream Deck device.</returns>
         public static ConnectedDevice SetupDevice(ConfigurationProfile profile)
         {
             try
@@ -118,7 +123,23 @@ namespace DeckSurf.SDK.Core
             }
         }
 
-        public static void SetupDeviceButtonMap(ConnectedDevice device, IEnumerable<CommandMapping> buttonMap)
+        /// <summary>
+        /// Determines whether a given vendor ID (VID) and product ID (PID) are supported by the SDK. VID and PID should be representing a Stream Deck device.
+        /// </summary>
+        /// <param name="vid">Device VID.</param>
+        /// <param name="pid">Device PID.</param>
+        /// <returns>True if device is supported, false if not.</returns>
+        public static bool IsSupported(int vid, int pid)
+        {
+            if (vid == SupportedVid && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void SetupDeviceButtonMap(ConnectedDevice device, IEnumerable<CommandMapping> buttonMap)
         {
             foreach (var button in buttonMap)
             {
@@ -133,16 +154,5 @@ namespace DeckSurf.SDK.Core
                 }
             }
         }
-
-        public static bool IsSupported(int vid, int pid)
-        {
-            if (vid == SupportedVid && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
     }
 }
