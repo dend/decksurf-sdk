@@ -58,6 +58,7 @@ jobs:
         echo "-----"
         ls docs/api
         git status
+        git remote show origin
         git add .
         git add -A -v
         git config --global user.name 'Den Delimarsky'
