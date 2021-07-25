@@ -13,8 +13,15 @@ namespace DeckSurf.SDK.Interfaces
     /// </summary>
     public interface IDSPlugin
     {
+        /// <summary>
+        /// Gets non-functional information about the plugin.
+        /// </summary>
         public PluginMetadata Metadata { get; }
 
+        /// <summary>
+        /// Provides a list of commands that the plugin exposes.
+        /// </summary>
+        /// <returns>List of managed types that represent <see cref="DeckSurf.SDK.Interfaces.IDSCommand"/> implementations.</returns>
         public List<Type> GetSupportedCommands();
     }
 }
