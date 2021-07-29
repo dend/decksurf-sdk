@@ -73,7 +73,7 @@ namespace DeckSurf.SDK.Models
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
         }
 
-        public DeviceStream Open()
+        public HidStream Open()
         {
             return this.UnderlyingDevice.Open();
         }
@@ -104,23 +104,22 @@ namespace DeckSurf.SDK.Models
             }
         }
 
-        public void Sleep()
+        public void SetBrightness(byte percentage)
         {
-            var reports = UnderlyingDevice.GetReportDescriptor();
-            var featureReports = from f in reports.FeatureReports where f.ReportID == 3 select f;
 
-            var desiredFeatureReport = featureReports.FirstOrDefault();
+            if (percentage > 100)
+            {
+                percentage = 100;
+            }
 
             var sleepRequest = new byte[]
             {
-                0x03, 0x08, 0x03, 0x9d, 0xc3, 0x02, 0x00, 0x00, 0x21, 0x5d, 0xa6, 0x10, 0xfc, 0x7f, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0xe8, 0x09, 0x9f, 0xc3, 0x02, 0x00, 0x00,
+                0x03, 0x08, percentage, 0x9d, 0xc3, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             };
 
-            using (var stream = UnderlyingDevice.Open())
-            {
-                stream.SetFeature(sleepRequest);
-            }
+            using var stream = this.Open();
+            stream.SetFeature(sleepRequest);
         }
 
         public void SetupDeviceButtonMap(IEnumerable<CommandMapping> buttonMap)
