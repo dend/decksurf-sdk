@@ -2,11 +2,15 @@ name: Publish In-Repo NuGet Package
 
 on:
   push:
+    branches:
+      - main
     paths-ignore:
       - '**/*.md'
       - '**/*.gitignore'
       - '**/*.gitattributes'
   workflow_dispatch:
+    branches:
+      - main
     paths-ignore:
       - '**/*.md'
       - '**/*.gitignore'
