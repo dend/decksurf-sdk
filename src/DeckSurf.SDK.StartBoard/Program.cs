@@ -21,7 +21,7 @@ namespace DeckSurf.SDK.StartBoard
             //byte[] testImage = File.ReadAllBytes("G:\\run.jpg");
             //var image = ImageHelpers.ResizeImage(testImage, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
             //device.SetKey(1, image);
-            device.SetBrightness(12);
+            device.SetBrightness(29);
 
             Console.WriteLine("Done");
             exitSignal.WaitOne();

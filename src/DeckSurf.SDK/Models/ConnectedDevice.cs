@@ -10,10 +10,12 @@ using System.Threading;
 using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Util;
 using HidSharp;
-using HidSharp.Reports;
 
 namespace DeckSurf.SDK.Models
 {
+    /// <summary>
+    /// Abstract class representing a connected Stream Deck device. Use specific implementations for a given connected model.
+    /// </summary>
     public abstract class ConnectedDevice
     {
         private const int ButtonPressHeaderOffset = 4;
@@ -24,10 +26,21 @@ namespace DeckSurf.SDK.Models
 
         private byte[] keyPressBuffer = new byte[1024];
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectedDevice"/> class.
+        /// </summary>
         public ConnectedDevice()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectedDevice"/> class with given device parameters.
+        /// </summary>
+        /// <param name="vid">Vendor ID.</param>
+        /// <param name="pid">Product ID.</param>
+        /// <param name="path">Path to the USB HID device.</param>
+        /// <param name="name">Name of the USB HID device.</param>
+        /// <param name="model">Stream Deck model.</param>
         public ConnectedDevice(int vid, int pid, string path, string name, DeviceModel model)
         {
             this.VId = vid;
@@ -46,26 +59,55 @@ namespace DeckSurf.SDK.Models
             };
         }
 
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck button presses.
+        /// </summary>
+        /// <param name="source">The device where the button was pressed.</param>
+        /// <param name="e">Information on the button press.</param>
         public delegate void ReceivedButtonPressHandler(object source, ButtonPressEventArgs e);
 
+        /// <summary>
+        /// Button press event handler.
+        /// </summary>
         public event ReceivedButtonPressHandler OnButtonPress;
 
-        public int VId { get; set; }
+        /// <summary>
+        /// Gets the vendor ID.
+        /// </summary>
+        public int VId { get; private set; }
 
-        public int PId { get; set; }
+        /// <summary>
+        /// Gets the product ID.
+        /// </summary>
+        public int PId { get; private set; }
 
-        public string Path { get; set; }
+        /// <summary>
+        /// Gets the USB HID device path.
+        /// </summary>
+        public string Path { get; private set; }
 
-        public string Name { get; set; }
+        /// <summary>
+        /// Gets the USB HID device name.
+        /// </summary>
+        public string Name { get; private set; }
 
-        public DeviceModel Model { get; set; }
+        /// <summary>
+        /// Gets the Stream Deck device model.
+        /// </summary>
+        public DeviceModel Model { get; private set; }
 
+        /// <summary>
+        /// Gets the number of buttons on the connected Stream Deck device.
+        /// </summary>
         public int ButtonCount { get; }
 
         private HidDevice UnderlyingDevice { get; }
 
         private HidStream UnderlyingInputStream { get; set; }
 
+        /// <summary>
+        /// Initialize the device and start reading the input stream.
+        /// </summary>
         public void InitializeDevice()
         {
             this.UnderlyingInputStream = this.UnderlyingDevice.Open();
@@ -73,40 +115,34 @@ namespace DeckSurf.SDK.Models
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
         }
 
+        /// <summary>
+        /// Open the underlying Stream Deck device.
+        /// </summary>
+        /// <returns>HID stream that can be read or written to.</returns>
         public HidStream Open()
         {
             return this.UnderlyingDevice.Open();
         }
 
-        private void KeyPressCallback(IAsyncResult result)
-        {
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
-
-            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, ButtonPressHeaderOffset, ButtonCount).ToArray();
-            var pressedButton = Array.IndexOf(buttonData, (byte)1);
-            var buttonKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
-
-            if (this.OnButtonPress != null)
-            {
-                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, buttonKind));
-            }
-
-            Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
-
-            this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
-        }
-
+        /// <summary>
+        /// Clear the contents of the Stream Deck buttons.
+        /// </summary>
         public void ClearPanel()
         {
             for (int i = 0; i < this.ButtonCount; i++)
             {
+                // TODO: Need to replace this with device-specific logic
+                // since not every device is 96x96.
                 this.SetKey(i, DeviceConstants.XLDefaultBlackButton);
             }
         }
 
+        /// <summary>
+        /// Sets the brightness of the Stream Deck device display.
+        /// </summary>
+        /// <param name="percentage">Percentage, from 0 to 100, to which brightness should be set. Any values larger than 100 will be set to 100.</param>
         public void SetBrightness(byte percentage)
         {
-
             if (percentage > 100)
             {
                 percentage = 100;
@@ -114,7 +150,7 @@ namespace DeckSurf.SDK.Models
 
             var sleepRequest = new byte[]
             {
-                0x03, 0x08, percentage, 0x9d, 0xc3, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x03, 0x08, percentage, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             };
 
@@ -122,6 +158,10 @@ namespace DeckSurf.SDK.Models
             stream.SetFeature(sleepRequest);
         }
 
+        /// <summary>
+        /// Sets up the button mapping to associated plugins.
+        /// </summary>
+        /// <param name="buttonMap">List of mappings, usually loaded from a configuration file.</param>
         public void SetupDeviceButtonMap(IEnumerable<CommandMapping> buttonMap)
         {
             foreach (var button in buttonMap)
@@ -131,6 +171,8 @@ namespace DeckSurf.SDK.Models
                     if (File.Exists(button.ButtonImagePath))
                     {
                         byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
+
+                        // TODO: Need to make sure that I am using device-agnostic button sizes.
                         imageBuffer = ImageHelpers.ResizeImage(imageBuffer, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
                         this.SetKey(button.ButtonIndex, imageBuffer);
                     }
@@ -142,7 +184,6 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Sets the content of a key on a Stream Deck device.
         /// </summary>
-        /// <param name="device">Instance of a connected Stream Deck device.</param>
         /// <param name="keyId">Numberic ID of the key that needs to be set.</param>
         /// <param name="image">Binary content (JPEG) of the image that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
         /// <returns>True if succesful, false if not.</returns>
@@ -182,6 +223,24 @@ namespace DeckSurf.SDK.Models
             }
 
             return true;
+        }
+
+        private void KeyPressCallback(IAsyncResult result)
+        {
+            int bytesRead = this.UnderlyingInputStream.EndRead(result);
+
+            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, ButtonPressHeaderOffset, ButtonCount).ToArray();
+            var pressedButton = Array.IndexOf(buttonData, (byte)1);
+            var buttonKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
+
+            if (this.OnButtonPress != null)
+            {
+                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, buttonKind));
+            }
+
+            Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
+
+            this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
         }
     }
 }
