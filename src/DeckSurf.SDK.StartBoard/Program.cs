@@ -1,7 +1,9 @@
 ﻿using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Models;
+using DeckSurf.SDK.Util;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 namespace DeckSurf.SDK.StartBoard
@@ -18,10 +20,11 @@ namespace DeckSurf.SDK.StartBoard
             //device.OnButtonPress += Device_OnButtonPress;
             //device.InitializeDevice();
 
-            //byte[] testImage = File.ReadAllBytes("G:\\run.jpg");
-            //var image = ImageHelpers.ResizeImage(testImage, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
-            //device.SetKey(1, image);
-            device.SetBrightness(29);
+            byte[] testImage = File.ReadAllBytes("G:\\run.jpg");
+            var image = ImageHelpers.ResizeImage(testImage, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
+            device.SetKey(1, image);
+            //device.SetBrightness(29);
+            //device.ClearPanel();
 
             Console.WriteLine("Done");
             exitSignal.WaitOne();

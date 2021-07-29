@@ -202,6 +202,9 @@ namespace DeckSurf.SDK.Models
                     var bytesSent = iteration * ImageReportPayloadLength;
 
                     byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
+
+                    // These components are nothing else but UInt16 low-endian
+                    // representations of the length of the image payload, and iteration.
                     var bitmaskedLength = (byte)(sliceLength & 0xFF);
                     var shiftedLength = (byte)(sliceLength >> ImageReportHeaderLength);
                     var bitmaskedIteration = (byte)(iteration & 0xFF);
