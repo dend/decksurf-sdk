@@ -148,14 +148,14 @@ namespace DeckSurf.SDK.Models
                 percentage = 100;
             }
 
-            var sleepRequest = new byte[]
+            var brightnessRequest = new byte[]
             {
                 0x03, 0x08, percentage, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             };
 
             using var stream = this.Open();
-            stream.SetFeature(sleepRequest);
+            stream.SetFeature(brightnessRequest);
         }
 
         /// <summary>
