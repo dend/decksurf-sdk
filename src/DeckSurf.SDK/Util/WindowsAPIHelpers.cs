@@ -6,6 +6,7 @@ namespace DeckSurf.SDK.Util
 {
     internal class WindowsAPIHelpers
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.NamingRules", "SA1310:Field names should not contain underscore", Justification = "Following standard Windows API name.")]
         internal const string IID_IShellItem2 = "7E9FB0D3-919F-4307-AB2E-9B1860310C93";
 
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]

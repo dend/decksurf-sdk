@@ -3,20 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using DeckSurf.SDK.Interfaces;
 using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.Util
 {
+    /// <summary>
+    /// Collection of methods used for image manipulation, allowing easier Stream Deck button image preparation.
+    /// </summary>
     public class ImageHelpers
     {
+        /// <summary>
+        /// Resize an image buffer to the expected size, in pixels.
+        /// </summary>
+        /// <param name="buffer">Byte array containing the image.</param>
+        /// <param name="width">Target width, in pixels.</param>
+        /// <param name="height">Target height, in pixels.</param>
+        /// <returns>Byte array representing the resized image.</returns>
         public static byte[] ResizeImage(byte[] buffer, int width, int height)
         {
             Image currentImage = GetImage(buffer);
@@ -46,6 +53,11 @@ namespace DeckSurf.SDK.Util
             return bufferStream.ToArray();
         }
 
+        /// <summary>
+        /// Converts a byte array to an Image object.
+        /// </summary>
+        /// <param name="buffer">Byte array containing the image.</param>
+        /// <returns>Image object, generated from a given byte array.</returns>
         public static Image GetImage(byte[] buffer)
         {
             Image image = null;
@@ -57,6 +69,11 @@ namespace DeckSurf.SDK.Util
             return image;
         }
 
+        /// <summary>
+        /// Converts an Image object to a byte array.
+        /// </summary>
+        /// <param name="image">Image object containing the image.</param>
+        /// <returns>Byte array, generated from an Image object.</returns>
         public static byte[] GetImageBuffer(Image image)
         {
             ImageConverter converter = new();
@@ -64,6 +81,11 @@ namespace DeckSurf.SDK.Util
             return buffer;
         }
 
+        /// <summary>
+        /// Converts an Icon object to a byte array.
+        /// </summary>
+        /// <param name="icon">Icon object containing the image.</param>
+        /// <returns>Byte array, generated from an Icon object.</returns>
         public static byte[] GetImageBuffer(Icon icon)
         {
             using MemoryStream stream = new();
@@ -71,6 +93,14 @@ namespace DeckSurf.SDK.Util
             return stream.ToArray();
         }
 
+        /// <summary>
+        /// Gets the Windows icon for a given file.
+        /// </summary>
+        /// <param name="fileName">Path to the file.</param>
+        /// <param name="width">Desired icon width.</param>
+        /// <param name="height">Desired icon height.</param>
+        /// <param name="options">Icon extraction flags, represented by a standard Windows API <see cref="SIIGBF"/> enum.</param>
+        /// <returns>Bitmap object containing the file icon.</returns>
         public static Bitmap GetFileIcon(string fileName, int width, int height, SIIGBF options)
         {
             IntPtr hBitmap = GetBitmapPointer(fileName, width, height, options);
