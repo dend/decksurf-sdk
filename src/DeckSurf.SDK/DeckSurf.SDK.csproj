@@ -24,6 +24,8 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <AssemblyVersion>0.0.2.0</AssemblyVersion>
     <FileVersion>0.0.2.0</FileVersion>
+    <Description>Open-source package to manager your Stream Deck device from a .NET project.</Description>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
