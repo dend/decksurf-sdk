@@ -7,16 +7,28 @@ using System.Text.Json.Serialization;
 
 namespace DeckSurf.SDK.Models
 {
+    /// <summary>
+    /// Configuration profile that represents the mapping of buttons on a Stream Deck device to plugins and commands.
+    /// </summary>
     public class ConfigurationProfile
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConfigurationProfile"/> class.
+        /// </summary>
         public ConfigurationProfile()
         {
             this.ButtonMap = new List<CommandMapping>();
         }
 
+        /// <summary>
+        /// Gets or sets the zero-based index for the device the configuration profile is associated with.
+        /// </summary>
         [JsonPropertyName("device_index")]
         public int DeviceIndex { get; set; }
 
+        /// <summary>
+        /// Gets or sets the mapping between buttons and the commands they trigger.
+        /// </summary>
         [JsonPropertyName("button_map")]
         public List<CommandMapping> ButtonMap { get; set; }
     }

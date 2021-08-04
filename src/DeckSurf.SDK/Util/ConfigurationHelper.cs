@@ -9,16 +9,29 @@ using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.Util
 {
+    /// <summary>
+    /// Class that is used to manage DeckSurf configuration files.
+    /// </summary>
     public class ConfigurationHelper
     {
         private const string ProfileFileName = "profile.json";
 
+        /// <summary>
+        /// Returns the fully qualified path to a given DeckSurf configuration profile.
+        /// </summary>
+        /// <param name="name">Name of the profile.</param>
+        /// <returns>Fully qualified path to the profile JSON file.</returns>
         public static string GetProfilePath(string name)
         {
             var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             return Path.Combine(new string[] { localAppDataPath, "DenDev", "Deck.Surf", "Profiles", name, ProfileFileName});
         }
 
+        /// <summary>
+        /// Gets the profile object for a given profile name.
+        /// </summary>
+        /// <param name="profile">Name of the profile.</param>
+        /// <returns>Object representing the DeckSurf configuration profile.</returns>
         public static ConfigurationProfile GetProfile(string profile)
         {
             try
@@ -37,6 +50,13 @@ namespace DeckSurf.SDK.Util
             }
         }
 
+        /// <summary>
+        /// Stores the DeckSurf configuration profile.
+        /// </summary>
+        /// <param name="profile">Name of the profile.</param>
+        /// <param name="deviceIndex">Zero-based index of the Stream Deck device associated with a profile.</param>
+        /// <param name="mapping">Object representing buttons mapped to plugins and commands.</param>
+        /// <returns>Object representing the DeckSurf configuration profile.</returns>
         public static ConfigurationProfile WriteToConfiguration(string profile, int deviceIndex, CommandMapping mapping)
         {
             try

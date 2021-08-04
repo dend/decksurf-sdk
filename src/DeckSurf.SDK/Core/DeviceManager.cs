@@ -2,13 +2,12 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using DeckSurf.SDK.Models;
+using DeckSurf.SDK.Models.Devices;
+using HidSharp;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using DeckSurf.SDK.Models;
-using DeckSurf.SDK.Util;
-using HidSharp;
 
 namespace DeckSurf.SDK.Core
 {
@@ -18,9 +17,6 @@ namespace DeckSurf.SDK.Core
     public class DeviceManager
     {
         private static readonly int SupportedVid = 4057;
-        private static readonly int ImageReportLength = 1024;
-        private static readonly int ImageReportHeaderLength = 8;
-        private static readonly int ImageReportPayloadLength = ImageReportLength - ImageReportHeaderLength;
 
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
@@ -36,62 +32,27 @@ namespace DeckSurf.SDK.Core
                 bool supported = IsSupported(device.VendorID, device.ProductID);
                 if (supported)
                 {
-                    connectedDevices.Add(new ConnectedDevice(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), (DeviceModel)device.ProductID));
+                    switch ((DeviceModel)device.ProductID)
+                    {
+                        case DeviceModel.XL:
+                            {
+                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), (DeviceModel)device.ProductID));
+                                break;
+                            }
+
+                        case DeviceModel.MINI:
+                        case DeviceModel.ORIGINAL:
+                        case DeviceModel.ORIGINAL_V2:
+                        default:
+                            {
+                                // Haven't yet implemented support for other Stream Deck device classes.
+                                break;
+                            }
+                    }
                 }
             }
 
             return connectedDevices;
-        }
-
-        /// <summary>
-        /// Sets the content of a key on a Stream Deck device.
-        /// </summary>
-        /// <param name="device">Instance of a connected Stream Deck device.</param>
-        /// <param name="keyId">Numberic ID of the key that needs to be set.</param>
-        /// <param name="image">Binary content (JPEG) of the image that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
-        /// <returns>True if succesful, false if not.</returns>
-        public static bool SetKey(ConnectedDevice device, int keyId, byte[] image)
-        {
-            var content = image ?? DeviceConstants.XLDefaultBlackButton;
-
-            if (device != null)
-            {
-                var iteration = 0;
-                var remainingBytes = content.Length;
-
-                using (var stream = device.Open())
-                {
-                    while (remainingBytes > 0)
-                    {
-                        var sliceLength = Math.Min(remainingBytes, ImageReportPayloadLength);
-                        var bytesSent = iteration * ImageReportPayloadLength;
-
-                        byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
-                        var bitmaskedLength = (byte)(sliceLength & 0xFF);
-                        var shiftedLength = (byte)(sliceLength >> ImageReportHeaderLength);
-                        var bitmaskedIteration = (byte)(iteration & 0xFF);
-                        var shiftedIteration = (byte)(iteration >> ImageReportHeaderLength);
-
-                        // TODO: This is different for different device classes, so I will need
-                        // to make sure that I adjust the header format.
-                        byte[] header = new byte[] { 0x02, 0x07, (byte)keyId, finalizer, bitmaskedLength, shiftedLength, bitmaskedIteration, shiftedIteration };
-                        var payload = header.Concat(new ArraySegment<byte>(content, bytesSent, sliceLength)).ToArray();
-                        var padding = new byte[ImageReportLength - payload.Length];
-
-                        var finalPayload = payload.Concat(padding).ToArray();
-                        stream.Write(finalPayload);
-
-                        remainingBytes -= sliceLength;
-                        iteration++;
-                    }
-                }
-
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
 
         /// <summary>
@@ -109,7 +70,7 @@ namespace DeckSurf.SDK.Core
                     profile.DeviceIndex <= devices.Count() - 1)
                 {
                     var targetDevice = devices.ElementAt(profile.DeviceIndex);
-                    SetupDeviceButtonMap(targetDevice, profile.ButtonMap);
+                    targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
                     return targetDevice;
                 }
                 else
@@ -137,22 +98,6 @@ namespace DeckSurf.SDK.Core
             }
 
             return false;
-        }
-
-        private static void SetupDeviceButtonMap(ConnectedDevice device, IEnumerable<CommandMapping> buttonMap)
-        {
-            foreach (var button in buttonMap)
-            {
-                if (button.ButtonIndex <= device.ButtonCount - 1)
-                {
-                    if (File.Exists(button.ButtonImagePath))
-                    {
-                        byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
-                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
-                        SetKey(device, button.ButtonIndex, imageBuffer);
-                    }
-                }
-            }
         }
     }
 }
