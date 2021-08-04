@@ -8,7 +8,7 @@ namespace DeckSurf.SDK.Models
     /// Refer to <see href="https://docs.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-ishellitemimagefactory-getimage">Microsoft documentation</see> on the enum.
     /// </summary>
     [Flags]
-    public enum SIIGBF
+    internal enum SIIGBF
     {
         /// <summary>
         /// Shrink the bitmap as necessary to fit, preserving its aspect ratio.
