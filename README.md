@@ -1,15 +1,10 @@
-<div align="center">
-	<img alt="Piglet icon" src="images/logo.png" width="200" height="200" />
-	<h1>🌊 DeckSurf SDK</h1>
-	<p>
-		<b>Unofficial Software Development Kit for your Stream Deck.</b>
-	</p>
-	<br>
-	<br>
-	<br>
-</div>
+![](images/logo.png)
 
-For the DeckSurf tooling (_CLI and plugins_), refer to the [DeckSurf repository](https://github.com/dend/DeckSurf).
+# 🌊 DeckSurf SDK
+
+Unofficial Software Development Kit for your Stream Deck. For the DeckSurf tooling (_CLI and plugins_), refer to the [DeckSurf repository](https://github.com/dend/DeckSurf).
+
+[![Publish API Documentation](https://github.com/dend/decksurf-sdk/actions/workflows/publish-api-docs.yml/badge.svg)](https://github.com/dend/decksurf-sdk/actions/workflows/publish-api-docs.yml) | [![Publish In-Repo NuGet Package](https://github.com/dend/decksurf-sdk/actions/workflows/publish-inrepo-package.yml/badge.svg)](https://github.com/dend/decksurf-sdk/actions/workflows/publish-inrepo-package.yml) | [![Publish NuGet Package](https://github.com/dend/decksurf-sdk/actions/workflows/publish-package.yml/badge.svg)](https://github.com/dend/decksurf-sdk/actions/workflows/publish-package.yml)
 
 ## About
 
