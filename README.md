@@ -1,4 +1,4 @@
-![DeckSurf logo](images/logo.png)
+![DeckSurf logo](images/decksurf-logo.png)
 
 # 🌊 DeckSurf SDK
 
