@@ -8,6 +8,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.Util
@@ -178,6 +179,30 @@ namespace DeckSurf.SDK.Util
             }
 
             throw Marshal.GetExceptionForHR((int)hr);
+        }
+
+        public static void GetDeviceIconSizes(DeviceModel device, out int width, out int height, out int emSize)
+        {
+            if (device == DeviceModel.ORIGINAL_V2)
+            {
+                width = DeviceConstants.UniversalButtonSize;
+                height = DeviceConstants.UniversalButtonSize;
+                emSize = 72;
+            }
+
+            if (device == DeviceModel.XL)
+            {
+                width = DeviceConstants.XLButtonSize;
+                height = DeviceConstants.XLButtonSize;
+                emSize = 94;
+            }
+
+            else
+            {
+                width = DeviceConstants.UniversalButtonSize;
+                height = DeviceConstants.UniversalButtonSize;
+                emSize = 72;
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ namespace DeckSurf.SDK.Core
     public class DeviceManager
     {
         private static readonly int SupportedVid = 4057;
+        private static readonly int SupportedVidOriginalV2 = 6940;
 
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
@@ -43,6 +44,11 @@ namespace DeckSurf.SDK.Core
                         case DeviceModel.MINI:
                         case DeviceModel.ORIGINAL:
                         case DeviceModel.ORIGINAL_V2:
+                            {
+                                connectedDevices.Add(new StreamDeckV2(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), (DeviceModel)device.ProductID));
+                                break;
+                            }
+
                         default:
                             {
                                 // Haven't yet implemented support for other Stream Deck device classes.
@@ -93,6 +99,11 @@ namespace DeckSurf.SDK.Core
         public static bool IsSupported(int vid, int pid)
         {
             if (vid == SupportedVid && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
+            {
+                return true;
+            }
+
+            if (vid == SupportedVidOriginalV2 && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
             {
                 return true;
             }
