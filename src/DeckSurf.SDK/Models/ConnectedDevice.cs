@@ -172,8 +172,8 @@ namespace DeckSurf.SDK.Models
                     {
                         byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
 
-                        // TODO: Need to make sure that I am using device-agnostic button sizes.
-                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
+                        ImageHelpers.GetDeviceIconSizes(Model, out var width, out var height, out var emSize);
+                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, width, height);
                         this.SetKey(button.ButtonIndex, imageBuffer);
                     }
                 }
