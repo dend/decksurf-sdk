@@ -164,6 +164,15 @@ namespace DeckSurf.SDK.Models
         /// <param name="buttonMap">List of mappings, usually loaded from a configuration file.</param>
         public void SetupDeviceButtonMap(IEnumerable<CommandMapping> buttonMap)
         {
+            for (int i = 0; i < this.ButtonCount - 1; i++)
+            {
+                byte[] imageBuffer = DeviceConstants.XLDefaultBlackButton;
+
+                ImageHelpers.GetDeviceIconSizes(Model, out var width, out var height, out var emSize);
+                imageBuffer = ImageHelpers.ResizeImage(imageBuffer, width, height);
+                this.SetKey(i, imageBuffer);
+            }
+
             foreach (var button in buttonMap)
             {
                 if (button.ButtonIndex <= this.ButtonCount - 1)
@@ -172,8 +181,8 @@ namespace DeckSurf.SDK.Models
                     {
                         byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
 
-                        // TODO: Need to make sure that I am using device-agnostic button sizes.
-                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
+                        ImageHelpers.GetDeviceIconSizes(Model, out var width, out var height, out var emSize);
+                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, width, height);
                         this.SetKey(button.ButtonIndex, imageBuffer);
                     }
                 }
