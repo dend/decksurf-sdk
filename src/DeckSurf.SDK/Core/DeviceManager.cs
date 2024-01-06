@@ -76,6 +76,7 @@ namespace DeckSurf.SDK.Core
                     profile.DeviceIndex <= devices.Count() - 1)
                 {
                     var targetDevice = devices.ElementAt(profile.DeviceIndex);
+                    targetDevice.SetBrightness(50);
                     targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
                     return targetDevice;
                 }
