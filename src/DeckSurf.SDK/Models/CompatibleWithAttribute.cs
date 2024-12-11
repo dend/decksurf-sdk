@@ -9,21 +9,17 @@ namespace DeckSurf.SDK.Models
     /// <summary>
     /// Attribute that determines the class of Stream Deck devices that a plugin is compatible with.
     /// </summary>
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="CompatibleWithAttribute"/> class.
+    /// </remarks>
+    /// <param name="model">Reference to the <see cref="DeviceModel"/> device model type.</param>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
-    public class CompatibleWithAttribute : Attribute
+    public class CompatibleWithAttribute(DeviceModel model) : Attribute
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CompatibleWithAttribute"/> class.
-        /// </summary>
-        /// <param name="model">Reference to the <see cref="DeviceModel"/> device model type.</param>
-        public CompatibleWithAttribute(DeviceModel model)
-        {
-            this.CompatibleModel = model;
-        }
 
         /// <summary>
         /// Gets or sets the <see cref="DeviceModel"/> device model type.
         /// </summary>
-        public DeviceModel CompatibleModel { get; set; }
+        public DeviceModel CompatibleModel { get; set; } = model;
     }
 }

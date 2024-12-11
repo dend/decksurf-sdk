@@ -9,7 +9,14 @@ namespace DeckSurf.SDK.Models
     /// </summary>
     public enum ButtonEventKind
     {
+        /// <summary>
+        /// Button is pressed.
+        /// </summary>
         DOWN = 0,
+
+        /// <summary>
+        /// Button is released.
+        /// </summary>
         UP = 1,
     }
 }

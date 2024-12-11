@@ -54,6 +54,7 @@ namespace DeckSurf.SDK.Models
             {
                 DeviceModel.XL => DeviceConstants.XLButtonCount,
                 DeviceModel.MINI => DeviceConstants.MiniButtonCount,
+                DeviceModel.PLUS => DeviceConstants.PlusButtonCount,
                 DeviceModel.ORIGINAL or DeviceModel.ORIGINAL_V2 => DeviceConstants.OriginalButtonCount,
                 _ => 0,
             };
@@ -179,7 +180,6 @@ namespace DeckSurf.SDK.Models
                 }
             }
         }
-
 
         /// <summary>
         /// Sets the content of a key on a Stream Deck device.

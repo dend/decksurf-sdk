@@ -4,12 +4,9 @@
 
 namespace DeckSurf.SDK.Models.Devices
 {
-    /// <summary>
-    /// Implementation for a Stream Deck XL connected device.
-    /// </summary>
-    public class StreamDeckXL : ConnectedDevice
+    internal class StreamDeckPlus : ConnectedDevice
     {
-        public StreamDeckXL(int vid, int pid, string path, string name, DeviceModel model)
+        public StreamDeckPlus(int vid, int pid, string path, string name, DeviceModel model)
             : base(vid, pid, path, name, model)
         {
         }

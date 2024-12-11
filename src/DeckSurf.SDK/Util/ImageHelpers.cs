@@ -29,11 +29,11 @@ namespace DeckSurf.SDK.Util
             Image currentImage = GetImage(buffer);
 
             var targetRectangle = new Rectangle(0, 0, width, height);
-            var targetImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+            Bitmap targetImage = new(width, height, PixelFormat.Format24bppRgb);
 
             targetImage.SetResolution(currentImage.HorizontalResolution, currentImage.VerticalResolution);
 
-            using (var graphics = Graphics.FromImage(targetImage))
+            using (Graphics graphics = Graphics.FromImage(targetImage))
             {
                 graphics.CompositingMode = CompositingMode.SourceCopy;
                 graphics.CompositingQuality = CompositingQuality.HighQuality;

@@ -17,7 +17,7 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         public ConfigurationProfile()
         {
-            this.ButtonMap = new List<CommandMapping>();
+            this.ButtonMap = [];
         }
 
         /// <summary>
