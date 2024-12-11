@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Platforms>x64</Platforms>
     <Company>Den Delimarsky</Company>
     <Authors>Den Delimarsky</Authors>
