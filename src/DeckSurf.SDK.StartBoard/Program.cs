@@ -31,7 +31,7 @@ namespace DeckSurf.SDK.StartBoard
 
             // Path here is obtained from the first argument.
             byte[] testImage = File.ReadAllBytes(args[0]);
-            var image = ImageHelpers.ResizeImage(testImage, DeviceConstants.PlusButtonSize, DeviceConstants.PlusButtonSize);
+            var image = ImageHelpers.ResizeImage(testImage, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
             device.SetKey(1, image);
             //device.SetBrightness(29);
             //device.ClearPanel();
