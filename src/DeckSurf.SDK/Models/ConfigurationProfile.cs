@@ -27,6 +27,12 @@ namespace DeckSurf.SDK.Models
         public int DeviceIndex { get; set; }
 
         /// <summary>
+        /// Gets or sets the device model associated with the configuration profile.
+        /// </summary>
+        [JsonPropertyName("device_model")]
+        public DeviceModel DeviceModel { get; set; }
+
+        /// <summary>
         /// Gets or sets the mapping between buttons and the commands they trigger.
         /// </summary>
         [JsonPropertyName("button_map")]

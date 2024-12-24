@@ -20,5 +20,22 @@ namespace DeckSurf.SDK.Util
         {
             return BitConverter.ToString(data);
         }
+
+        /// <summary>
+        /// Converts an unsigned integer into a byte array representation that can be used
+        /// in packet payloads. Contains the Little Endian representation.
+        /// </summary>
+        /// <param name="value">Value to be converted.</param>
+        /// <returns>An array of <see cref="byte"/> that represents the Little Endian representation.</returns>
+        public static byte[] ToLittleEndianBytes(uint value)
+        {
+            // Mask out the least significant 16 bits and convert to little-endian
+            byte[] littleEndianBytes =
+            [
+                (byte)(value & 0xFF),         // Least significant byte
+                (byte)((value >> 8) & 0xFF),  // Second byte
+            ];
+            return littleEndianBytes;
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace DeckSurf.SDK.Util
         /// <param name="width">Target width, in pixels.</param>
         /// <param name="height">Target height, in pixels.</param>
         /// <returns>Byte array representing the resized image.</returns>
-        public static byte[] ResizeImage(byte[] buffer, int width, int height)
+        public static byte[] ResizeImage(byte[] buffer, int width, int height, bool flip)
         {
             Image currentImage = GetImage(buffer);
 
@@ -46,7 +46,10 @@ namespace DeckSurf.SDK.Util
 
             // TODO: I am not sure if every image needs to be rotated, but
             // in my limited experiments, this seems to be the case.
-            targetImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+            if (flip)
+            {
+                targetImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+            }
 
             using var bufferStream = new MemoryStream();
             targetImage.Save(bufferStream, ImageFormat.Jpeg);
@@ -178,6 +181,16 @@ namespace DeckSurf.SDK.Util
             }
 
             throw Marshal.GetExceptionForHR((int)hr);
+        }
+
+        public static byte[] CreateBlankImage(int width, int height)
+        {
+            using var image = new Bitmap(width, height);
+            using var graphics = Graphics.FromImage(image);
+            graphics.Clear(Color.Black);
+            using MemoryStream ms = new MemoryStream();
+            image.Save(ms, ImageFormat.Jpeg);
+            return ms.ToArray();
         }
     }
 }

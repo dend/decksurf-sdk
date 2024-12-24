@@ -62,7 +62,7 @@ namespace DeckSurf.SDK.Core
         }
 
         /// <summary>
-        /// Gets a connected Stream Deck device based on a pre-defined configuration profiles.
+        /// Gets a connected Stream Deck device based on a pre-defined configuration profile.
         /// </summary>
         /// <param name="profile">An instance representing the pre-defined configuration profile.</param>
         /// <returns>If the call is successful, returns a Stream Deck device.</returns>
@@ -76,7 +76,7 @@ namespace DeckSurf.SDK.Core
                     profile.DeviceIndex <= devices.Count() - 1)
                 {
                     var targetDevice = devices.ElementAt(profile.DeviceIndex);
-                    targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
+                    targetDevice.SetupDeviceButtonMap(profile.ButtonMap, profile.DeviceModel);
                     return targetDevice;
                 }
                 else

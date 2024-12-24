@@ -40,6 +40,26 @@ namespace DeckSurf.SDK.Core
         public const int XLButtonSize = 96;
 
         /// <summary>
+        /// Button size, in pixels, for Stream Deck Plus.
+        /// </summary>
+        public const int PlusButtonSize = 120;
+
+        /// <summary>
+        /// Screen width for the Stream Deck Plus.
+        /// </summary>
+        public const int PlusScreenWidth = 800;
+
+        /// <summary>
+        /// Screen height for the Stream Deck Plus.
+        /// </summary>
+        public const int PlusScreenHeight = 100;
+
+        /// <summary>
+        /// Screen width for a segment on the Stream Deck Plus.
+        /// </summary>
+        public const int PlusScreenSegmentWidth = 200;
+
+        /// <summary>
         /// Default black background for a Stream Deck XL button (96x96).
         /// </summary>
         public static readonly byte[] XLDefaultBlackButton =
