@@ -1,15 +1,25 @@
 ![DeckSurf SDK Icon](images/logo-small.webp)
 
-# 🌊 DeckSurf SDK
+# 🌊 DeckSurf SDK for .NET
 
-_**Unofficial Software Development Kit for your Stream Deck.**_
+_**Unofficial Software Development Kit for your Stream Deck, built in C# for the .NET platform.**_
 
 >[!NOTE]
 >For the DeckSurf tooling (_CLI and plugins_), refer to the [DeckSurf repository](https://github.com/dend/DeckSurf).
 
+![NuGet Version](https://img.shields.io/nuget/v/DeckSurf.SDK)
+
 ## About
 
 The DeckSurf SDK is used to manage Stream Deck devices and create plugins for [DeckSurf tools](https://github.com/dend/DeckSurf). It is completely independent of the Elgato software and/or libraries and can be used as a standalone library.
+
+## Installation
+
+You can use the SDK by installing it [from NuGet](https://www.nuget.org/packages/DeckSurf.SDK):
+
+```powershell
+dotnet add package DeckSurf.SDK
+```
 
 ## Supported devices
 
