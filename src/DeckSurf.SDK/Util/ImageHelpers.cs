@@ -118,6 +118,22 @@ namespace DeckSurf.SDK.Util
             }
         }
 
+        /// <summary>
+        /// Creates a new blank square.
+        /// </summary>
+        /// <param name="pixelSize">Size, in pixels, of the square sides.</param>
+        /// <param name="color">The color of the blank square to be created.</param>
+        /// <returns>If successful, returns a byte array representing the JPEG representation of the blank square.</returns>
+        public static byte[] CreateBlankImage(int pixelSize, Color color)
+        {
+            using var image = new Bitmap(pixelSize, pixelSize);
+            using var graphics = Graphics.FromImage(image);
+            graphics.Clear(color);
+            using MemoryStream ms = new MemoryStream();
+            image.Save(ms, ImageFormat.Jpeg);
+            return ms.ToArray();
+        }
+
         private static Bitmap GetBitmapFromHBitmap(IntPtr nativeHBitmap)
         {
             Bitmap bitmap = Image.FromHbitmap(nativeHBitmap);
@@ -181,16 +197,6 @@ namespace DeckSurf.SDK.Util
             }
 
             throw Marshal.GetExceptionForHR((int)hr);
-        }
-
-        public static byte[] CreateBlankImage(int width, int height)
-        {
-            using var image = new Bitmap(width, height);
-            using var graphics = Graphics.FromImage(image);
-            graphics.Clear(Color.Black);
-            using MemoryStream ms = new MemoryStream();
-            image.Save(ms, ImageFormat.Jpeg);
-            return ms.ToArray();
         }
     }
 }

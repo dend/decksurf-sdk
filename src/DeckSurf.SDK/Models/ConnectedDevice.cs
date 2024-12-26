@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -42,7 +43,6 @@ namespace DeckSurf.SDK.Models
         /// <param name="pid">Product ID.</param>
         /// <param name="path">Path to the USB HID device.</param>
         /// <param name="name">Name of the USB HID device.</param>
-        /// <param name="model">Stream Deck model.</param>
         public ConnectedDevice(int vid, int pid, string path, string name)
         {
             this.VId = vid;
@@ -66,17 +66,17 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets the vendor ID.
         /// </summary>
-        public int VId { get; private set; }
+        public int VId { get; }
 
         /// <summary>
         /// Gets the USB HID device path.
         /// </summary>
-        public string Path { get; private set; }
+        public string Path { get; }
 
         /// <summary>
         /// Gets the USB HID device name.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// Gets the Stream Deck device model.
@@ -87,6 +87,60 @@ namespace DeckSurf.SDK.Models
         /// Gets the number of buttons on the connected Stream Deck device.
         /// </summary>
         public abstract int ButtonCount { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the image needs to be flipped before being passed to a button.
+        /// </summary>
+        public abstract bool IsButtonImageFlipRequired { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the Stream Deck device has a screen in addition to buttons.
+        /// </summary>
+        public abstract bool IsScreenSupported { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the Stream Deck has knobs.
+        /// </summary>
+        public abstract bool IsKnobSupported { get; }
+
+        /// <summary>
+        /// Gets a value indicating the button resolution for the Stream Deck device.
+        /// </summary>
+        public abstract int ButtonResolution { get; }
+
+        /// <summary>
+        /// Gets a value indicating the number of button columns for a Stream Deck device.
+        /// </summary>
+        public abstract int ButtonColumns { get; }
+
+        /// <summary>
+        /// Gets a value indicating the number of button rows for a Stream Deck device.
+        /// </summary>
+        public abstract int ButtonRows { get; }
+
+        /// <summary>
+        /// Gets screen width for the Stream Deck Plus.
+        /// </summary>
+        /// <remarks>
+        /// Returns -1 if there is no screen supported.
+        /// </remarks>
+        public abstract int ScreenWidth { get; }
+
+        /// <summary>
+        /// Gets screen height for the Stream Deck device that supports a screen.
+        /// </summary>
+        /// <remarks>
+        /// Returns -1 if there is no screen supported.
+        /// </remarks>
+        public abstract int ScreenHeight { get; }
+
+        /// <summary>
+        /// Gets screen width for a segment on the Stream Deck device that supports a screen.
+        /// </summary>
+        /// <remarks>
+        /// Returns -1 if there is no screen supported.
+        /// </remarks>
+        public abstract int ScreenSegmentWidth { get; }
 
         private HidDevice UnderlyingDevice { get; }
 
@@ -114,13 +168,11 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Clear the contents of the Stream Deck buttons.
         /// </summary>
-        public void ClearPanel()
+        public void ClearButtons()
         {
             for (int i = 0; i < this.ButtonCount; i++)
             {
-                // TODO: Need to replace this with device-specific logic
-                // since not every device is 96x96.
-                this.SetKey(i, DeviceConstants.XLDefaultBlackButton);
+                this.SetKey(i, ImageHelpers.CreateBlankImage(ButtonResolution, Color.Black));
             }
         }
 
@@ -149,7 +201,7 @@ namespace DeckSurf.SDK.Models
         /// Sets up the button mapping to associated plugins.
         /// </summary>
         /// <param name="buttonMap">List of mappings, usually loaded from a configuration file.</param>
-        public void SetupDeviceButtonMap(IEnumerable<CommandMapping> buttonMap, DeviceModel model)
+        public void SetupDeviceButtonMap(IEnumerable<CommandMapping> buttonMap)
         {
             foreach (var button in buttonMap)
             {
@@ -159,14 +211,7 @@ namespace DeckSurf.SDK.Models
                     {
                         byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
 
-                        int buttonSize = model switch
-                        {
-                            DeviceModel.XL => DeviceConstants.XLButtonSize,
-                            DeviceModel.PLUS => DeviceConstants.PlusButtonSize,
-                            _ => 0,  // Default value, in case of unexpected model
-                        };
-
-                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, buttonSize, buttonSize, flip: false);
+                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.IsButtonImageFlipRequired);
                         this.SetKey(button.ButtonIndex, imageBuffer);
                     }
                 }
@@ -192,8 +237,8 @@ namespace DeckSurf.SDK.Models
 
                 byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
-                var binaryLength = DataHelpers.ToLittleEndianBytes((uint)sliceLength);
-                var binaryIteration = DataHelpers.ToLittleEndianBytes((uint)iteration);
+                var binaryLength = DataHelpers.ToLittleEndianBytes(sliceLength);
+                var binaryIteration = DataHelpers.ToLittleEndianBytes(iteration);
 
                 // TODO: This is different for different device classes, so I will need
                 // to make sure that I adjust the header format.
@@ -232,7 +277,7 @@ namespace DeckSurf.SDK.Models
         /// <param name="width">Image height.</param>
         /// <param name="height">Image width.</param>
         /// <returns>True if succesful, false if not.</returns>
-        public bool SetScreen(byte[] image, uint offset, uint width, uint height)
+        public bool SetScreen(byte[] image, int offset, int width, int height)
         {
             byte[] binaryOffset = DataHelpers.ToLittleEndianBytes(offset);
             byte[] binaryWidth = DataHelpers.ToLittleEndianBytes(width);
@@ -249,8 +294,8 @@ namespace DeckSurf.SDK.Models
 
                 byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
-                var binaryLength = DataHelpers.ToLittleEndianBytes((uint)sliceLength);
-                var binaryIteration = DataHelpers.ToLittleEndianBytes((uint)iteration);
+                var binaryLength = DataHelpers.ToLittleEndianBytes(sliceLength);
+                var binaryIteration = DataHelpers.ToLittleEndianBytes(iteration);
 
                 byte[] header =
                 [

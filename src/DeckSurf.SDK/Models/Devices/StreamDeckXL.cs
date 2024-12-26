@@ -14,5 +14,32 @@ namespace DeckSurf.SDK.Models.Devices
 
         /// <inheritdoc/>
         public override int ButtonCount => 32;
+
+        /// <inheritdoc/>
+        public override bool IsButtonImageFlipRequired => true;
+
+        /// <inheritdoc/>
+        public override bool IsScreenSupported => false;
+
+        /// <inheritdoc/>
+        public override bool IsKnobSupported => false;
+
+        /// <inheritdoc/>
+        public override int ButtonResolution => 96;
+
+        /// <inheritdoc/>
+        public override int ButtonColumns => 8;
+
+        /// <inheritdoc/>
+        public override int ButtonRows => 4;
+
+        /// <inheritdoc/>
+        public override int ScreenWidth => -1;
+
+        /// <inheritdoc/>
+        public override int ScreenHeight => -1;
+
+        /// <inheritdoc/>
+        public override int ScreenSegmentWidth => -1;
     }
 }

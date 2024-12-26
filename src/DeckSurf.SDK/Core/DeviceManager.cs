@@ -76,7 +76,7 @@ namespace DeckSurf.SDK.Core
                     profile.DeviceIndex <= devices.Count() - 1)
                 {
                     var targetDevice = devices.ElementAt(profile.DeviceIndex);
-                    targetDevice.SetupDeviceButtonMap(profile.ButtonMap, profile.DeviceModel);
+                    targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
                     return targetDevice;
                 }
                 else

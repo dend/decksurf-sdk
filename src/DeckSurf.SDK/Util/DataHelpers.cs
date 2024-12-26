@@ -27,7 +27,7 @@ namespace DeckSurf.SDK.Util
         /// </summary>
         /// <param name="value">Value to be converted.</param>
         /// <returns>An array of <see cref="byte"/> that represents the Little Endian representation.</returns>
-        public static byte[] ToLittleEndianBytes(uint value)
+        public static byte[] ToLittleEndianBytes(int value)
         {
             // Mask out the least significant 16 bits and convert to little-endian
             byte[] littleEndianBytes =
