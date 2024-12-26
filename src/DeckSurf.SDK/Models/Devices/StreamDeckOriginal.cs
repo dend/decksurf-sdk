@@ -7,7 +7,7 @@ namespace DeckSurf.SDK.Models.Devices
     /// <summary>
     /// Implementation for a Stream Deck Original connected device.
     /// </summary>
-    internal class StreamDeckOriginal(int vid, int pid, string path, string name) : ConnectedDevice(vid, pid, path, name)
+    public class StreamDeckOriginal(int vid, int pid, string path, string name) : ConnectedDevice(vid, pid, path, name)
     {
         /// <inheritdoc/>
         public override DeviceModel Model => DeviceModel.ORIGINAL;

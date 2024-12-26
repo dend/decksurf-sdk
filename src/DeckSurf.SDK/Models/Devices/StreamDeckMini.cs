@@ -7,7 +7,7 @@ namespace DeckSurf.SDK.Models.Devices
     /// <summary>
     /// Implementation for a Stream Deck Mini connected device.
     /// </summary>
-    internal class StreamDeckMini(int vid, int pid, string path, string name) : ConnectedDevice(vid, pid, path, name)
+    public class StreamDeckMini(int vid, int pid, string path, string name) : ConnectedDevice(vid, pid, path, name)
     {
         /// <inheritdoc/>
         public override DeviceModel Model => DeviceModel.MINI;
