@@ -20,8 +20,6 @@ namespace DeckSurf.SDK.Models
     /// </summary>
     public abstract class ConnectedDevice
     {
-        private const int ButtonPressHeaderOffset = 4;
-
         private static readonly int ImageReportLength = 1024;
         private static readonly int ImageReportHeaderLength = 8;
         private static readonly int ImageReportScreenHeaderLength = 16;
@@ -342,15 +340,20 @@ namespace DeckSurf.SDK.Models
 
         private void KeyPressCallback(IAsyncResult result)
         {
+            var buttonMapOffset = 4;
+
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 
             // Let's grab the first two bytes to understand the type of button we're dealing with.
             // They can be:
-            //    0x01 0x02 0x0E 0X00 - Touch screen.
-            //    0x01 0x00 - Button.
-            //    0x01 0x03 - Knob.
+            //    0x01 0x00 - Button
+            //    0x01 0x02 - Touch screen
+            //    0x01 0x03 - Knob
             var header = new ArraySegment<byte>(this.keyPressBuffer, 0, 2).ToArray();
             var buttonKind = this.GetButtonKind(header);
+            var isKnobRotated = false;
+            var knobRotationDirection = KnobRotationDirection.None;
+            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(this.keyPressBuffer, 2, 2).ToArray());
 
             // If this was not a touch screen, we should provide
             // dummy coordinates.
@@ -364,13 +367,53 @@ namespace DeckSurf.SDK.Models
                 touchPoint = new Point() { X = DataHelpers.GetIntFromLittleEndianBytes(xCoord), Y = DataHelpers.GetIntFromLittleEndianBytes(yCoord) };
             }
 
-            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, ButtonPressHeaderOffset, this.ButtonCount).ToArray();
-            var pressedButton = Array.IndexOf(buttonData, (byte)1);
+            // For whatever reason, the number of knobs is reported as 5, even though
+            // there are only 4 on the Stream Deck Plus. Because that's the only device
+            // where that value is used today, let's make sure that we decrement by 1.
+            // Also, for the knob, the header is 5 bytes long, because the fifth
+            // byte tells us whether the knob is rotated or not.
+            if (buttonKind == ButtonKind.Knob)
+            {
+                buttonCount -= 1;
+                buttonMapOffset += 1;
+            }
+
+            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, buttonMapOffset, buttonCount).ToArray();
+
+            int pressedButton = -1;
+
+            if (buttonKind == ButtonKind.Button || buttonKind == ButtonKind.Screen)
+            {
+                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
+            }
+            else
+            {
+                isKnobRotated = this.keyPressBuffer[4] != (byte)0x00;
+
+                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
+                if (pressedButton == -1)
+                {
+                    pressedButton = Array.IndexOf(buttonData, (byte)0xFF);
+
+                    if (isKnobRotated)
+                    {
+                        knobRotationDirection = KnobRotationDirection.Left;
+                    }
+                }
+                else
+                {
+                    if (isKnobRotated)
+                    {
+                        knobRotationDirection = KnobRotationDirection.Right;
+                    }
+                }
+            }
+
             var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
 
             if (this.OnButtonPress != null)
             {
-                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, touchPoint));
+                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, touchPoint, isKnobRotated, knobRotationDirection));
             }
 
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
