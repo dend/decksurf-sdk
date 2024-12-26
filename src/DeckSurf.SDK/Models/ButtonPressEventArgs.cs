@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Drawing;
 
 namespace DeckSurf.SDK.Models
 {
@@ -13,9 +14,19 @@ namespace DeckSurf.SDK.Models
     /// Initializes a new instance of the <see cref="ButtonPressEventArgs"/> class. Default constructor for button press event arguments.
     /// </remarks>
     /// <param name="id">Numeric ID of the button being pressed.</param>
-    /// <param name="kind">Kind of event.</param>
-    public class ButtonPressEventArgs(int id, ButtonEventKind kind) : EventArgs
+    /// <param name="eventKind">Kind of event.</param>
+    /// <param name="buttonKind">Kind of button pressed.</param>
+    public class ButtonPressEventArgs(int id, ButtonEventKind eventKind, ButtonKind buttonKind, Point tapCoordinates) : EventArgs
     {
+        /// <summary>
+        /// Gets the coordinates on the touch screen where the tap occurred.
+        /// </summary>
+        public Point TapCoordinates { get; } = tapCoordinates;
+
+        /// <summary>
+        /// Gets the kind of the button pressed.
+        /// </summary>
+        public ButtonKind ButtonKind { get; } = buttonKind;
 
         /// <summary>
         /// Gets the numeric ID of the button being pressed.
@@ -25,6 +36,6 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets the kind of event.
         /// </summary>
-        public ButtonEventKind Kind { get; } = kind;
+        public ButtonEventKind EventKind { get; } = eventKind;
     }
 }

@@ -27,15 +27,31 @@ namespace DeckSurf.SDK.Util
         /// </summary>
         /// <param name="value">Value to be converted.</param>
         /// <returns>An array of <see cref="byte"/> that represents the Little Endian representation.</returns>
-        public static byte[] ToLittleEndianBytes(int value)
+        public static byte[] GetLittleEndianBytesFromInt(int value)
         {
-            // Mask out the least significant 16 bits and convert to little-endian
             byte[] littleEndianBytes =
             [
-                (byte)(value & 0xFF),         // Least significant byte
-                (byte)((value >> 8) & 0xFF),  // Second byte
+                (byte)(value & 0xFF),
+                (byte)((value >> 8) & 0xFF),
             ];
             return littleEndianBytes;
+        }
+
+        /// <summary>
+        /// Converts a byte array representation in Little Endian back into an integer.
+        /// </summary>
+        /// <param name="littleEndianBytes">Array of bytes in Little Endian format.</param>
+        /// <returns>An unsigned integer obtained from the byte array.</returns>
+        public static int GetIntFromLittleEndianBytes(byte[] littleEndianBytes)
+        {
+            if (littleEndianBytes.Length != 2)
+            {
+                throw new ArgumentException("The byte array must be exactly 2 bytes long.");
+            }
+
+            int value = littleEndianBytes[0] | (littleEndianBytes[1] << 8);
+
+            return value;
         }
     }
 }

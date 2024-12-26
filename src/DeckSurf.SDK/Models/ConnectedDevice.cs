@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Util;
@@ -149,11 +150,19 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Initialize the device and start reading the input stream.
         /// </summary>
-        public void InitializeDevice()
+        public void StartListening()
         {
             this.UnderlyingInputStream = this.UnderlyingDevice.Open();
             this.UnderlyingInputStream.ReadTimeout = Timeout.Infinite;
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
+        }
+
+        /// <summary>
+        /// Stops listening for events for the specific device.
+        /// </summary>
+        public void StopListening()
+        {
+            this.UnderlyingInputStream.Close();
         }
 
         /// <summary>
@@ -237,8 +246,8 @@ namespace DeckSurf.SDK.Models
 
                 byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
-                var binaryLength = DataHelpers.ToLittleEndianBytes(sliceLength);
-                var binaryIteration = DataHelpers.ToLittleEndianBytes(iteration);
+                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
+                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
 
                 // TODO: This is different for different device classes, so I will need
                 // to make sure that I adjust the header format.
@@ -279,9 +288,9 @@ namespace DeckSurf.SDK.Models
         /// <returns>True if succesful, false if not.</returns>
         public bool SetScreen(byte[] image, int offset, int width, int height)
         {
-            byte[] binaryOffset = DataHelpers.ToLittleEndianBytes(offset);
-            byte[] binaryWidth = DataHelpers.ToLittleEndianBytes(width);
-            byte[] binaryHeight = DataHelpers.ToLittleEndianBytes(height);
+            byte[] binaryOffset = DataHelpers.GetLittleEndianBytesFromInt(offset);
+            byte[] binaryWidth = DataHelpers.GetLittleEndianBytesFromInt(width);
+            byte[] binaryHeight = DataHelpers.GetLittleEndianBytesFromInt(height);
 
             var iteration = 0;
             var remainingBytes = image.Length;
@@ -294,8 +303,8 @@ namespace DeckSurf.SDK.Models
 
                 byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
-                var binaryLength = DataHelpers.ToLittleEndianBytes(sliceLength);
-                var binaryIteration = DataHelpers.ToLittleEndianBytes(iteration);
+                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
+                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
 
                 byte[] header =
                 [
@@ -335,18 +344,54 @@ namespace DeckSurf.SDK.Models
         {
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 
-            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, ButtonPressHeaderOffset, ButtonCount).ToArray();
+            // Let's grab the first two bytes to understand the type of button we're dealing with.
+            // They can be:
+            //    0x01 0x02 0x0E 0X00 - Touch screen.
+            //    0x01 0x00 - Button.
+            //    0x01 0x03 - Knob.
+            var header = new ArraySegment<byte>(this.keyPressBuffer, 0, 2).ToArray();
+            var buttonKind = this.GetButtonKind(header);
+
+            // If this was not a touch screen, we should provide
+            // dummy coordinates.
+            Point touchPoint = new() { X = -1, Y = -1 };
+
+            if (buttonKind == ButtonKind.Screen)
+            {
+                var xCoord = new ArraySegment<byte>(this.keyPressBuffer, 6, 2).ToArray();
+                var yCoord = new ArraySegment<byte>(this.keyPressBuffer, 8, 2).ToArray();
+
+                touchPoint = new Point() { X = DataHelpers.GetIntFromLittleEndianBytes(xCoord), Y = DataHelpers.GetIntFromLittleEndianBytes(yCoord) };
+            }
+
+            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, ButtonPressHeaderOffset, this.ButtonCount).ToArray();
             var pressedButton = Array.IndexOf(buttonData, (byte)1);
-            var buttonKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
+            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
 
             if (this.OnButtonPress != null)
             {
-                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, buttonKind));
+                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, touchPoint));
             }
 
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
 
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
+        }
+
+        private ButtonKind GetButtonKind(byte[] identifier)
+        {
+            if (identifier.Length != 2)
+            {
+                return ButtonKind.Unknown;
+            }
+
+            return (identifier[0], identifier[1]) switch
+            {
+                (0x01, 0x00) => ButtonKind.Button,
+                (0x01, 0x02) => ButtonKind.Screen,
+                (0x01, 0x03) => ButtonKind.Knob,
+                _ => ButtonKind.Unknown,
+            };
         }
     }
 }
