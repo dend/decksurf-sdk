@@ -17,16 +17,21 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// The <see href="https://www.elgato.com/en/stream-deck">updated original model</see> of the Stream Deck device.
         /// </summary>
-        ORIGINAL_V2 = 0x006d,
+        ORIGINAL_V2 = 0x006D,
 
         /// <summary>
-        /// The <see href="https://www.elgato.com/en/stream-deck-mini">Mini model</see> of the Stream Deck device.
+        /// The <see href="https://www.elgato.com/us/en/p/stream-deck-mini">Mini model</see> of the Stream Deck device.
         /// </summary>
         MINI = 0x0063,
 
         /// <summary>
-        /// The <see href="https://www.elgato.com/en/stream-deck-xl">XL model</see> of the Stream Deck device.
+        /// The <see href="https://www.elgato.com/us/en/p/stream-deck-xl">XL model</see> of the Stream Deck device.
         /// </summary>
-        XL = 0x006c,
+        XL = 0x006C,
+
+        /// <summary>
+        /// The <see href="https://www.elgato.com/us/en/p/stream-deck-plus-black">XL model</see> of the Stream Deck device.
+        /// </summary>
+        PLUS = 0x0084,
     }
 }

@@ -351,3 +351,6 @@ MigrationBackup/
 
 # Custom files defined by me
 *.xml
+
+# Launch settings
+launchSettings.json

@@ -5,18 +5,23 @@
 namespace DeckSurf.SDK.Models
 {
     /// <summary>
-    /// Represents a Stream Deck button state.
+    /// Defines the direction of a Stream Deck knob rotation.
     /// </summary>
-    public enum ButtonEventKind
+    public enum KnobRotationDirection
     {
         /// <summary>
-        /// Button is pressed.
+        /// Knob rotated to the right.
         /// </summary>
-        DOWN = 0,
+        Right,
 
         /// <summary>
-        /// Button is released.
+        /// Knob rotated to the left.
         /// </summary>
-        UP = 1,
+        Left,
+
+        /// <summary>
+        /// Knob not rotated.
+        /// </summary>
+        None,
     }
 }

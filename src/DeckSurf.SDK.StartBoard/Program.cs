@@ -10,21 +10,33 @@ namespace DeckSurf.SDK.StartBoard
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             var exitSignal = new ManualResetEvent(false);
             var devices = DeviceManager.GetDeviceList();
 
-            var device = ((List<ConnectedDevice>)devices)[0];
-            //device.OnButtonPress += Device_OnButtonPress;
-            //device.InitializeDevice();
+            Console.WriteLine("The following Stream Deck devices are connected:");
 
-            byte[] testImage = File.ReadAllBytes("G:\\run.jpg");
-            var image = ImageHelpers.ResizeImage(testImage, DeviceConstants.XLButtonSize, DeviceConstants.XLButtonSize);
-            device.SetKey(1, image);
-            //device.SetBrightness(29);
-            //device.ClearPanel();
+            foreach (var connectedDevice in devices)
+            {
+                Console.WriteLine(connectedDevice.Name);
+            }
+
+            var device = ((List<ConnectedDevice>)devices)[0];
+            device.StartListening();
+            device.OnButtonPress += Device_OnButtonPress;
+
+            byte[] testImage = File.ReadAllBytes(args[0]);
+
+            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, device.IsButtonImageFlipRequired);
+
+            device.SetScreen(image, 250, device.ScreenWidth, device.ScreenHeight);
+
+            var keyImage = ImageHelpers.ResizeImage(testImage, device.ButtonResolution, device.ButtonResolution, device.IsButtonImageFlipRequired);
+            device.SetKey(1, keyImage);
+
+            device.SetBrightness(29);
+            //device.ClearButtons();
 
             Console.WriteLine("Done");
             exitSignal.WaitOne();
@@ -32,7 +44,7 @@ namespace DeckSurf.SDK.StartBoard
 
         private static void Device_OnButtonPress(object source, ButtonPressEventArgs e)
         {
-            Console.WriteLine(e.Id);
+            Console.WriteLine($"Button with ID {e.Id} was pressed. It's identified as {e.ButtonKind}. Event is {e.EventKind}. If this is a touch screen, coordinates are {e.TapCoordinates.X} and {e.TapCoordinates.Y}. Is knob rotated: {e.IsKnobRotating}. Rotation direction: {e.KnobRotationDirection}.");
         }
     }
 }

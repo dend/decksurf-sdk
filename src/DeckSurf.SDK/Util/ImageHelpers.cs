@@ -23,17 +23,18 @@ namespace DeckSurf.SDK.Util
         /// <param name="buffer">Byte array containing the image.</param>
         /// <param name="width">Target width, in pixels.</param>
         /// <param name="height">Target height, in pixels.</param>
+        /// <param name="flip">Determines whether the image needs to be flipped upside-down.</param>
         /// <returns>Byte array representing the resized image.</returns>
-        public static byte[] ResizeImage(byte[] buffer, int width, int height)
+        public static byte[] ResizeImage(byte[] buffer, int width, int height, bool flip)
         {
             Image currentImage = GetImage(buffer);
 
             var targetRectangle = new Rectangle(0, 0, width, height);
-            var targetImage = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+            Bitmap targetImage = new(width, height, PixelFormat.Format24bppRgb);
 
             targetImage.SetResolution(currentImage.HorizontalResolution, currentImage.VerticalResolution);
 
-            using (var graphics = Graphics.FromImage(targetImage))
+            using (Graphics graphics = Graphics.FromImage(targetImage))
             {
                 graphics.CompositingMode = CompositingMode.SourceCopy;
                 graphics.CompositingQuality = CompositingQuality.HighQuality;
@@ -46,7 +47,10 @@ namespace DeckSurf.SDK.Util
 
             // TODO: I am not sure if every image needs to be rotated, but
             // in my limited experiments, this seems to be the case.
-            targetImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+            if (flip)
+            {
+                targetImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+            }
 
             using var bufferStream = new MemoryStream();
             targetImage.Save(bufferStream, ImageFormat.Jpeg);
@@ -113,6 +117,22 @@ namespace DeckSurf.SDK.Util
             {
                 WindowsAPIHelpers.DeleteObject(hBitmap);
             }
+        }
+
+        /// <summary>
+        /// Creates a new blank square.
+        /// </summary>
+        /// <param name="pixelSize">Size, in pixels, of the square sides.</param>
+        /// <param name="color">The color of the blank square to be created.</param>
+        /// <returns>If successful, returns a byte array representing the JPEG representation of the blank square.</returns>
+        public static byte[] CreateBlankImage(int pixelSize, Color color)
+        {
+            using var image = new Bitmap(pixelSize, pixelSize);
+            using var graphics = Graphics.FromImage(image);
+            graphics.Clear(color);
+            using MemoryStream ms = new MemoryStream();
+            image.Save(ms, ImageFormat.Jpeg);
+            return ms.ToArray();
         }
 
         private static Bitmap GetBitmapFromHBitmap(IntPtr nativeHBitmap)

@@ -2,12 +2,12 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using DeckSurf.SDK.Models;
-using DeckSurf.SDK.Models.Devices;
-using HidSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DeckSurf.SDK.Models;
+using DeckSurf.SDK.Models.Devices;
+using HidSharp;
 
 namespace DeckSurf.SDK.Core
 {
@@ -16,7 +16,9 @@ namespace DeckSurf.SDK.Core
     /// </summary>
     public class DeviceManager
     {
-        private static readonly int SupportedVid = 4057;
+#pragma warning disable SA1010 // Opening square brackets should be spaced correctly
+        private static readonly int[] SupportedVids = [0x0FD9];
+#pragma warning restore SA1010 // Opening square brackets should be spaced correctly
 
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
@@ -36,7 +38,13 @@ namespace DeckSurf.SDK.Core
                     {
                         case DeviceModel.XL:
                             {
-                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), (DeviceModel)device.ProductID));
+                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName()));
+                                break;
+                            }
+
+                        case DeviceModel.PLUS:
+                            {
+                                connectedDevices.Add(new StreamDeckPlus(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName()));
                                 break;
                             }
 
@@ -56,7 +64,7 @@ namespace DeckSurf.SDK.Core
         }
 
         /// <summary>
-        /// Gets a connected Stream Deck device based on a pre-defined configuration profiles.
+        /// Gets a connected Stream Deck device based on a pre-defined configuration profile.
         /// </summary>
         /// <param name="profile">An instance representing the pre-defined configuration profile.</param>
         /// <returns>If the call is successful, returns a Stream Deck device.</returns>
@@ -92,7 +100,7 @@ namespace DeckSurf.SDK.Core
         /// <returns>True if device is supported, false if not.</returns>
         public static bool IsSupported(int vid, int pid)
         {
-            if (vid == SupportedVid && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
+            if (SupportedVids.Contains(vid) && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
             {
                 return true;
             }

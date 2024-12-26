@@ -17,7 +17,7 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         public ConfigurationProfile()
         {
-            this.ButtonMap = new List<CommandMapping>();
+            this.ButtonMap = [];
         }
 
         /// <summary>
@@ -25,6 +25,12 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         [JsonPropertyName("device_index")]
         public int DeviceIndex { get; set; }
+
+        /// <summary>
+        /// Gets or sets the device model associated with the configuration profile.
+        /// </summary>
+        [JsonPropertyName("device_model")]
+        public DeviceModel DeviceModel { get; set; }
 
         /// <summary>
         /// Gets or sets the mapping between buttons and the commands they trigger.
