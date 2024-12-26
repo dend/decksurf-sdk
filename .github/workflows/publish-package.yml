@@ -11,6 +11,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
     - name: Verify commit exists in origin/main
       run: |
         git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
