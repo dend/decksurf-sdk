@@ -22,26 +22,21 @@ namespace DeckSurf.SDK.StartBoard
                 Console.WriteLine(connectedDevice.Name);
             }
 
-            //Console.ReadLine();
-
             var device = ((List<ConnectedDevice>)devices)[0];
             device.StartListening();
             device.OnButtonPress += Device_OnButtonPress;
-            //device.InitializeDevice();
 
-            // Path here is obtained from the first argument.
             byte[] testImage = File.ReadAllBytes(args[0]);
 
-            // For testing, I am using Stream Deck Plus, which doesn't need flipping.
             var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, device.IsButtonImageFlipRequired);
-            //var image = ImageHelpers.ResizeImage(testImage, DeviceConstants.PlusButtonSize, DeviceConstants.PlusButtonSize, flip: false);
 
-            //File.WriteAllBytes(@"PATH", image);
-            //device.SetKey(1, image);
             device.SetScreen(image, 250, device.ScreenWidth, device.ScreenHeight);
 
-            //device.SetBrightness(29);
-            //device.ClearPanel();
+            var keyImage = ImageHelpers.ResizeImage(testImage, device.ButtonResolution, device.ButtonResolution, device.IsButtonImageFlipRequired);
+            device.SetKey(1, keyImage);
+
+            device.SetBrightness(29);
+            //device.ClearButtons();
 
             Console.WriteLine("Done");
             exitSignal.WaitOne();

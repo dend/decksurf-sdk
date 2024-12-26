@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading;
-using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Util;
 using HidSharp;
 
@@ -179,7 +177,7 @@ namespace DeckSurf.SDK.Models
         {
             for (int i = 0; i < this.ButtonCount; i++)
             {
-                this.SetKey(i, ImageHelpers.CreateBlankImage(ButtonResolution, Color.Black));
+                this.SetKey(i, ImageHelpers.CreateBlankImage(this.ButtonResolution, Color.Black));
             }
         }
 

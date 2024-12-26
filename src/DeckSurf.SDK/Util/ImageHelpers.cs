@@ -23,6 +23,7 @@ namespace DeckSurf.SDK.Util
         /// <param name="buffer">Byte array containing the image.</param>
         /// <param name="width">Target width, in pixels.</param>
         /// <param name="height">Target height, in pixels.</param>
+        /// <param name="flip">Determines whether the image needs to be flipped upside-down.</param>
         /// <returns>Byte array representing the resized image.</returns>
         public static byte[] ResizeImage(byte[] buffer, int width, int height, bool flip)
         {

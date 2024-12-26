@@ -16,7 +16,9 @@ namespace DeckSurf.SDK.Core
     /// </summary>
     public class DeviceManager
     {
-        private static readonly int[] SupportedVids = [ 0x0FD9 ];
+#pragma warning disable SA1010 // Opening square brackets should be spaced correctly
+        private static readonly int[] SupportedVids = [0x0FD9];
+#pragma warning restore SA1010 // Opening square brackets should be spaced correctly
 
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
