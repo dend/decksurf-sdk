@@ -10,26 +10,6 @@ namespace DeckSurf.SDK.Core
     public static class DeviceConstants
     {
         /// <summary>
-        /// Number of buttons on a Stream Deck XL.
-        /// </summary>
-        public const int XLButtonCount = 32;
-
-        /// <summary>
-        /// Number of buttons on an original Stream Deck.
-        /// </summary>
-        public const int OriginalButtonCount = 15;
-
-        /// <summary>
-        /// Number of buttons on a Stream Deck Mini.
-        /// </summary>
-        public const int MiniButtonCount = 6;
-
-        /// <summary>
-        /// Number of buttons on a Stream Deck +.
-        /// </summary>
-        public const int PlusButtonCount = 8;
-
-        /// <summary>
         /// Universal button size, in pixels, that is used across Stream Deck devices.
         /// </summary>
         public const int UniversalButtonSize = 72;

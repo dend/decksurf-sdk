@@ -4,11 +4,12 @@
 
 namespace DeckSurf.SDK.Models.Devices
 {
-    internal class StreamDeckPlus : ConnectedDevice
+    internal class StreamDeckPlus(int vid, int pid, string path, string name) : ConnectedDevice(vid, pid, path, name)
     {
-        public StreamDeckPlus(int vid, int pid, string path, string name, DeviceModel model)
-            : base(vid, pid, path, name, model)
-        {
-        }
+        /// <inheritdoc/>
+        public override DeviceModel Model => DeviceModel.PLUS;
+
+        /// <inheritdoc/>
+        public override int ButtonCount => 8;
     }
 }

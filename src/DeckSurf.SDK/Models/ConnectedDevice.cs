@@ -43,23 +43,12 @@ namespace DeckSurf.SDK.Models
         /// <param name="path">Path to the USB HID device.</param>
         /// <param name="name">Name of the USB HID device.</param>
         /// <param name="model">Stream Deck model.</param>
-        public ConnectedDevice(int vid, int pid, string path, string name, DeviceModel model)
+        public ConnectedDevice(int vid, int pid, string path, string name)
         {
             this.VId = vid;
-            this.PId = pid;
             this.Path = path;
             this.Name = name;
-            this.Model = model;
-            this.UnderlyingDevice = DeviceList.Local.GetHidDeviceOrNull(this.VId, this.PId);
-
-            this.ButtonCount = model switch
-            {
-                DeviceModel.XL => DeviceConstants.XLButtonCount,
-                DeviceModel.MINI => DeviceConstants.MiniButtonCount,
-                DeviceModel.PLUS => DeviceConstants.PlusButtonCount,
-                DeviceModel.ORIGINAL or DeviceModel.ORIGINAL_V2 => DeviceConstants.OriginalButtonCount,
-                _ => 0,
-            };
+            this.UnderlyingDevice = DeviceList.Local.GetHidDeviceOrNull(vid, pid);
         }
 
         /// <summary>
@@ -80,11 +69,6 @@ namespace DeckSurf.SDK.Models
         public int VId { get; private set; }
 
         /// <summary>
-        /// Gets the product ID.
-        /// </summary>
-        public int PId { get; private set; }
-
-        /// <summary>
         /// Gets the USB HID device path.
         /// </summary>
         public string Path { get; private set; }
@@ -97,12 +81,12 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets the Stream Deck device model.
         /// </summary>
-        public DeviceModel Model { get; private set; }
+        public abstract DeviceModel Model { get; }
 
         /// <summary>
         /// Gets the number of buttons on the connected Stream Deck device.
         /// </summary>
-        public int ButtonCount { get; }
+        public abstract int ButtonCount { get; }
 
         private HidDevice UnderlyingDevice { get; }
 

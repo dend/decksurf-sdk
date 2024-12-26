@@ -16,7 +16,7 @@ namespace DeckSurf.SDK.Core
     /// </summary>
     public class DeviceManager
     {
-        private static readonly int[] SupportedVids = [0x0FD9];
+        private static readonly int[] SupportedVids = [ 0x0FD9 ];
 
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
@@ -36,13 +36,13 @@ namespace DeckSurf.SDK.Core
                     {
                         case DeviceModel.XL:
                             {
-                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), (DeviceModel)device.ProductID));
+                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName()));
                                 break;
                             }
 
                         case DeviceModel.PLUS:
                             {
-                                connectedDevices.Add(new StreamDeckPlus(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), (DeviceModel)device.ProductID));
+                                connectedDevices.Add(new StreamDeckPlus(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName()));
                                 break;
                             }
 
