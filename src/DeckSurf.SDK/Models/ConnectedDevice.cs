@@ -40,11 +40,13 @@ namespace DeckSurf.SDK.Models
         /// <param name="pid">Product ID.</param>
         /// <param name="path">Path to the USB HID device.</param>
         /// <param name="name">Name of the USB HID device.</param>
-        public ConnectedDevice(int vid, int pid, string path, string name)
+        /// <param name="serial">Serial number for the device.</param>
+        public ConnectedDevice(int vid, int pid, string path, string name, string serial)
         {
             this.VId = vid;
             this.Path = path;
             this.Name = name;
+            this.Serial = serial;
             this.UnderlyingDevice = DeviceList.Local.GetHidDeviceOrNull(vid, pid);
         }
 
@@ -74,6 +76,11 @@ namespace DeckSurf.SDK.Models
         /// Gets the USB HID device name.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Gets the device serial number.
+        /// </summary>
+        public string Serial { get; }
 
         /// <summary>
         /// Gets the Stream Deck device model.
@@ -138,6 +145,7 @@ namespace DeckSurf.SDK.Models
         /// Returns -1 if there is no screen supported.
         /// </remarks>
         public abstract int ScreenSegmentWidth { get; }
+
 
         private HidDevice UnderlyingDevice { get; }
 

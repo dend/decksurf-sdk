@@ -5,15 +5,15 @@
 namespace DeckSurf.SDK.Models.Devices
 {
     /// <summary>
-    /// Implementation for a Stream Deck Original connected device.
+    /// Implementation for a Stream Deck XL (2022) connected device.
     /// </summary>
-    public class StreamDeckOriginal(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
+    public class StreamDeckXL2022(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
     {
         /// <inheritdoc/>
-        public override DeviceModel Model => DeviceModel.Original;
+        public override DeviceModel Model => DeviceModel.XL2022;
 
         /// <inheritdoc/>
-        public override int ButtonCount => 15;
+        public override int ButtonCount => 32;
 
         /// <inheritdoc/>
         public override bool IsButtonImageFlipRequired => true;
@@ -25,13 +25,13 @@ namespace DeckSurf.SDK.Models.Devices
         public override bool IsKnobSupported => false;
 
         /// <inheritdoc/>
-        public override int ButtonResolution => 72;
+        public override int ButtonResolution => 96;
 
         /// <inheritdoc/>
-        public override int ButtonColumns => 5;
+        public override int ButtonColumns => 8;
 
         /// <inheritdoc/>
-        public override int ButtonRows => 3;
+        public override int ButtonRows => 4;
 
         /// <inheritdoc/>
         public override int ScreenWidth => -1;

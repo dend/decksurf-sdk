@@ -7,10 +7,10 @@ namespace DeckSurf.SDK.Models.Devices
     /// <summary>
     /// Implementation for a Stream Deck Plus connected device.
     /// </summary>
-    public class StreamDeckPlus(int vid, int pid, string path, string name) : ConnectedDevice(vid, pid, path, name)
+    public class StreamDeckPlus(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
     {
         /// <inheritdoc/>
-        public override DeviceModel Model => DeviceModel.PLUS;
+        public override DeviceModel Model => DeviceModel.Plus;
 
         /// <inheritdoc/>
         public override int ButtonCount => 8;

@@ -19,7 +19,7 @@ namespace DeckSurf.SDK.StartBoard
 
             foreach (var connectedDevice in devices)
             {
-                Console.WriteLine(connectedDevice.Name);
+                Console.WriteLine($"{connectedDevice.Name} ({connectedDevice.Serial})");
             }
 
             var device = ((List<ConnectedDevice>)devices)[0];

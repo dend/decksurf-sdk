@@ -24,7 +24,7 @@ namespace DeckSurf.SDK.Util
         public static string GetProfilePath(string name)
         {
             var localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            return Path.Combine(new string[] { localAppDataPath, "DenDev", "Deck.Surf", "Profiles", name, ProfileFileName});
+            return Path.Combine([localAppDataPath, "Den.Dev", "DeckSurf", "Profiles", name, ProfileFileName]);
         }
 
         /// <summary>

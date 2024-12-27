@@ -38,19 +38,54 @@ namespace DeckSurf.SDK.Core
                     {
                         case DeviceModel.XL:
                             {
-                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName()));
+                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
                                 break;
                             }
 
-                        case DeviceModel.PLUS:
+                        case DeviceModel.XL2022:
                             {
-                                connectedDevices.Add(new StreamDeckPlus(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName()));
+                                connectedDevices.Add(new StreamDeckXL2022(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
                                 break;
                             }
 
-                        case DeviceModel.MINI:
-                        case DeviceModel.ORIGINAL:
-                        case DeviceModel.ORIGINAL_V2:
+                        case DeviceModel.Plus:
+                            {
+                                connectedDevices.Add(new StreamDeckPlus(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
+                                break;
+                            }
+
+                        case DeviceModel.Mini:
+                            {
+                                connectedDevices.Add(new StreamDeckMini(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
+                                break;
+                            }
+
+                        case DeviceModel.Mini2022:
+                            {
+                                connectedDevices.Add(new StreamDeckMini2022(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
+                                break;
+                            }
+
+                        case DeviceModel.Original:
+                            {
+                                connectedDevices.Add(new StreamDeckOriginal(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
+                                break;
+                            }
+
+                        case DeviceModel.Original2019:
+                            {
+                                connectedDevices.Add(new StreamDeckOriginal2019(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
+                                break;
+                            }
+
+                        case DeviceModel.Neo:
+                            {
+                                connectedDevices.Add(new StreamDeckNeo(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()
+                                    ));
+                                break;
+                            }
+
+                        case DeviceModel.MK2Scissor:
                         default:
                             {
                                 // Haven't yet implemented support for other Stream Deck device classes.

@@ -5,21 +5,21 @@
 namespace DeckSurf.SDK.Models.Devices
 {
     /// <summary>
-    /// Implementation for a Stream Deck XL connected device.
+    /// Implementation for a Stream Deck Neo connected device.
     /// </summary>
-    public class StreamDeckXL(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
+    public class StreamDeckNeo(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
     {
         /// <inheritdoc/>
-        public override DeviceModel Model => DeviceModel.XL;
+        public override DeviceModel Model => DeviceModel.Neo;
 
         /// <inheritdoc/>
-        public override int ButtonCount => 32;
+        public override int ButtonCount => 8;
 
         /// <inheritdoc/>
-        public override bool IsButtonImageFlipRequired => true;
+        public override bool IsButtonImageFlipRequired => false;
 
         /// <inheritdoc/>
-        public override bool IsScreenSupported => false;
+        public override bool IsScreenSupported => true;
 
         /// <inheritdoc/>
         public override bool IsKnobSupported => false;
@@ -28,16 +28,16 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ButtonResolution => 96;
 
         /// <inheritdoc/>
-        public override int ButtonColumns => 8;
+        public override int ButtonColumns => 4;
 
         /// <inheritdoc/>
-        public override int ButtonRows => 4;
+        public override int ButtonRows => 2;
 
         /// <inheritdoc/>
-        public override int ScreenWidth => -1;
+        public override int ScreenWidth => 248;
 
         /// <inheritdoc/>
-        public override int ScreenHeight => -1;
+        public override int ScreenHeight => 58;
 
         /// <inheritdoc/>
         public override int ScreenSegmentWidth => -1;
