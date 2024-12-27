@@ -7,7 +7,7 @@ _**Unofficial Software Development Kit for your Stream Deck, built in C# for the
 >[!NOTE]
 >For the DeckSurf tooling (_CLI and plugins_), refer to the [DeckSurf repository](https://github.com/dend/DeckSurf).
 
-![NuGet Version](https://img.shields.io/nuget/v/DeckSurf.SDK)
+[![NuGet Version](https://img.shields.io/nuget/v/DeckSurf.SDK)](https://www.nuget.org/packages/DeckSurf.SDK)
 
 ## About
 
