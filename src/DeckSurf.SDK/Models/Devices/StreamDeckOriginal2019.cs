@@ -5,12 +5,12 @@
 namespace DeckSurf.SDK.Models.Devices
 {
     /// <summary>
-    /// Implementation for a Stream Deck Original V2 connected device.
+    /// Implementation for a Stream Deck Original (2019) connected device.
     /// </summary>
-    public class StreamDeckOriginalV2(int vid, int pid, string path, string name) : ConnectedDevice(vid, pid, path, name)
+    public class StreamDeckOriginal2019(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
     {
         /// <inheritdoc/>
-        public override DeviceModel Model => DeviceModel.ORIGINAL_V2;
+        public override DeviceModel Model => DeviceModel.Original2019;
 
         /// <inheritdoc/>
         public override int ButtonCount => 15;

@@ -33,6 +33,12 @@ namespace DeckSurf.SDK.Models
         public DeviceModel DeviceModel { get; set; }
 
         /// <summary>
+        /// Gets or sets the device serial number associated with the configuration profile.
+        /// </summary>
+        [JsonPropertyName("device_serial")]
+        public string DeviceSerial { get; set; }
+
+        /// <summary>
         /// Gets or sets the mapping between buttons and the commands they trigger.
         /// </summary>
         [JsonPropertyName("button_map")]

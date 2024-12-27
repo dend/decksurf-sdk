@@ -5,15 +5,15 @@
 namespace DeckSurf.SDK.Models.Devices
 {
     /// <summary>
-    /// Implementation for a Stream Deck Original connected device.
+    /// Implementation for a Stream Deck MK.2 connected device.
     /// </summary>
-    public class StreamDeckOriginal(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
+    public class StreamDeckMK2(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
     {
         /// <inheritdoc/>
-        public override DeviceModel Model => DeviceModel.Original;
+        public override DeviceModel Model => DeviceModel.MK2;
 
         /// <inheritdoc/>
-        public override int ButtonCount => 15;
+        public override int ButtonCount => 6;
 
         /// <inheritdoc/>
         public override bool IsButtonImageFlipRequired => true;
