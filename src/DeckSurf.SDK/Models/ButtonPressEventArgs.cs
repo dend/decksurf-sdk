@@ -19,27 +19,27 @@ namespace DeckSurf.SDK.Models
     /// <param name="tapCoordinates">Coordinates on the touch screen where a tap occurred.</param>
     /// <param name="isKnobRotating">Determines whether a knob is being rotated.</param>
     /// <param name="knobRotationDirection">Direction of a knob being rotated.</param>
-    public class ButtonPressEventArgs(int id, ButtonEventKind eventKind, ButtonKind buttonKind, Point tapCoordinates, bool isKnobRotating, KnobRotationDirection knobRotationDirection) : EventArgs
+    public class ButtonPressEventArgs(int id, ButtonEventKind eventKind, ButtonKind? buttonKind, Point? tapCoordinates, bool? isKnobRotating, KnobRotationDirection? knobRotationDirection) : EventArgs
     {
         /// <summary>
         /// Gets a value indicating whether a knob is being rotated.
         /// </summary>
-        public bool IsKnobRotating { get; } = isKnobRotating;
+        public bool? IsKnobRotating { get; } = isKnobRotating;
 
         /// <summary>
         /// Gets the knob rotation direction if the button is a knob and was rotated.
         /// </summary>
-        public KnobRotationDirection KnobRotationDirection { get; } = knobRotationDirection;
+        public KnobRotationDirection? KnobRotationDirection { get; } = knobRotationDirection;
 
         /// <summary>
         /// Gets the coordinates on the touch screen where the tap occurred.
         /// </summary>
-        public Point TapCoordinates { get; } = tapCoordinates;
+        public Point? TapCoordinates { get; } = tapCoordinates;
 
         /// <summary>
         /// Gets the kind of the button pressed.
         /// </summary>
-        public ButtonKind ButtonKind { get; } = buttonKind;
+        public ButtonKind? ButtonKind { get; } = buttonKind;
 
         /// <summary>
         /// Gets the numeric ID of the button being pressed.

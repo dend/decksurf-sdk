@@ -1,10 +1,9 @@
-﻿using DeckSurf.SDK.Core;
-using DeckSurf.SDK.Models;
-using DeckSurf.SDK.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using DeckSurf.SDK.Core;
+using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.StartBoard
 {
@@ -43,7 +42,12 @@ namespace DeckSurf.SDK.StartBoard
 
         private static void Device_OnButtonPress(object source, ButtonPressEventArgs e)
         {
-            Console.WriteLine($"Button with ID {e.Id} was pressed. It's identified as {e.ButtonKind}. Event is {e.EventKind}. If this is a touch screen, coordinates are {e.TapCoordinates.X} and {e.TapCoordinates.Y}. Is knob rotated: {e.IsKnobRotating}. Rotation direction: {e.KnobRotationDirection}.");
+            Console.WriteLine($"Button with ID {e.Id} was pressed. It's identified as {e.ButtonKind}. Event is {e.EventKind}. Is knob rotated: {e.IsKnobRotating}. Rotation direction: {e.KnobRotationDirection}.");
+
+            if (e.TapCoordinates != null)
+            {
+                Console.WriteLine($"If this is a touch screen, coordinates are {e.TapCoordinates.Value.X} and {e.TapCoordinates.Value.Y}.");
+            }
         }
     }
 }

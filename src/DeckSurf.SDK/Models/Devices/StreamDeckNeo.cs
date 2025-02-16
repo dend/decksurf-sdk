@@ -2,6 +2,7 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using DeckSurf.SDK.Util;
@@ -76,6 +77,33 @@ namespace DeckSurf.SDK.Models.Devices
                 binaryIteration[0],
                 binaryIteration[1],
             ];
+        }
+
+        /// <inheritdoc/>
+        protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
+        {
+            var buttonMapOffset = 4;
+            int bytesRead = this.UnderlyingInputStream.EndRead(result);
+
+            // Let's grab the first two bytes to understand the type of button we're dealing with.
+            // They can be:
+            //    0x01 0x00 - Button
+            var header = new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray();
+            var buttonKind = this.GetButtonKind(header);
+            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
+
+            var buttonData = new ArraySegment<byte>(keyPressBuffer, buttonMapOffset, buttonCount).ToArray();
+
+            int pressedButton = -1;
+
+            if (buttonKind == ButtonKind.Button || buttonKind == ButtonKind.Screen)
+            {
+                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
+            }
+
+            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
+
+            return new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, null, null, null);
         }
     }
 }

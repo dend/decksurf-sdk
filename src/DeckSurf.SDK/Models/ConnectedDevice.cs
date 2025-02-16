@@ -161,9 +161,9 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         public abstract int ScreenImageHeaderSize { get; }
 
-        private HidDevice UnderlyingDevice { get; }
+        internal HidDevice UnderlyingDevice { get; }
 
-        private HidStream UnderlyingInputStream { get; set; }
+        internal HidStream UnderlyingInputStream { get; set; }
 
         /// <summary>
         /// Abstract method to get the device-specific header.
@@ -354,82 +354,21 @@ namespace DeckSurf.SDK.Models
             return true;
         }
 
+        /// <summary>
+        /// Handles the key press. Different devices carry different implementations.
+        /// </summary>
+        /// <param name="result">Result passed from the existing stream.</param>
+        /// <param name="keyPressBuffer">Binary buffer related to the key press.</param>
+        /// <returns>If successful, returns the event args related to the key press event.</returns>
+        protected abstract ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer);
+
         private void KeyPressCallback(IAsyncResult result)
         {
-            var buttonMapOffset = 4;
-
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
-
-            // Let's grab the first two bytes to understand the type of button we're dealing with.
-            // They can be:
-            //    0x01 0x00 - Button
-            //    0x01 0x02 - Touch screen
-            //    0x01 0x03 - Knob
-            var header = new ArraySegment<byte>(this.keyPressBuffer, 0, 2).ToArray();
-            var buttonKind = this.GetButtonKind(header);
-            var isKnobRotated = false;
-            var knobRotationDirection = KnobRotationDirection.None;
-            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(this.keyPressBuffer, 2, 2).ToArray());
-
-            // If this was not a touch screen, we should provide
-            // dummy coordinates.
-            Point touchPoint = new() { X = -1, Y = -1 };
-
-            if (buttonKind == ButtonKind.Screen)
-            {
-                var xCoord = new ArraySegment<byte>(this.keyPressBuffer, 6, 2).ToArray();
-                var yCoord = new ArraySegment<byte>(this.keyPressBuffer, 8, 2).ToArray();
-
-                touchPoint = new Point() { X = DataHelpers.GetIntFromLittleEndianBytes(xCoord), Y = DataHelpers.GetIntFromLittleEndianBytes(yCoord) };
-            }
-
-            // For whatever reason, the number of knobs is reported as 5, even though
-            // there are only 4 on the Stream Deck Plus. Because that's the only device
-            // where that value is used today, let's make sure that we decrement by 1.
-            // Also, for the knob, the header is 5 bytes long, because the fifth
-            // byte tells us whether the knob is rotated or not.
-            if (buttonKind == ButtonKind.Knob)
-            {
-                buttonCount -= 1;
-                buttonMapOffset += 1;
-            }
-
-            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, buttonMapOffset, buttonCount).ToArray();
-
-            int pressedButton = -1;
-
-            if (buttonKind == ButtonKind.Button || buttonKind == ButtonKind.Screen)
-            {
-                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
-            }
-            else
-            {
-                isKnobRotated = this.keyPressBuffer[4] != (byte)0x00;
-
-                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
-                if (pressedButton == -1)
-                {
-                    pressedButton = Array.IndexOf(buttonData, (byte)0xFF);
-
-                    if (isKnobRotated)
-                    {
-                        knobRotationDirection = KnobRotationDirection.Left;
-                    }
-                }
-                else
-                {
-                    if (isKnobRotated)
-                    {
-                        knobRotationDirection = KnobRotationDirection.Right;
-                    }
-                }
-            }
-
-            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
+            var args = this.HandleKeyPress(result, this.keyPressBuffer);
 
             if (this.OnButtonPress != null)
             {
-                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, touchPoint, isKnobRotated, knobRotationDirection));
+                this.OnButtonPress(this.UnderlyingDevice, args);
             }
 
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
@@ -437,7 +376,7 @@ namespace DeckSurf.SDK.Models
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
         }
 
-        private ButtonKind GetButtonKind(byte[] identifier)
+        internal ButtonKind GetButtonKind(byte[] identifier)
         {
             if (identifier.Length != 2)
             {
