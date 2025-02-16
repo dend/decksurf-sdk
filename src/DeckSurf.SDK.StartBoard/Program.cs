@@ -28,12 +28,11 @@ namespace DeckSurf.SDK.StartBoard
 
             byte[] testImage = File.ReadAllBytes(args[0]);
 
-            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, device.IsButtonImageFlipRequired);
+            //var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, device.IsButtonImageFlipRequired);
 
-            device.SetScreen(image, 250, device.ScreenWidth, device.ScreenHeight);
+            //device.SetScreen(image, 250, device.ScreenWidth, device.ScreenHeight);
 
-            var keyImage = ImageHelpers.ResizeImage(testImage, device.ButtonResolution, device.ButtonResolution, device.IsButtonImageFlipRequired);
-            device.SetKey(1, keyImage);
+            device.SetKey(1, testImage);
 
             device.SetBrightness(29);
             //device.ClearButtons();

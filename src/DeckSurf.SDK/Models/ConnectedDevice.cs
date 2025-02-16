@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,12 +19,6 @@ namespace DeckSurf.SDK.Models
     /// </summary>
     public abstract class ConnectedDevice
     {
-        private static readonly int ImageReportLength = 1024;
-        private static readonly int ImageReportHeaderLength = 8;
-        private static readonly int ImageReportScreenHeaderLength = 16;
-        private static readonly int ImageReportPayloadLength = ImageReportLength - ImageReportHeaderLength;
-        private static readonly int ImageReportScreenPayloadLength = ImageReportLength - ImageReportScreenHeaderLength;
-
         private byte[] keyPressBuffer = new byte[1024];
 
         /// <summary>
@@ -93,9 +88,9 @@ namespace DeckSurf.SDK.Models
         public abstract int ButtonCount { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the image needs to be flipped before being passed to a button.
+        /// Gets a value indicating the flip type for the image sent to the device.
         /// </summary>
-        public abstract bool IsButtonImageFlipRequired { get; }
+        public abstract RotateFlipType FlipType { get; }
 
         /// <summary>
         /// Gets a value indicating whether the Stream Deck device has a screen in addition to buttons.
@@ -146,10 +141,39 @@ namespace DeckSurf.SDK.Models
         /// </remarks>
         public abstract int ScreenSegmentWidth { get; }
 
+        /// <summary>
+        /// Gets the image format used for individual keys on the Stream Deck device.
+        /// </summary>
+        public abstract ImageFormat KeyImageFormat { get; }
+
+        /// <summary>
+        /// Gets the size of the header for the packets used to set the key image.
+        /// </summary>
+        public abstract int KeyImageHeaderSize { get; }
+
+        /// <summary>
+        /// Gets the size of the packet used to set the image for a key or the screen.
+        /// </summary>
+        public abstract int PacketSize { get; }
+
+        /// <summary>
+        /// Gets the size of the header for the packets used to set the screen image.
+        /// </summary>
+        public abstract int ScreenImageHeaderSize { get; }
 
         private HidDevice UnderlyingDevice { get; }
 
         private HidStream UnderlyingInputStream { get; set; }
+
+        /// <summary>
+        /// Abstract method to get the device-specific header.
+        /// </summary>
+        /// <param name="keyId">The key ID.</param>
+        /// <param name="sliceLength">The length of the slice.</param>
+        /// <param name="iteration">The iteration number.</param>
+        /// <param name="remainingBytes">The remaining bytes to be sent.</param>
+        /// <returns>The device-specific header as a byte array.</returns>
+        public abstract byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes);
 
         /// <summary>
         /// Initialize the device and start reading the input stream.
@@ -224,7 +248,7 @@ namespace DeckSurf.SDK.Models
                     {
                         byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
 
-                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.IsButtonImageFlipRequired);
+                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
                         this.SetKey(button.ButtonIndex, imageBuffer);
                     }
                 }
@@ -239,36 +263,22 @@ namespace DeckSurf.SDK.Models
         /// <returns>True if succesful, false if not.</returns>
         public bool SetKey(int keyId, byte[] image)
         {
+            var keyImage = ImageHelpers.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
+
             var iteration = 0;
-            var remainingBytes = image.Length;
+            var remainingBytes = keyImage.Length;
 
             using var stream = this.Open();
             while (remainingBytes > 0)
             {
-                var sliceLength = Math.Min(remainingBytes, ImageReportPayloadLength);
-                var bytesSent = iteration * ImageReportPayloadLength;
+                var sliceLength = Math.Min(remainingBytes, (this.PacketSize - this.KeyImageHeaderSize));
+                var bytesSent = iteration * (this.PacketSize - this.KeyImageHeaderSize);
 
-                byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
+                // Get the device-specific header
+                byte[] header = this.GetKeySetupHeader(keyId, sliceLength, iteration, remainingBytes);
 
-                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
-
-                // TODO: This is different for different device classes, so I will need
-                // to make sure that I adjust the header format.
-                byte[] header =
-                [
-                    0x02,
-                    0x07,
-                    (byte)keyId,
-                    finalizer,
-                    binaryLength[0],
-                    binaryLength[1],
-                    binaryIteration[0],
-                    binaryIteration[1]
-                ];
-
-                var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
-                var padding = new byte[ImageReportLength - payload.Length];
+                var payload = header.Concat(new ArraySegment<byte>(keyImage, bytesSent, sliceLength)).ToArray();
+                var padding = new byte[this.PacketSize - payload.Length];
 
                 var finalPayload = payload.Concat(padding).ToArray();
 
@@ -302,8 +312,8 @@ namespace DeckSurf.SDK.Models
             using var stream = this.Open();
             while (remainingBytes > 0)
             {
-                var sliceLength = Math.Min(remainingBytes, ImageReportScreenPayloadLength);
-                var bytesSent = iteration * ImageReportScreenPayloadLength;
+                var sliceLength = Math.Min(remainingBytes, (this.PacketSize - this.ScreenImageHeaderSize));
+                var bytesSent = iteration * (this.PacketSize - this.ScreenImageHeaderSize);
 
                 byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
@@ -331,7 +341,7 @@ namespace DeckSurf.SDK.Models
                 ];
 
                 var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
-                var padding = new byte[ImageReportLength - payload.Length];
+                var padding = new byte[this.PacketSize - payload.Length];
 
                 var finalPayload = payload.Concat(padding).ToArray();
 
