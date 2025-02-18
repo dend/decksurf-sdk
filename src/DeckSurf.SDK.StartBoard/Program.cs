@@ -33,7 +33,7 @@ namespace DeckSurf.SDK.StartBoard
 
             device.SetKey(1, testImage);
 
-            device.SetBrightness(29);
+            device.SetBrightness(45);
             //device.ClearButtons();
 
             Console.WriteLine("Done");
