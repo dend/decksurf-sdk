@@ -4,6 +4,9 @@
 
 _**Unofficial Software Development Kit for your Stream Deck, built in C# for the .NET platform.**_
 
+>[!WARNING]
+>This SDK is under active development and is currently in its **alpha stage**. That means that there _may be_ breaking changes between releases until it hits `1.0.0`.
+
 >[!NOTE]
 >For the DeckSurf tooling (_CLI and plugins_), refer to the [DeckSurf repository](https://github.com/dend/DeckSurf).
 
