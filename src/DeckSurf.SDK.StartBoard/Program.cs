@@ -1,10 +1,12 @@
-﻿using DeckSurf.SDK.Core;
-using DeckSurf.SDK.Models;
-using DeckSurf.SDK.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
+using DeckSurf.SDK.Core;
+using DeckSurf.SDK.Models;
+using DeckSurf.SDK.Util;
 
 namespace DeckSurf.SDK.StartBoard
 {
@@ -28,15 +30,16 @@ namespace DeckSurf.SDK.StartBoard
 
             byte[] testImage = File.ReadAllBytes(args[0]);
 
-            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, device.IsButtonImageFlipRequired);
+            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, RotateFlipType.Rotate180FlipNone, ImageFormat.Jpeg);
+            device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
 
-            device.SetScreen(image, 250, device.ScreenWidth, device.ScreenHeight);
+            device.SetKey(1, testImage);
 
-            var keyImage = ImageHelpers.ResizeImage(testImage, device.ButtonResolution, device.ButtonResolution, device.IsButtonImageFlipRequired);
-            device.SetKey(1, keyImage);
-
-            device.SetBrightness(29);
+            device.SetBrightness(45);
             //device.ClearButtons();
+
+            device.SetKeyColor(2, Color.Red);
+            device.SetKeyColor(4, Color.Green);
 
             Console.WriteLine("Done");
             exitSignal.WaitOne();
@@ -44,7 +47,12 @@ namespace DeckSurf.SDK.StartBoard
 
         private static void Device_OnButtonPress(object source, ButtonPressEventArgs e)
         {
-            Console.WriteLine($"Button with ID {e.Id} was pressed. It's identified as {e.ButtonKind}. Event is {e.EventKind}. If this is a touch screen, coordinates are {e.TapCoordinates.X} and {e.TapCoordinates.Y}. Is knob rotated: {e.IsKnobRotating}. Rotation direction: {e.KnobRotationDirection}.");
+            Console.WriteLine($"Button with ID {e.Id} was pressed. It's identified as {e.ButtonKind}. Event is {e.EventKind}. Is knob rotated: {e.IsKnobRotating}. Rotation direction: {e.KnobRotationDirection}.");
+
+            if (e.TapCoordinates != null)
+            {
+                Console.WriteLine($"If this is a touch screen, coordinates are {e.TapCoordinates.Value.X} and {e.TapCoordinates.Value.Y}.");
+            }
         }
     }
 }

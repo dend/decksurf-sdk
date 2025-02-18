@@ -78,6 +78,13 @@ namespace DeckSurf.SDK.Core
                                 break;
                             }
 
+                        case DeviceModel.MK2:
+                            {
+                                connectedDevices.Add(new StreamDeckMK2(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()
+                                    ));
+                                break;
+                            }
+
                         case DeviceModel.Neo:
                             {
                                 connectedDevices.Add(new StreamDeckNeo(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()

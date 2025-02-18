@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,12 +19,6 @@ namespace DeckSurf.SDK.Models
     /// </summary>
     public abstract class ConnectedDevice
     {
-        private static readonly int ImageReportLength = 1024;
-        private static readonly int ImageReportHeaderLength = 8;
-        private static readonly int ImageReportScreenHeaderLength = 16;
-        private static readonly int ImageReportPayloadLength = ImageReportLength - ImageReportHeaderLength;
-        private static readonly int ImageReportScreenPayloadLength = ImageReportLength - ImageReportScreenHeaderLength;
-
         private byte[] keyPressBuffer = new byte[1024];
 
         /// <summary>
@@ -93,9 +88,14 @@ namespace DeckSurf.SDK.Models
         public abstract int ButtonCount { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the image needs to be flipped before being passed to a button.
+        /// Gets the count of touch buttons on the connected Stream Deck device.
         /// </summary>
-        public abstract bool IsButtonImageFlipRequired { get; }
+        public abstract int TouchButtonCount { get; }
+
+        /// <summary>
+        /// Gets a value indicating the flip type for the image sent to the device.
+        /// </summary>
+        public abstract RotateFlipType FlipType { get; }
 
         /// <summary>
         /// Gets a value indicating whether the Stream Deck device has a screen in addition to buttons.
@@ -146,10 +146,55 @@ namespace DeckSurf.SDK.Models
         /// </remarks>
         public abstract int ScreenSegmentWidth { get; }
 
+        /// <summary>
+        /// Gets the image format used for individual keys on the Stream Deck device.
+        /// </summary>
+        public abstract ImageFormat KeyImageFormat { get; }
 
-        private HidDevice UnderlyingDevice { get; }
+        /// <summary>
+        /// Gets the size of the header for the packets used to set the key image.
+        /// </summary>
+        public abstract int KeyImageHeaderSize { get; }
 
-        private HidStream UnderlyingInputStream { get; set; }
+        /// <summary>
+        /// Gets the size of the packet used to set the image for a key or the screen.
+        /// </summary>
+        public abstract int PacketSize { get; }
+
+        /// <summary>
+        /// Gets the size of the header for the packets used to set the screen image.
+        /// </summary>
+        public abstract int ScreenImageHeaderSize { get; }
+
+        internal HidDevice UnderlyingDevice { get; }
+
+        internal HidStream UnderlyingInputStream { get; set; }
+
+        internal static ButtonKind GetButtonKind(byte[] identifier)
+        {
+            if (identifier.Length != 2)
+            {
+                return ButtonKind.Unknown;
+            }
+
+            return (identifier[0], identifier[1]) switch
+            {
+                (0x01, 0x00) => ButtonKind.Button,
+                (0x01, 0x02) => ButtonKind.Screen,
+                (0x01, 0x03) => ButtonKind.Knob,
+                _ => ButtonKind.Unknown,
+            };
+        }
+
+        /// <summary>
+        /// Abstract method to get the device-specific header.
+        /// </summary>
+        /// <param name="keyId">The key ID.</param>
+        /// <param name="sliceLength">The length of the slice.</param>
+        /// <param name="iteration">The iteration number.</param>
+        /// <param name="remainingBytes">The remaining bytes to be sent.</param>
+        /// <returns>The device-specific header as a byte array.</returns>
+        public abstract byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes);
 
         /// <summary>
         /// Initialize the device and start reading the input stream.
@@ -193,18 +238,14 @@ namespace DeckSurf.SDK.Models
         /// Sets the brightness of the Stream Deck device display.
         /// </summary>
         /// <param name="percentage">Percentage, from 0 to 100, to which brightness should be set. Any values larger than 100 will be set to 100.</param>
-        public void SetBrightness(byte percentage)
+        public virtual void SetBrightness(byte percentage)
         {
-            if (percentage > 100)
-            {
-                percentage = 100;
-            }
+            percentage = Math.Min(percentage, (byte)100);
 
-            var brightnessRequest = new byte[]
-            {
-                0x03, 0x08, percentage, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            };
+            byte[] brightnessRequest = new byte[32];
+            brightnessRequest[0] = 0x03;
+            brightnessRequest[1] = 0x08;
+            brightnessRequest[2] = percentage;
 
             using var stream = this.Open();
             stream.SetFeature(brightnessRequest);
@@ -224,7 +265,7 @@ namespace DeckSurf.SDK.Models
                     {
                         byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
 
-                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.IsButtonImageFlipRequired);
+                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
                         this.SetKey(button.ButtonIndex, imageBuffer);
                     }
                 }
@@ -239,36 +280,22 @@ namespace DeckSurf.SDK.Models
         /// <returns>True if succesful, false if not.</returns>
         public bool SetKey(int keyId, byte[] image)
         {
+            var keyImage = ImageHelpers.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
+
             var iteration = 0;
-            var remainingBytes = image.Length;
+            var remainingBytes = keyImage.Length;
 
             using var stream = this.Open();
             while (remainingBytes > 0)
             {
-                var sliceLength = Math.Min(remainingBytes, ImageReportPayloadLength);
-                var bytesSent = iteration * ImageReportPayloadLength;
+                var sliceLength = Math.Min(remainingBytes, (this.PacketSize - this.KeyImageHeaderSize));
+                var bytesSent = iteration * (this.PacketSize - this.KeyImageHeaderSize);
 
-                byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
+                // Get the device-specific header
+                byte[] header = this.GetKeySetupHeader(keyId, sliceLength, iteration, remainingBytes);
 
-                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
-
-                // TODO: This is different for different device classes, so I will need
-                // to make sure that I adjust the header format.
-                byte[] header =
-                [
-                    0x02,
-                    0x07,
-                    (byte)keyId,
-                    finalizer,
-                    binaryLength[0],
-                    binaryLength[1],
-                    binaryIteration[0],
-                    binaryIteration[1]
-                ];
-
-                var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
-                var padding = new byte[ImageReportLength - payload.Length];
+                var payload = header.Concat(new ArraySegment<byte>(keyImage, bytesSent, sliceLength)).ToArray();
+                var padding = new byte[this.PacketSize - payload.Length];
 
                 var finalPayload = payload.Concat(padding).ToArray();
 
@@ -277,6 +304,38 @@ namespace DeckSurf.SDK.Models
                 remainingBytes -= sliceLength;
                 iteration++;
             }
+
+            return true;
+        }
+
+
+        /// <summary>
+        /// Sets the key color to a specified color.
+        /// </summary>
+        /// <remarks>
+        /// Only supported on the Stream Deck Neo at this time.
+        /// </remarks>
+        /// <param name="index">Key index where the color must be set.</param>
+        /// <param name="color">Color to set the key to.</param>
+        /// <returns>If successful, returns true. Otherwise, false (including in scenarios where it's not available).</returns>
+        public bool SetKeyColor(int index, Color color)
+        {
+            if (Math.Min(Math.Max(index, 0), this.ButtonCount + this.TouchButtonCount - 1) != index)
+            {
+                throw new IndexOutOfRangeException($"The index {index} for the touch key does not represent a real touch key.");
+            }
+
+            byte[] payload = new byte[32];
+
+            payload[0] = 0x03;
+            payload[1] = 0x06;
+            payload[2] = (byte)index;
+            payload[3] = color.R;
+            payload[4] = color.G;
+            payload[5] = color.B;
+
+            using var stream = this.Open();
+            stream.SetFeature(payload);
 
             return true;
         }
@@ -290,157 +349,28 @@ namespace DeckSurf.SDK.Models
         /// <param name="width">Image height.</param>
         /// <param name="height">Image width.</param>
         /// <returns>True if succesful, false if not.</returns>
-        public bool SetScreen(byte[] image, int offset, int width, int height)
-        {
-            byte[] binaryOffset = DataHelpers.GetLittleEndianBytesFromInt(offset);
-            byte[] binaryWidth = DataHelpers.GetLittleEndianBytesFromInt(width);
-            byte[] binaryHeight = DataHelpers.GetLittleEndianBytesFromInt(height);
+        public abstract bool SetScreen(byte[] image, int offset, int width, int height);
 
-            var iteration = 0;
-            var remainingBytes = image.Length;
-
-            using var stream = this.Open();
-            while (remainingBytes > 0)
-            {
-                var sliceLength = Math.Min(remainingBytes, ImageReportScreenPayloadLength);
-                var bytesSent = iteration * ImageReportScreenPayloadLength;
-
-                byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
-
-                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
-
-                byte[] header =
-                [
-                    0x02,
-                    0x0C,
-                    binaryOffset[0],
-                    binaryOffset[1],
-                    0x00,
-                    0x00,
-                    binaryWidth[0],
-                    binaryWidth[1],
-                    binaryHeight[0],
-                    binaryHeight[1],
-                    isLastChunk,
-                    binaryIteration[0],
-                    binaryIteration[1],
-                    binaryLength[0],
-                    binaryLength[1],
-                    0x00
-                ];
-
-                var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
-                var padding = new byte[ImageReportLength - payload.Length];
-
-                var finalPayload = payload.Concat(padding).ToArray();
-
-                stream.Write(finalPayload);
-
-                remainingBytes -= sliceLength;
-                iteration++;
-            }
-
-            return true;
-        }
+        /// <summary>
+        /// Handles the key press. Different devices carry different implementations.
+        /// </summary>
+        /// <param name="result">Result passed from the existing stream.</param>
+        /// <param name="keyPressBuffer">Binary buffer related to the key press.</param>
+        /// <returns>If successful, returns the event args related to the key press event.</returns>
+        protected abstract ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer);
 
         private void KeyPressCallback(IAsyncResult result)
         {
-            var buttonMapOffset = 4;
-
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
-
-            // Let's grab the first two bytes to understand the type of button we're dealing with.
-            // They can be:
-            //    0x01 0x00 - Button
-            //    0x01 0x02 - Touch screen
-            //    0x01 0x03 - Knob
-            var header = new ArraySegment<byte>(this.keyPressBuffer, 0, 2).ToArray();
-            var buttonKind = this.GetButtonKind(header);
-            var isKnobRotated = false;
-            var knobRotationDirection = KnobRotationDirection.None;
-            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(this.keyPressBuffer, 2, 2).ToArray());
-
-            // If this was not a touch screen, we should provide
-            // dummy coordinates.
-            Point touchPoint = new() { X = -1, Y = -1 };
-
-            if (buttonKind == ButtonKind.Screen)
-            {
-                var xCoord = new ArraySegment<byte>(this.keyPressBuffer, 6, 2).ToArray();
-                var yCoord = new ArraySegment<byte>(this.keyPressBuffer, 8, 2).ToArray();
-
-                touchPoint = new Point() { X = DataHelpers.GetIntFromLittleEndianBytes(xCoord), Y = DataHelpers.GetIntFromLittleEndianBytes(yCoord) };
-            }
-
-            // For whatever reason, the number of knobs is reported as 5, even though
-            // there are only 4 on the Stream Deck Plus. Because that's the only device
-            // where that value is used today, let's make sure that we decrement by 1.
-            // Also, for the knob, the header is 5 bytes long, because the fifth
-            // byte tells us whether the knob is rotated or not.
-            if (buttonKind == ButtonKind.Knob)
-            {
-                buttonCount -= 1;
-                buttonMapOffset += 1;
-            }
-
-            var buttonData = new ArraySegment<byte>(this.keyPressBuffer, buttonMapOffset, buttonCount).ToArray();
-
-            int pressedButton = -1;
-
-            if (buttonKind == ButtonKind.Button || buttonKind == ButtonKind.Screen)
-            {
-                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
-            }
-            else
-            {
-                isKnobRotated = this.keyPressBuffer[4] != (byte)0x00;
-
-                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
-                if (pressedButton == -1)
-                {
-                    pressedButton = Array.IndexOf(buttonData, (byte)0xFF);
-
-                    if (isKnobRotated)
-                    {
-                        knobRotationDirection = KnobRotationDirection.Left;
-                    }
-                }
-                else
-                {
-                    if (isKnobRotated)
-                    {
-                        knobRotationDirection = KnobRotationDirection.Right;
-                    }
-                }
-            }
-
-            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
+            var args = this.HandleKeyPress(result, this.keyPressBuffer);
 
             if (this.OnButtonPress != null)
             {
-                this.OnButtonPress(this.UnderlyingDevice, new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, touchPoint, isKnobRotated, knobRotationDirection));
+                this.OnButtonPress(this.UnderlyingDevice, args);
             }
 
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
 
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
-        }
-
-        private ButtonKind GetButtonKind(byte[] identifier)
-        {
-            if (identifier.Length != 2)
-            {
-                return ButtonKind.Unknown;
-            }
-
-            return (identifier[0], identifier[1]) switch
-            {
-                (0x01, 0x00) => ButtonKind.Button,
-                (0x01, 0x02) => ButtonKind.Screen,
-                (0x01, 0x03) => ButtonKind.Knob,
-                _ => ButtonKind.Unknown,
-            };
         }
     }
 }
