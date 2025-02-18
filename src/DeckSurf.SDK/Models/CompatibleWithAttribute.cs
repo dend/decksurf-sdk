@@ -16,7 +16,6 @@ namespace DeckSurf.SDK.Models
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
     public class CompatibleWithAttribute(DeviceModel model) : Attribute
     {
-
         /// <summary>
         /// Gets or sets the <see cref="DeviceModel"/> device model type.
         /// </summary>

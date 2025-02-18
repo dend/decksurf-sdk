@@ -96,7 +96,7 @@ namespace DeckSurf.SDK.Models.Devices
             using var stream = this.Open();
             while (remainingBytes > 0)
             {
-                var sliceLength = Math.Min(remainingBytes, (this.PacketSize - this.ScreenImageHeaderSize));
+                var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.ScreenImageHeaderSize);
                 var bytesSent = iteration * (this.PacketSize - this.ScreenImageHeaderSize);
 
                 byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;

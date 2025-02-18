@@ -65,52 +65,24 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
-            byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
-            var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
+            byte[] header = new byte[16];
+            byte finalizer = (byte)(sliceLength == remainingBytes ? 1 : 0);
             var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
 
-            return
-            [
-                0x02,
-                0x01,
-                binaryIteration[0],
-                binaryIteration[1],
-                finalizer,
-                (byte)keyId,
-                0x00,
-                0x00,
-                0x00,
-                0x00,
-                0x00,
-                0x00,
-                0x00,
-                0x00,
-                0x00,
-                0x00,
-            ];
+            header[0] = 0x02;
+            header[1] = 0x01;
+            header[2] = binaryIteration[0];
+            header[3] = binaryIteration[1];
+            header[4] = finalizer;
+            header[5] = (byte)keyId;
+
+            return header;
         }
 
         /// <inheritdoc/>
         public override bool SetScreen(byte[] image, int offset, int width, int height)
         {
             return false;
-        }
-
-        /// <inheritdoc/>
-        protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
-        {
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
-
-            if (keyPressBuffer[0] != 0x01)
-            {
-                return null;
-            }
-
-            var buttonData = new ArraySegment<byte>(keyPressBuffer, 1, 6).ToArray();
-            int pressedButton = Array.IndexOf(buttonData, (byte)0x01);
-            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
-
-            return new ButtonPressEventArgs(pressedButton, eventKind, ButtonKind.Button, null, null, null);
         }
 
         /// <inheritdoc/>
@@ -128,6 +100,23 @@ namespace DeckSurf.SDK.Models.Devices
 
             using var stream = this.Open();
             stream.SetFeature(brightnessRequest);
+        }
+
+        /// <inheritdoc/>
+        protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
+        {
+            int bytesRead = this.UnderlyingInputStream.EndRead(result);
+
+            if (keyPressBuffer[0] != 0x01)
+            {
+                return null;
+            }
+
+            var buttonData = new ArraySegment<byte>(keyPressBuffer, 1, 6).ToArray();
+            int pressedButton = Array.IndexOf(buttonData, (byte)0x01);
+            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
+
+            return new ButtonPressEventArgs(pressedButton, eventKind, ButtonKind.Button, null, null, null);
         }
     }
 }

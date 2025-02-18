@@ -170,22 +170,6 @@ namespace DeckSurf.SDK.Models
 
         internal HidStream UnderlyingInputStream { get; set; }
 
-        internal static ButtonKind GetButtonKind(byte[] identifier)
-        {
-            if (identifier.Length != 2)
-            {
-                return ButtonKind.Unknown;
-            }
-
-            return (identifier[0], identifier[1]) switch
-            {
-                (0x01, 0x00) => ButtonKind.Button,
-                (0x01, 0x02) => ButtonKind.Screen,
-                (0x01, 0x03) => ButtonKind.Knob,
-                _ => ButtonKind.Unknown,
-            };
-        }
-
         /// <summary>
         /// Abstract method to get the device-specific header.
         /// </summary>
@@ -288,7 +272,7 @@ namespace DeckSurf.SDK.Models
             using var stream = this.Open();
             while (remainingBytes > 0)
             {
-                var sliceLength = Math.Min(remainingBytes, (this.PacketSize - this.KeyImageHeaderSize));
+                var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.KeyImageHeaderSize);
                 var bytesSent = iteration * (this.PacketSize - this.KeyImageHeaderSize);
 
                 // Get the device-specific header
@@ -307,7 +291,6 @@ namespace DeckSurf.SDK.Models
 
             return true;
         }
-
 
         /// <summary>
         /// Sets the key color to a specified color.
@@ -350,6 +333,22 @@ namespace DeckSurf.SDK.Models
         /// <param name="height">Image width.</param>
         /// <returns>True if succesful, false if not.</returns>
         public abstract bool SetScreen(byte[] image, int offset, int width, int height);
+
+        internal static ButtonKind GetButtonKind(byte[] identifier)
+        {
+            if (identifier.Length != 2)
+            {
+                return ButtonKind.Unknown;
+            }
+
+            return (identifier[0], identifier[1]) switch
+            {
+                (0x01, 0x00) => ButtonKind.Button,
+                (0x01, 0x02) => ButtonKind.Screen,
+                (0x01, 0x03) => ButtonKind.Knob,
+                _ => ButtonKind.Unknown,
+            };
+        }
 
         /// <summary>
         /// Handles the key press. Different devices carry different implementations.
