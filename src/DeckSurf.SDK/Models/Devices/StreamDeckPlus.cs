@@ -61,6 +61,9 @@ namespace DeckSurf.SDK.Models.Devices
         public override RotateFlipType FlipType => RotateFlipType.Rotate180FlipNone;
 
         /// <inheritdoc/>
+        public override int TouchButtonCount => 0;
+
+        /// <inheritdoc/>
         public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
@@ -147,7 +150,7 @@ namespace DeckSurf.SDK.Models.Devices
             //    0x01 0x02 - Touch screen
             //    0x01 0x03 - Knob
             var header = new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray();
-            var buttonKind = this.GetButtonKind(header);
+            var buttonKind = GetButtonKind(header);
             var isKnobRotated = false;
             var knobRotationDirection = KnobRotationDirection.None;
             var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());

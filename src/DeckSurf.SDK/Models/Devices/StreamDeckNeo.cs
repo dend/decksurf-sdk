@@ -55,10 +55,13 @@ namespace DeckSurf.SDK.Models.Devices
         public override int PacketSize => 1024;
 
         /// <inheritdoc/>
-        public override int ScreenImageHeaderSize => 16;
+        public override int ScreenImageHeaderSize => 8;
 
         /// <inheritdoc/>
         public override RotateFlipType FlipType => RotateFlipType.Rotate180FlipNone;
+
+        /// <inheritdoc/>
+        public override int TouchButtonCount => 2;
 
         /// <inheritdoc/>
         public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
@@ -132,7 +135,7 @@ namespace DeckSurf.SDK.Models.Devices
         {
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 
-            var buttonKind = this.GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
+            var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
             var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
 
             int pressedButton = Array.IndexOf(new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);

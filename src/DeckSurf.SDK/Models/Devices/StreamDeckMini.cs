@@ -60,6 +60,9 @@ namespace DeckSurf.SDK.Models.Devices
         public override RotateFlipType FlipType => RotateFlipType.Rotate270FlipNone;
 
         /// <inheritdoc/>
+        public override int TouchButtonCount => 0;
+
+        /// <inheritdoc/>
         public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
@@ -108,6 +111,23 @@ namespace DeckSurf.SDK.Models.Devices
             var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
 
             return new ButtonPressEventArgs(pressedButton, eventKind, ButtonKind.Button, null, null, null);
+        }
+
+        /// <inheritdoc/>
+        public override void SetBrightness(byte percentage)
+        {
+            percentage = Math.Min(percentage, (byte)100);
+
+            byte[] brightnessRequest = new byte[17];
+            brightnessRequest[0] = 0x05;
+            brightnessRequest[1] = 0x55;
+            brightnessRequest[2] = 0xAA;
+            brightnessRequest[3] = 0xD1;
+            brightnessRequest[4] = 0x01;
+            brightnessRequest[5] = percentage;
+
+            using var stream = this.Open();
+            stream.SetFeature(brightnessRequest);
         }
     }
 }

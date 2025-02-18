@@ -88,6 +88,11 @@ namespace DeckSurf.SDK.Models
         public abstract int ButtonCount { get; }
 
         /// <summary>
+        /// Gets the count of touch buttons on the connected Stream Deck device.
+        /// </summary>
+        public abstract int TouchButtonCount { get; }
+
+        /// <summary>
         /// Gets a value indicating the flip type for the image sent to the device.
         /// </summary>
         public abstract RotateFlipType FlipType { get; }
@@ -165,6 +170,22 @@ namespace DeckSurf.SDK.Models
 
         internal HidStream UnderlyingInputStream { get; set; }
 
+        internal static ButtonKind GetButtonKind(byte[] identifier)
+        {
+            if (identifier.Length != 2)
+            {
+                return ButtonKind.Unknown;
+            }
+
+            return (identifier[0], identifier[1]) switch
+            {
+                (0x01, 0x00) => ButtonKind.Button,
+                (0x01, 0x02) => ButtonKind.Screen,
+                (0x01, 0x03) => ButtonKind.Knob,
+                _ => ButtonKind.Unknown,
+            };
+        }
+
         /// <summary>
         /// Abstract method to get the device-specific header.
         /// </summary>
@@ -217,18 +238,14 @@ namespace DeckSurf.SDK.Models
         /// Sets the brightness of the Stream Deck device display.
         /// </summary>
         /// <param name="percentage">Percentage, from 0 to 100, to which brightness should be set. Any values larger than 100 will be set to 100.</param>
-        public void SetBrightness(byte percentage)
+        public virtual void SetBrightness(byte percentage)
         {
-            if (percentage > 100)
-            {
-                percentage = 100;
-            }
+            percentage = Math.Min(percentage, (byte)100);
 
-            var brightnessRequest = new byte[]
-            {
-                0x03, 0x08, percentage, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            };
+            byte[] brightnessRequest = new byte[32];
+            brightnessRequest[0] = 0x03;
+            brightnessRequest[1] = 0x08;
+            brightnessRequest[2] = percentage;
 
             using var stream = this.Open();
             stream.SetFeature(brightnessRequest);
@@ -291,6 +308,38 @@ namespace DeckSurf.SDK.Models
             return true;
         }
 
+
+        /// <summary>
+        /// Sets the key color to a specified color.
+        /// </summary>
+        /// <remarks>
+        /// Only supported on the Stream Deck Neo at this time.
+        /// </remarks>
+        /// <param name="index">Key index where the color must be set.</param>
+        /// <param name="color">Color to set the key to.</param>
+        /// <returns>If successful, returns true. Otherwise, false (including in scenarios where it's not available).</returns>
+        public bool SetKeyColor(int index, Color color)
+        {
+            if (Math.Min(Math.Max(index, 0), this.ButtonCount + this.TouchButtonCount - 1) != index)
+            {
+                throw new IndexOutOfRangeException($"The index {index} for the touch key does not represent a real touch key.");
+            }
+
+            byte[] payload = new byte[32];
+
+            payload[0] = 0x03;
+            payload[1] = 0x06;
+            payload[2] = (byte)index;
+            payload[3] = color.R;
+            payload[4] = color.G;
+            payload[5] = color.B;
+
+            using var stream = this.Open();
+            stream.SetFeature(payload);
+
+            return true;
+        }
+
         /// <summary>
         /// Sets the screen image for a connected Stream Deck device.
         /// </summary>
@@ -322,22 +371,6 @@ namespace DeckSurf.SDK.Models
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
 
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
-        }
-
-        internal ButtonKind GetButtonKind(byte[] identifier)
-        {
-            if (identifier.Length != 2)
-            {
-                return ButtonKind.Unknown;
-            }
-
-            return (identifier[0], identifier[1]) switch
-            {
-                (0x01, 0x00) => ButtonKind.Button,
-                (0x01, 0x02) => ButtonKind.Screen,
-                (0x01, 0x03) => ButtonKind.Knob,
-                _ => ButtonKind.Unknown,
-            };
         }
     }
 }

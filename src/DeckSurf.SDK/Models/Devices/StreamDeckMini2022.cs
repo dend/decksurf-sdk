@@ -60,6 +60,9 @@ namespace DeckSurf.SDK.Models.Devices
         public override RotateFlipType FlipType => RotateFlipType.Rotate270FlipNone;
 
         /// <inheritdoc/>
+        public override int TouchButtonCount => 0;
+
+        /// <inheritdoc/>
         public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;

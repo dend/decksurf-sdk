@@ -18,7 +18,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override DeviceModel Model => DeviceModel.MK2;
 
         /// <inheritdoc/>
-        public override int ButtonCount => 6;
+        public override int ButtonCount => 15;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => false;
@@ -60,6 +60,9 @@ namespace DeckSurf.SDK.Models.Devices
         public override RotateFlipType FlipType => RotateFlipType.Rotate180FlipNone;
 
         /// <inheritdoc/>
+        public override int TouchButtonCount => 0;
+
+        /// <inheritdoc/>
         public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
@@ -90,7 +93,7 @@ namespace DeckSurf.SDK.Models.Devices
         {
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 
-            var buttonKind = this.GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
+            var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
             var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
 
             int pressedButton = Array.IndexOf(new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
