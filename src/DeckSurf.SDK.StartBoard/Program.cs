@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
 using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Models;
+using DeckSurf.SDK.Util;
 
 namespace DeckSurf.SDK.StartBoard
 {
@@ -27,13 +29,13 @@ namespace DeckSurf.SDK.StartBoard
 
             byte[] testImage = File.ReadAllBytes(args[0]);
 
-            //var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, device.IsButtonImageFlipRequired);
+            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, System.Drawing.RotateFlipType.RotateNoneFlipNone, ImageFormat.Jpeg);
 
-            //device.SetScreen(image, 250, device.ScreenWidth, device.ScreenHeight);
+            device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
 
             device.SetKey(1, testImage);
 
-            device.SetBrightness(45);
+            device.SetBrightness(20);
             //device.ClearButtons();
 
             Console.WriteLine("Done");

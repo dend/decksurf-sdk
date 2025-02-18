@@ -300,59 +300,7 @@ namespace DeckSurf.SDK.Models
         /// <param name="width">Image height.</param>
         /// <param name="height">Image width.</param>
         /// <returns>True if succesful, false if not.</returns>
-        public bool SetScreen(byte[] image, int offset, int width, int height)
-        {
-            byte[] binaryOffset = DataHelpers.GetLittleEndianBytesFromInt(offset);
-            byte[] binaryWidth = DataHelpers.GetLittleEndianBytesFromInt(width);
-            byte[] binaryHeight = DataHelpers.GetLittleEndianBytesFromInt(height);
-
-            var iteration = 0;
-            var remainingBytes = image.Length;
-
-            using var stream = this.Open();
-            while (remainingBytes > 0)
-            {
-                var sliceLength = Math.Min(remainingBytes, (this.PacketSize - this.ScreenImageHeaderSize));
-                var bytesSent = iteration * (this.PacketSize - this.ScreenImageHeaderSize);
-
-                byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
-
-                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
-
-                byte[] header =
-                [
-                    0x02,
-                    0x0C,
-                    binaryOffset[0],
-                    binaryOffset[1],
-                    0x00,
-                    0x00,
-                    binaryWidth[0],
-                    binaryWidth[1],
-                    binaryHeight[0],
-                    binaryHeight[1],
-                    isLastChunk,
-                    binaryIteration[0],
-                    binaryIteration[1],
-                    binaryLength[0],
-                    binaryLength[1],
-                    0x00
-                ];
-
-                var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
-                var padding = new byte[this.PacketSize - payload.Length];
-
-                var finalPayload = payload.Concat(padding).ToArray();
-
-                stream.Write(finalPayload);
-
-                remainingBytes -= sliceLength;
-                iteration++;
-            }
-
-            return true;
-        }
+        public abstract bool SetScreen(byte[] image, int offset, int width, int height);
 
         /// <summary>
         /// Handles the key press. Different devices carry different implementations.

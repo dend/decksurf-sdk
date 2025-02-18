@@ -80,6 +80,12 @@ namespace DeckSurf.SDK.Models.Devices
         }
 
         /// <inheritdoc/>
+        public override bool SetScreen(byte[] image, int offset, int width, int height)
+        {
+            return false;
+        }
+
+        /// <inheritdoc/>
         protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
         {
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
