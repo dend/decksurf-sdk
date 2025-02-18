@@ -27,17 +27,17 @@ dotnet add package DeckSurf.SDK
 ## Supported devices
 
 | Device | Level of support |
-|:----------------------------|:-----------|
-| Stream Deck XL              | ✅ Full    |
-| Stream Deck XL (2022)       | ✅ Full    |
-| Stream Deck Plus            | ✅ Full    |
-| Stream Deck Original        | 🔃 Testing |
-| Stream Deck Original (2019) | 🔃 Testing |
-| Stream Deck MK.2            | 🔃 Testing |
-| Stream Deck MK.2 (Scissor)  | 🔃 Testing |
-| Stream Deck Mini            | 🔃 Testing |
-| Stream Deck Mini (2022)     | 🔃 Testing |
-| Stream Deck Neo             | 🔃 Testing |
+|:----------------------------|:--------|
+| Stream Deck XL              | ✅ Full |
+| Stream Deck XL (2022)       | ✅ Full |
+| Stream Deck Plus            | ✅ Full |
+| Stream Deck Original        | ✅ Full |
+| Stream Deck Original (2019) | ✅ Full |
+| Stream Deck MK.2            | ✅ Full |
+| Stream Deck MK.2 (Scissor)  | ✅ Full |
+| Stream Deck Mini            | ✅ Full |
+| Stream Deck Mini (2022)     | ✅ Full |
+| Stream Deck Neo             | ✅ Full |
 
 Device IDs mapped from the [`streamdeck-kit-ipad`](https://github.com/elgatosf/streamdeck-kit-ipad/blob/c53ef3eb17b8746f80af7224bafa770883e127c6/Sources/StreamDeckKit/Device/StreamDeckProductId.swift#L45) repository.
 
