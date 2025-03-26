@@ -1,0 +1,65 @@
+name: Publish API Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+  workflow_dispatch:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build
+      working-directory: ./src/DeckSurf.SDK
+      run: dotnet build --configuration Release
+    - name: Download mdoc
+      run: Invoke-WebRequest https://github.com/mono/api-doc-tools/releases/download/mdoc-5.8.3/mdoc-5.8.3.zip -OutFile mdoc.zip
+    - name: Download ECMA2YAML
+      run: Invoke-WebRequest https://www.nuget.org/api/v2/package/Microsoft.DocAsCode.ECMA2Yaml/1.0.916 -OutFile ecma2yaml.zip
+    - name: Extract mdoc
+      run: Expand-Archive -Path mdoc.zip -DestinationPath _mdoc
+    - name: Extract ECMA2YAML
+      run: Expand-Archive -Path ecma2yaml.zip -DestinationPath _ecma2yaml
+    - name: Run mdoc bootstrap
+      working-directory: ./src/DeckSurf.SDK/bin
+      run: ${{ github.workspace }}\_mdoc\mdoc.exe fx-bootstrap Release
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: 'dend/decksurf-docs'
+        path: '_docs'
+        token: ${{ secrets.DOCS_PAT }}
+    - name: Run import script
+      working-directory: ./src/DeckSurf.SDK/bin/Release
+      run: ${{ github.workspace }}\_docs\scripts\mdoc-import.ps1
+    - name: Run XML generation
+      working-directory: ./src/DeckSurf.SDK/bin/Release
+      run: ${{ github.workspace }}\_mdoc\mdoc.exe update --debug --out _xml -fx (Resolve-Path frameworks.xml) --use-docid
+    - name: Run YAML generation
+      run: _ecma2yaml\tools\ecma2yaml.exe update -s ${{ github.workspace }}\src\DeckSurf.SDK\bin\Release\_xml -o _ready_yaml
+    - name: Clean old API files
+      run: Remove-Item -recurse ${{ github.workspace }}\_docs\docs\api\* -exclude *.md,.gitignore
+    - name: Copy new files
+      run: Copy-item -Force -Recurse -Verbose _ready_yaml\* -Destination ${{ github.workspace }}\_docs\docs\api
+    - name: Commit and push all the documentation changes
+      working-directory: _docs
+      run: |
+        git add -A -v
+        git config --global user.name 'Den Delimarsky'
+        git config --global user.email '1389609+dend@users.noreply.github.com'
+        git commit -m "Docs update."
+        git push origin main
