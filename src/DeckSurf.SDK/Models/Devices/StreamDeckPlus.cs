@@ -28,7 +28,6 @@ namespace DeckSurf.SDK.Models.Devices
 
         /// <inheritdoc/>
         public override int KnobCount => 4;
-        
 
         /// <inheritdoc/>
         public override int ButtonResolution => 120;
@@ -137,6 +136,86 @@ namespace DeckSurf.SDK.Models.Devices
             }
 
             return true;
+        }
+
+        protected override IEnumerable<IDeckEvent> HandleInput(IAsyncResult result, byte[] buffer)
+        {
+            this.UnderlyingInputStream.EndRead(result);
+
+            this._buttonStates ??= new byte[this.ButtonCount];
+            this._knobStates ??= new byte[this.KnobCount];
+
+            switch (buffer)
+            {
+                // Button change
+                case [0x01, 0x00, ..]:
+                    for (var i = 0; i < this.ButtonCount; i++)
+                    {
+                        if (this._buttonStates[i] != buffer[i + 4])
+                        {
+                            yield return buffer[i + 4] == 0 ? new ButtonUp(i) : new ButtonDown(i);
+                        }
+
+                        this._buttonStates[i] = buffer[i + 4];
+                    }
+
+                    break;
+
+                // Screen Tapped
+                case [0x01, 0x02, _, _, 0x01, _, var xTapLow, var xTapHigh, var yTapLow, var yTapHigh, ..]:
+                    yield return new ScreenTap(xTapHigh << 8 | xTapLow, yTapHigh << 8 | yTapLow);
+                    break;
+
+                // Screen Long Held
+                case [0x01, 0x02, _, _, 0x02, _, var xHoldLow, var xHoldHigh, var yHoldLow, var yHoldHigh, ..]:
+                    yield return new ScreenHold(xHoldHigh << 8 | xHoldLow, yHoldHigh << 8 | yHoldLow);
+                    break;
+
+                // Screen Swiped
+                case
+                [
+                    0x01, 0x02, _, _, 0x03, _, var xSwipeStartLow, var xSwipeStartHigh, var ySwipeStartLow,
+                    var ySwipeStartHigh,
+                    var xSwipeEndLow, var xSwipeEndHigh, var ySwipeEndLow, var ySwipeEndHigh, ..
+                ]:
+                    yield return new ScreenSwipe(
+                        xSwipeStartHigh << 8 | xSwipeStartLow,
+                        ySwipeStartHigh << 8 | ySwipeStartLow,
+                        xSwipeEndHigh << 8 | xSwipeEndLow,
+                        ySwipeEndHigh << 8 | ySwipeEndLow);
+                    break;
+
+                // Knob Rotated
+                case [0x01, 0x03, _, _, 0x01, var rot1, var rot2, var rot3, var rot4, ..]:
+                    for (var i = 0; i < this.KnobCount; i++)
+                    {
+                        var rot = buffer[i + 5];
+                        if (rot == 0)
+                        {
+                            continue;
+                        }
+
+                        yield return (rot & 0x80) == 0x80
+                            ? new KnobCounterClockwise(0, 256 - rot)
+                            : new KnobClockwise(0, rot);
+                    }
+
+                    break;
+
+                // Knob press change
+                case [0x01, 0x03, _, _, 0x00, ..]:
+                    for (var i = 0; i < this.KnobCount; i++)
+                    {
+                        if (this._knobStates[i] != buffer[i + 5])
+                        {
+                            yield return buffer[i + 5] == 0 ? new KnobUp(i) : new KnobDown(i);
+                        }
+
+                        this._knobStates[i] = buffer[i + 5];
+                    }
+
+                    break;
+            }
         }
     }
 }

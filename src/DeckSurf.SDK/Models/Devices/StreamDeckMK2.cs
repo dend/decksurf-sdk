@@ -84,6 +84,26 @@ namespace DeckSurf.SDK.Models.Devices
         }
 
         /// <inheritdoc/>
+        protected override IEnumerable<IDeckEvent> HandleInput(IAsyncResult result, byte[] buffer)
+        {
+            this._buttonStates ??= new byte[this.ButtonCount];
+            if (buffer[0] != 0x01)
+            {
+                yield break;
+            }
+
+            for (var i = 0; i < this.ButtonCount; i++)
+            {
+                if (buffer[i + 4] != this._buttonStates[i])
+                {
+                    yield return buffer[i + 4] == 0 ? new ButtonDown(i) : new ButtonUp(i);
+                }
+
+                this._buttonStates[i] = buffer[i + 4];
+            }
+        }
+
+        /// <inheritdoc/>
         public override bool SetScreen(byte[] image, int offset, int width, int height)
         {
             return false;

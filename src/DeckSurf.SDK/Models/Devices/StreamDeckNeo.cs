@@ -27,7 +27,6 @@ namespace DeckSurf.SDK.Models.Devices
 
         /// <inheritdoc/>
         public override int KnobCount => 0;
-        
 
         /// <inheritdoc/>
         public override int ButtonResolution => 96;
@@ -130,19 +129,24 @@ namespace DeckSurf.SDK.Models.Devices
             return true;
         }
 
-        // /// <inheritdoc/>
-        // protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
-        // {
-        //     int bytesRead = this.UnderlyingInputStream.EndRead(result);
-        //
-        //     var buttonKind = GetButtonKind(keyPressBuffer[..2]); // new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
-        //     var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(keyPressBuffer[2..4]); // new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
-        //
-        //     int pressedButton = Array.IndexOf(keyPressBuffer[4..(4 + buttonCount)], (byte)0x01); // new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
-        //     var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
-        //
-        //     return new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, null, null, null);
-        // }
-        
+        /// <inheritdoc/>
+        protected override IEnumerable<IDeckEvent> HandleInput(IAsyncResult result, byte[] buffer)
+        {
+            this._buttonStates ??= new byte[this.ButtonCount + this.TouchButtonCount];
+            if (buffer[0] != 0x01)
+            {
+                yield break;
+            }
+
+            for (var i = 0; i < this.ButtonCount + this.TouchButtonCount; i++)
+            {
+                if (buffer[i + 4] != this._buttonStates[i])
+                {
+                    yield return buffer[i + 4] == 0 ? new ButtonDown(i) : new ButtonUp(i);
+                }
+
+                this._buttonStates[i] = buffer[i + 4];
+            }
+        }
     }
 }
