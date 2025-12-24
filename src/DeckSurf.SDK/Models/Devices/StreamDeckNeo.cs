@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -25,7 +26,8 @@ namespace DeckSurf.SDK.Models.Devices
         public override bool IsScreenSupported => true;
 
         /// <inheritdoc/>
-        public override bool IsKnobSupported => false;
+        public override int KnobCount => 0;
+        
 
         /// <inheritdoc/>
         public override int ButtonResolution => 96;
@@ -119,9 +121,7 @@ namespace DeckSurf.SDK.Models.Devices
                 var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
                 var padding = new byte[this.PacketSize - payload.Length];
 
-                var finalPayload = payload.Concat(padding).ToArray();
-
-                stream.Write(finalPayload);
+                stream.Write([..payload, ..padding]);
 
                 remainingBytes -= sliceLength;
                 iteration++;
@@ -130,18 +130,19 @@ namespace DeckSurf.SDK.Models.Devices
             return true;
         }
 
-        /// <inheritdoc/>
-        protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
-        {
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
-
-            var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
-            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
-
-            int pressedButton = Array.IndexOf(new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
-            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
-
-            return new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, null, null, null);
-        }
+        // /// <inheritdoc/>
+        // protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
+        // {
+        //     int bytesRead = this.UnderlyingInputStream.EndRead(result);
+        //
+        //     var buttonKind = GetButtonKind(keyPressBuffer[..2]); // new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
+        //     var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(keyPressBuffer[2..4]); // new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
+        //
+        //     int pressedButton = Array.IndexOf(keyPressBuffer[4..(4 + buttonCount)], (byte)0x01); // new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
+        //     var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
+        //
+        //     return new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, null, null, null);
+        // }
+        
     }
 }

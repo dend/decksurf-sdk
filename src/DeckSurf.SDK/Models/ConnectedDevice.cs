@@ -19,7 +19,11 @@ namespace DeckSurf.SDK.Models
     /// </summary>
     public abstract class ConnectedDevice
     {
-        private byte[] keyPressBuffer = new byte[1024];
+        private byte[] inputBuffer = new byte[1024];
+        
+        private byte[] _buttonStates = null!;
+
+        private byte[] _knobStates = null!;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectedDevice"/> class.
@@ -46,16 +50,112 @@ namespace DeckSurf.SDK.Models
         }
 
         /// <summary>
-        /// Delegate responsible for handling Stream Deck button presses.
+        /// Delegate responsible for handling Stream Deck button press
         /// </summary>
         /// <param name="source">The device where the button was pressed.</param>
-        /// <param name="e">Information on the button press.</param>
-        public delegate void ReceivedButtonPressHandler(object source, ButtonPressEventArgs e);
+        /// <param name="e">Information on the button press</param>
+        public delegate void ReceivedButtonDownHandler(object source, ButtonDown e);
 
         /// <summary>
-        /// Button press event handler.
+        /// Button press event handler
         /// </summary>
-        public event ReceivedButtonPressHandler OnButtonPress;
+        public event ReceivedButtonDownHandler OnButtonDown;
+
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck button release
+        /// </summary>
+        /// <param name="source">The device where the button was released.</param>
+        /// <param name="e">Information on the button release</param>
+        public delegate void ReceivedButtonUpHandler(object source, ButtonUp e);
+
+        /// <summary>
+        /// Button release event handler
+        /// </summary>
+        public event ReceivedButtonUpHandler OnButtonUp;
+
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck knob press
+        /// </summary>
+        /// <param name="source">The device where the knob was pressed.</param>
+        /// <param name="e">Information on the knob press</param>
+        public delegate void ReceivedKnobDownHandler(object source, KnobDown e);
+
+        /// <summary>
+        /// Knob press event handler
+        /// </summary>
+        public event ReceivedKnobDownHandler OnKnobDown;
+
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck knob release
+        /// </summary>
+        /// <param name="source">The device where the knob was released.</param>
+        /// <param name="e">Information on the knob release</param>
+        public delegate void ReceivedKnobUpHandler(object source, KnobUp e);
+
+        /// <summary>
+        /// Knob release handler
+        /// </summary>
+        public event ReceivedKnobUpHandler OnKnobUp;
+
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck knob clockwise rotation
+        /// </summary>
+        /// <param name="source">The device where the knob was rotated</param>
+        /// <param name="e">Information on the kno rotation</param>
+        public delegate void ReceivedKnobClockwiseHandler(object source, KnobClockwise e);
+
+        /// <summary>
+        /// Knob clockwise rotation handler
+        /// </summary>
+        public event ReceivedKnobClockwiseHandler OnKnobClockwise;
+        
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck knob counterclockwise rotation
+        /// </summary>
+        /// <param name="source">The device where the knob was rotated</param>
+        /// <param name="e">Information on the knob rotation</param>
+        public delegate void ReceivedKnobCounterClockwiseHandler(object source, KnobCounterClockwise e);
+
+        /// <summary>
+        /// Knob counterclockwise rotation handler
+        /// </summary>
+        public event ReceivedKnobCounterClockwiseHandler OnKnobCounterClockwise;
+        
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck screen tap
+        /// </summary>
+        /// <param name="source">The device where the screen was tapped</param>
+        /// <param name="e">Information on the screen tap</param>
+        public delegate void ReceivedScreenTapHandler(object source, ScreenTap e);
+
+        /// <summary>
+        /// Screen tap handler
+        /// </summary>
+        public event ReceivedScreenTapHandler OnScreenTap;
+        
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck screen hold
+        /// </summary>
+        /// <param name="source">The device where the screen was long-held</param>
+        /// <param name="e">Information on the screen hold</param>
+        public delegate void ReceivedScreenHoldHandler(object source, ScreenHold e);
+
+        /// <summary>
+        /// Screen hold handler
+        /// </summary>
+        public event ReceivedScreenHoldHandler OnScreenHold;
+        
+        /// <summary>
+        /// Delegate responsible for handling Stream Deck screen swipe
+        /// </summary>
+        /// <param name="source">The device where the screen was swiped</param>
+        /// <param name="e">Information on the screen swipe</param>
+        public delegate void ReceivedScreenSwipeHandler(object source, ScreenSwipe e);
+
+        /// <summary>
+        /// Screen swipe handler
+        /// </summary>
+        public event ReceivedScreenSwipeHandler OnScreenSwipe;
 
         /// <summary>
         /// Gets the vendor ID.
@@ -105,7 +205,12 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets a value indicating whether the Stream Deck has knobs.
         /// </summary>
-        public abstract bool IsKnobSupported { get; }
+        public bool IsKnobSupported => KnobCount != 0;
+        
+        /// <summary>
+        /// Gets a value indicating the number of knobs the Stream Deck has
+        /// </summary>
+        public abstract int KnobCount { get; }
 
         /// <summary>
         /// Gets a value indicating the button resolution for the Stream Deck device.
@@ -187,7 +292,7 @@ namespace DeckSurf.SDK.Models
         {
             this.UnderlyingInputStream = this.UnderlyingDevice.Open();
             this.UnderlyingInputStream.ReadTimeout = Timeout.Infinite;
-            this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
+            this.UnderlyingInputStream.BeginRead(this.inputBuffer, 0, this.inputBuffer.Length, this.InputCallback, null);
         }
 
         /// <summary>
@@ -351,25 +456,108 @@ namespace DeckSurf.SDK.Models
         }
 
         /// <summary>
-        /// Handles the key press. Different devices carry different implementations.
+        /// Handles the inputs. Different devices carry different implementations.
         /// </summary>
         /// <param name="result">Result passed from the existing stream.</param>
-        /// <param name="keyPressBuffer">Binary buffer related to the key press.</param>
+        /// <param name="buffer">Binary buffer related to the key press.</param>
         /// <returns>If successful, returns the event args related to the key press event.</returns>
-        protected abstract ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer);
 
-        private void KeyPressCallback(IAsyncResult result)
+        
+        private IEnumerable<IDeckEvent> HandleInput(IAsyncResult result, byte[] buffer)
         {
-            var args = this.HandleKeyPress(result, this.keyPressBuffer);
+            UnderlyingInputStream.EndRead(result);
 
-            if (this.OnButtonPress != null)
+            _buttonStates ??= new byte[ButtonCount + TouchButtonCount];
+            _knobStates ??= new byte[KnobCount];
+
+            switch (buffer)
             {
-                this.OnButtonPress(this.UnderlyingDevice, args);
+                // Button change
+                
+                case [0x01, 0x00, ..]:
+                    for (var i = 0; i < ButtonCount + TouchButtonCount; i++)
+                    {
+                        if (_buttonStates[i] != buffer[i + 4])
+                            yield return buffer[i + 4] == 0 ? new ButtonUp(i) : new ButtonDown(i);
+                        _buttonStates[i] = buffer[i + 4];
+                    }
+
+                    break;
+                
+                // Screen Tapped
+                
+                case [0x01, 0x02, _, _, 0x01, _, var xTapLow, var xTapHigh, var yTapLow, var yTapHigh, ..]:
+                    yield return new ScreenTap(xTapHigh << 8 | xTapLow, yTapHigh << 8 | yTapLow);
+                    break;
+                
+                // Screen Long Held
+                
+                case [0x01, 0x02, _, _, 0x02, _, var xHoldLow, var xHoldHigh, var yHoldLow, var yHoldHigh, ..]:
+                    yield return new ScreenHold(xHoldHigh << 8 | xHoldLow, yHoldHigh << 8 | yHoldLow);
+                    break;
+                
+                // Screen Swiped
+                
+                case
+                [
+                    0x01, 0x02, _, _, 0x03, _, var xSwipeStartLow, var xSwipeStartHigh, var ySwipeStartLow,
+                    var ySwipeStartHigh,
+                    var xSwipeEndLow, var xSwipeEndHigh, var ySwipeEndLow, var ySwipeEndHigh, ..
+                ]:
+                    yield return new ScreenSwipe(xSwipeStartHigh << 8 | xSwipeStartLow,
+                        ySwipeStartHigh << 8 | ySwipeStartLow,
+                        xSwipeEndHigh << 8 | xSwipeEndLow, ySwipeEndHigh << 8 | ySwipeEndLow);
+                    break;
+                
+                // Knob Rotated
+                
+                case [0x01, 0x03, _, _, 0x01, var rot1, var rot2, var rot3, var rot4, ..]:
+                    for (var i = 0; i < KnobCount; i++)
+                    {
+                        var rot = buffer[i + 5];
+                        if (rot == 0) continue;
+                        yield return (rot & 0x80) == 0x80
+                            ? new KnobCounterClockwise(0, 256 - rot)
+                            : new KnobClockwise(0, rot);
+                    }
+                    break;
+                
+                // Knob press change
+                
+                case [0x01, 0x03, _, _, 0x00, ..] :
+                    for (var i = 0; i < KnobCount; i++)
+                    {
+                        if (_knobStates[i] != buffer[i + 5])
+                            yield return buffer[i + 5] == 0 ? new KnobUp(i) : new KnobDown(i);
+                        _knobStates[i] = buffer[i + 5];
+                    }
+
+                    break;
+            }
+        }
+
+
+        private void InputCallback(IAsyncResult result)
+        {
+            foreach (var @event in HandleInput(result, inputBuffer))
+            {
+                switch (@event)
+                {
+                    case ButtonDown e: OnButtonDown?.Invoke(UnderlyingDevice, e); break;
+                    case ButtonUp e: OnButtonUp?.Invoke(UnderlyingDevice, e); break;
+                    case KnobDown e: OnKnobDown?.Invoke(UnderlyingDevice, e); break;
+                    case KnobUp e: OnKnobUp?.Invoke(UnderlyingDevice, e); break;
+                    case KnobClockwise e: OnKnobClockwise?.Invoke(UnderlyingDevice, e); break;
+                    case KnobCounterClockwise e: OnKnobCounterClockwise?.Invoke(UnderlyingDevice, e); break;
+                    case ScreenTap e: OnScreenTap?.Invoke(UnderlyingDevice, e); break;
+                    case ScreenHold e: OnScreenHold?.Invoke(UnderlyingDevice, e); break;
+                    case ScreenSwipe e: OnScreenSwipe?.Invoke(UnderlyingDevice, e); break;
+                }
             }
 
-            Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
+            Array.Clear(this.inputBuffer, 0, this.inputBuffer.Length);
 
-            this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
+            this.UnderlyingInputStream.BeginRead(this.inputBuffer, 0, this.inputBuffer.Length, this.InputCallback, null);
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using DeckSurf.SDK.Util;
@@ -24,7 +25,8 @@ namespace DeckSurf.SDK.Models.Devices
         public override bool IsScreenSupported => false;
 
         /// <inheritdoc/>
-        public override bool IsKnobSupported => false;
+        public override int KnobCount => 0;
+        
 
         /// <inheritdoc/>
         public override int ButtonResolution => 72;
@@ -87,19 +89,6 @@ namespace DeckSurf.SDK.Models.Devices
         {
             return false;
         }
-
-        /// <inheritdoc/>
-        protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
-        {
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
-
-            var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
-            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
-
-            int pressedButton = Array.IndexOf(new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
-            var eventKind = pressedButton != -1 ? ButtonEventKind.DOWN : ButtonEventKind.UP;
-
-            return new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, null, null, null);
-        }
+        
     }
 }
