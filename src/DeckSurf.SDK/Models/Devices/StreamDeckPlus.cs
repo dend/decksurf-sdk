@@ -187,7 +187,7 @@ namespace DeckSurf.SDK.Models.Devices
                     break;
 
                 // Knob Rotated
-                case [0x01, 0x03, _, _, 0x01, var rot1, var rot2, var rot3, var rot4, ..]:
+                case [0x01, 0x03, _, _, 0x01, ..]:
                     for (var i = 0; i < this.KnobCount; i++)
                     {
                         var rot = buffer[i + 5];

@@ -462,13 +462,10 @@ namespace DeckSurf.SDK.Models
         /// <param name="buffer">Binary buffer related to the key press.</param>
         /// <returns>If successful, returns the event args related to the key press event.</returns>
         protected abstract IEnumerable<IDeckEvent> HandleInput(IAsyncResult result, byte[] buffer);
-        
-        
-
 
         private void InputCallback(IAsyncResult result)
         {
-            foreach (var @event in HandleInput(result, this.inputBuffer))
+            foreach (var @event in this.HandleInput(result, this.inputBuffer))
             {
                 switch (@event)
                 {
