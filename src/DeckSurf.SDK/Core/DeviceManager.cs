@@ -55,6 +55,7 @@ namespace DeckSurf.SDK.Core
                             }
 
                         case DeviceModel.Mini:
+                        case DeviceModel.MiniDiscord:
                             {
                                 connectedDevices.Add(new StreamDeckMini(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
                                 break;

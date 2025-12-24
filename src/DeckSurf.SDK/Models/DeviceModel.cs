@@ -61,5 +61,7 @@ namespace DeckSurf.SDK.Models
         /// The <see href="https://www.elgato.com/us/en/p/stream-deck-neo">Neo model</see> of the Stream Deck device.
         /// </summary>
         Neo = 0x009A,
+        
+        MiniDiscord = 0x00B3,
     }
 }

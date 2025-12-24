@@ -99,7 +99,7 @@ namespace DeckSurf.SDK.Models.Devices
             {
                 if (buffer[i + 1] != this._buttonStates[i])
                 {
-                    yield return buffer[i + 1] == 0 ? new ButtonDown(i) : new ButtonUp(i);
+                    yield return buffer[i + 1] == 1 ? new ButtonDown(i) : new ButtonUp(i);
                 }
 
                 this._buttonStates[i] = buffer[i + 1];
