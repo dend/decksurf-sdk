@@ -197,8 +197,8 @@ namespace DeckSurf.SDK.Models.Devices
                         }
 
                         yield return (rot & 0x80) == 0x80
-                            ? new KnobCounterClockwise(0, 256 - rot)
-                            : new KnobClockwise(0, rot);
+                            ? new KnobCounterClockwise(i, 256 - rot)
+                            : new KnobClockwise(i, rot);
                     }
 
                     break;
