@@ -138,6 +138,7 @@ namespace DeckSurf.SDK.Models.Devices
             return true;
         }
 
+        /// <inheritdoc/>
         protected override IEnumerable<IDeckEvent> HandleInput(IAsyncResult result, byte[] buffer)
         {
             this.UnderlyingInputStream.EndRead(result);
