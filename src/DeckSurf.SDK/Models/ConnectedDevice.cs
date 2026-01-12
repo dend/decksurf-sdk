@@ -50,112 +50,49 @@ namespace DeckSurf.SDK.Models
         }
 
         /// <summary>
-        /// Delegate responsible for handling Stream Deck button press
-        /// </summary>
-        /// <param name="source">The device where the button was pressed.</param>
-        /// <param name="e">Information on the button press</param>
-        public delegate void ReceivedButtonDownHandler(object source, ButtonDown e);
-
-        /// <summary>
         /// Button press event handler
         /// </summary>
-        public event ReceivedButtonDownHandler OnButtonDown;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck button release
-        /// </summary>
-        /// <param name="source">The device where the button was released.</param>
-        /// <param name="e">Information on the button release</param>
-        public delegate void ReceivedButtonUpHandler(object source, ButtonUp e);
+        public event EventHandler<ButtonDown> OnButtonDown;
 
         /// <summary>
         /// Button release event handler
         /// </summary>
-        public event ReceivedButtonUpHandler OnButtonUp;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck knob press
-        /// </summary>
-        /// <param name="source">The device where the knob was pressed.</param>
-        /// <param name="e">Information on the knob press</param>
-        public delegate void ReceivedKnobDownHandler(object source, KnobDown e);
+        public event EventHandler<ButtonUp> OnButtonUp;
 
         /// <summary>
         /// Knob press event handler
         /// </summary>
-        public event ReceivedKnobDownHandler OnKnobDown;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck knob release
-        /// </summary>
-        /// <param name="source">The device where the knob was released.</param>
-        /// <param name="e">Information on the knob release</param>
-        public delegate void ReceivedKnobUpHandler(object source, KnobUp e);
+        public event EventHandler<KnobDown> OnKnobDown;
 
         /// <summary>
         /// Knob release handler
         /// </summary>
-        public event ReceivedKnobUpHandler OnKnobUp;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck knob clockwise rotation
-        /// </summary>
-        /// <param name="source">The device where the knob was rotated</param>
-        /// <param name="e">Information on the kno rotation</param>
-        public delegate void ReceivedKnobClockwiseHandler(object source, KnobClockwise e);
+        public event EventHandler<KnobUp> OnKnobUp;
 
         /// <summary>
         /// Knob clockwise rotation handler
         /// </summary>
-        public event ReceivedKnobClockwiseHandler OnKnobClockwise;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck knob counterclockwise rotation
-        /// </summary>
-        /// <param name="source">The device where the knob was rotated</param>
-        /// <param name="e">Information on the knob rotation</param>
-        public delegate void ReceivedKnobCounterClockwiseHandler(object source, KnobCounterClockwise e);
+        public event EventHandler<KnobClockwise> OnKnobClockwise;
 
         /// <summary>
         /// Knob counterclockwise rotation handler
         /// </summary>
-        public event ReceivedKnobCounterClockwiseHandler OnKnobCounterClockwise;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck screen tap
-        /// </summary>
-        /// <param name="source">The device where the screen was tapped</param>
-        /// <param name="e">Information on the screen tap</param>
-        public delegate void ReceivedScreenTapHandler(object source, ScreenTap e);
+        public event EventHandler<KnobCounterClockwise> OnKnobCounterClockwise;
 
         /// <summary>
         /// Screen tap handler
         /// </summary>
-        public event ReceivedScreenTapHandler OnScreenTap;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck screen hold
-        /// </summary>
-        /// <param name="source">The device where the screen was long-held</param>
-        /// <param name="e">Information on the screen hold</param>
-        public delegate void ReceivedScreenHoldHandler(object source, ScreenHold e);
+        public event EventHandler<ScreenTap> OnScreenTap;
 
         /// <summary>
         /// Screen hold handler
         /// </summary>
-        public event ReceivedScreenHoldHandler OnScreenHold;
-
-        /// <summary>
-        /// Delegate responsible for handling Stream Deck screen swipe
-        /// </summary>
-        /// <param name="source">The device where the screen was swiped</param>
-        /// <param name="e">Information on the screen swipe</param>
-        public delegate void ReceivedScreenSwipeHandler(object source, ScreenSwipe e);
+        public event EventHandler<ScreenHold> OnScreenHold;
 
         /// <summary>
         /// Screen swipe handler
         /// </summary>
-        public event ReceivedScreenSwipeHandler OnScreenSwipe;
+        public event EventHandler<ScreenSwipe> OnScreenSwipe;
 
         /// <summary>
         /// Gets the vendor ID.
