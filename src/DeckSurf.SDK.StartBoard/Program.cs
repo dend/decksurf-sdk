@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using DeckSurf.SDK.Core;
+using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Models;
 using DeckSurf.SDK.Util;
 
@@ -12,6 +13,12 @@ namespace DeckSurf.SDK.StartBoard
     {
         static void Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Usage: DeckSurf.SDK.StartBoard <image_path>");
+                return;
+            }
+
             var exitSignal = new ManualResetEvent(false);
             var devices = DeviceManager.GetDeviceList();
 
@@ -29,37 +36,49 @@ namespace DeckSurf.SDK.StartBoard
             }
 
             using var device = devices[0];
+
+            device.ButtonPressed += Device_ButtonPressed;
             device.DeviceDisconnected += (sender, e) =>
             {
                 Console.WriteLine("Device was disconnected.");
                 exitSignal.Set();
             };
+            device.DeviceErrorOccurred += (sender, e) =>
+            {
+                Console.WriteLine($"Device error in {e.OperationName}: {e.Category} (transient: {e.IsTransient})");
+                if (e.RecoveryHint != null)
+                {
+                    Console.WriteLine($"  Hint: {e.RecoveryHint}");
+                }
+            };
+
             device.StartListening();
-            device.ButtonPressed += Device_ButtonPressed;
 
-            if (args.Length == 0)
+            try
             {
-                Console.WriteLine("Usage: DeckSurf.SDK.StartBoard <image_path>");
-                return;
+                byte[] testImage = File.ReadAllBytes(args[0]);
+
+                if (device.IsScreenSupported)
+                {
+                    var image = ImageHelper.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180, DeviceImageFormat.Jpeg);
+                    device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
+                }
+
+                device.SetKey(1, testImage);
+                device.SetBrightness(45);
+                device.SetKeyColor(2, DeviceColor.Red);
+                device.SetKeyColor(4, DeviceColor.Green);
+            }
+            catch (DeviceCommunicationException ex)
+            {
+                Console.WriteLine($"Communication error: {ex.Message} (transient: {ex.IsTransient})");
+            }
+            catch (DeviceDisconnectedException ex)
+            {
+                Console.WriteLine($"Device disconnected: {ex.Message}");
             }
 
-            byte[] testImage = File.ReadAllBytes(args[0]);
-
-            if (device.IsScreenSupported)
-            {
-                var image = ImageHelper.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180, DeviceImageFormat.Jpeg);
-                device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
-            }
-
-            device.SetKey(1, testImage);
-
-            device.SetBrightness(45);
-            //device.ClearButtons();
-
-            device.SetKeyColor(2, DeviceColor.Red);
-            device.SetKeyColor(4, DeviceColor.Green);
-
-            Console.WriteLine("Done");
+            Console.WriteLine("Done. Press Ctrl+C or disconnect device to exit.");
             exitSignal.WaitOne();
         }
 

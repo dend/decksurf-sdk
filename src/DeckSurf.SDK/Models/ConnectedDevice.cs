@@ -380,11 +380,11 @@ namespace DeckSurf.SDK.Models
             }
             catch (IOException ex)
             {
-                throw new DeviceCommunicationException("A USB I/O failure occurred while writing the key image.", ex);
+                throw new DeviceCommunicationException("A USB I/O failure occurred while writing the key image.", ex) { IsTransient = true };
             }
             catch (ObjectDisposedException ex)
             {
-                throw new DeviceDisconnectedException("The device was disconnected during the SetKey operation.", ex);
+                throw new DeviceDisconnectedException("The device was disconnected during the SetKey operation.", ex) { DeviceSerial = this.Serial };
             }
 
             return true;
@@ -431,11 +431,11 @@ namespace DeckSurf.SDK.Models
             }
             catch (IOException ex)
             {
-                throw new DeviceCommunicationException("A USB I/O failure occurred while setting the key color.", ex);
+                throw new DeviceCommunicationException("A USB I/O failure occurred while setting the key color.", ex) { IsTransient = true };
             }
             catch (ObjectDisposedException ex)
             {
-                throw new DeviceDisconnectedException("The device was disconnected during the SetKeyColor operation.", ex);
+                throw new DeviceDisconnectedException("The device was disconnected during the SetKeyColor operation.", ex) { DeviceSerial = this.Serial };
             }
 
             return true;
@@ -444,12 +444,12 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Sets the screen image for a connected Stream Deck device.
         /// </summary>
-        /// <remarks>Currently only supported for the Stream Deck Plus.</remarks>
-        /// <param name="image">Binary content (JPEG) of the image that needs to be set on the screen. The image will be resized to match the expectations of the connected device.</param>
+        /// <remarks>Supported on devices where <see cref="IsScreenSupported"/> is true (e.g., Stream Deck Plus and Neo).</remarks>
+        /// <param name="image">Binary content of the image that needs to be set on the screen.</param>
         /// <param name="offset">Offset from the left where the image needs to be set. Set to zero if setting the full image.</param>
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
-        /// <returns>True if successful, false if not.</returns>
+        /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
         public abstract bool SetScreen(byte[] image, int offset, int width, int height);
 
         /// <inheritdoc/>
@@ -506,6 +506,11 @@ namespace DeckSurf.SDK.Models
             if (this.disposed)
             {
                 throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
+            if (this.UnderlyingDevice == null)
+            {
+                throw new InvalidOperationException("The underlying HID device is not available. The device may not have been found during initialization.");
             }
 
             return this.UnderlyingDevice.Open();
