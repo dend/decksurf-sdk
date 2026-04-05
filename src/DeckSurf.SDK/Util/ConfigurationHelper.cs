@@ -34,19 +34,19 @@ namespace DeckSurf.SDK.Util
         /// <returns>Object representing the DeckSurf configuration profile.</returns>
         public static ConfigurationProfile GetProfile(string profile)
         {
-            try
+            var path = GetProfilePath(profile);
+            if (!File.Exists(path) || new FileInfo(path).Length == 0)
             {
-                var path = GetProfilePath(profile);
-                if (File.Exists(path) && new FileInfo(path).Length != 0)
-                {
-                    return JsonSerializer.Deserialize<ConfigurationProfile>(File.ReadAllText(path));
-                }
-
                 return null;
             }
-            catch
+
+            try
             {
-                return null;
+                return JsonSerializer.Deserialize<ConfigurationProfile>(File.ReadAllText(path));
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException($"The profile '{profile}' contains corrupted or invalid JSON data.", ex);
             }
         }
 
@@ -59,42 +59,35 @@ namespace DeckSurf.SDK.Util
         /// <returns>Object representing the DeckSurf configuration profile.</returns>
         public static ConfigurationProfile WriteToConfiguration(string profile, int deviceIndex, CommandMapping mapping)
         {
-            try
+            var path = GetProfilePath(profile);
+
+            // In case the profile does not exist, let's make sure that we create
+            // the full path. If it already exists, this does nothing.
+            new FileInfo(path).Directory.Create();
+
+            ConfigurationProfile configurationProfile;
+
+            // We have to make sure that the file both exists, and is not empty. If
+            // the file is empty, then the deserialization will fail, and the function
+            // will return NULL.
+            if (File.Exists(path) && new FileInfo(path).Length != 0)
             {
-                var path = GetProfilePath(profile);
-
-                // In case the profile does not exist, let's make sure that we create
-                // the full path. If it already exists, this does nothing.
-                new FileInfo(path).Directory.Create();
-
-                ConfigurationProfile configurationProfile;
-
-                // We have to make sure that the file both exists, and is not empty. If
-                // the file is empty, then the deserialization will fail, and the function
-                // will return NULL.
-                if (File.Exists(path) && new FileInfo(path).Length != 0)
-                {
-                    configurationProfile = JsonSerializer.Deserialize<ConfigurationProfile>(File.ReadAllText(path));
-                    configurationProfile.ButtonMap.Add(mapping);
-                    configurationProfile.DeviceIndex = deviceIndex;
-                }
-                else
-                {
-                    configurationProfile = new ConfigurationProfile
-                    {
-                        DeviceIndex = deviceIndex,
-                    };
-                    configurationProfile.ButtonMap.Add(mapping);
-                }
-
-                File.WriteAllText(path, JsonSerializer.Serialize(configurationProfile));
-
-                return configurationProfile;
+                configurationProfile = JsonSerializer.Deserialize<ConfigurationProfile>(File.ReadAllText(path));
+                configurationProfile.ButtonMap.Add(mapping);
+                configurationProfile.DeviceIndex = deviceIndex;
             }
-            catch
+            else
             {
-                return null;
+                configurationProfile = new ConfigurationProfile
+                {
+                    DeviceIndex = deviceIndex,
+                };
+                configurationProfile.ButtonMap.Add(mapping);
             }
+
+            File.WriteAllText(path, JsonSerializer.Serialize(configurationProfile));
+
+            return configurationProfile;
         }
     }
 }

@@ -2,12 +2,14 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace DeckSurf.SDK.Models
 {
     /// <summary>
     /// Represents an RGB color for use with Stream Deck device keys.
     /// </summary>
-    public readonly struct DeviceColor
+    public readonly struct DeviceColor : IEquatable<DeviceColor>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeviceColor"/> struct.
@@ -51,5 +53,21 @@ namespace DeckSurf.SDK.Models
         /// Gets the blue component of the color.
         /// </summary>
         public byte B { get; }
+
+        public static bool operator ==(DeviceColor left, DeviceColor right) => left.Equals(right);
+
+        public static bool operator !=(DeviceColor left, DeviceColor right) => !left.Equals(right);
+
+        /// <inheritdoc/>
+        public bool Equals(DeviceColor other) => this.R == other.R && this.G == other.G && this.B == other.B;
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj) => obj is DeviceColor dc && this.Equals(dc);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => HashCode.Combine(this.R, this.G, this.B);
+
+        /// <inheritdoc/>
+        public override string ToString() => $"DeviceColor(R={this.R}, G={this.G}, B={this.B})";
     }
 }

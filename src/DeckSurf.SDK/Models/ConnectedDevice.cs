@@ -1,11 +1,10 @@
-﻿// Copyright (c) Den Delimarsky
+// Copyright (c) Den Delimarsky
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using DeckSurf.SDK.Util;
 using HidSharp;
@@ -15,9 +14,10 @@ namespace DeckSurf.SDK.Models
     /// <summary>
     /// Abstract class representing a connected Stream Deck device. Use specific implementations for a given connected model.
     /// </summary>
-    public abstract class ConnectedDevice
+    public abstract class ConnectedDevice : IDisposable
     {
         private byte[] keyPressBuffer = new byte[1024];
+        private bool disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectedDevice"/> class.
@@ -36,11 +36,19 @@ namespace DeckSurf.SDK.Models
         /// <param name="serial">Serial number for the device.</param>
         public ConnectedDevice(int vid, int pid, string path, string name, string serial)
         {
-            this.VId = vid;
+            this.VendorId = vid;
             this.Path = path;
             this.Name = name;
             this.Serial = serial;
             this.UnderlyingDevice = DeviceList.Local.GetHidDeviceOrNull(vid, pid);
+        }
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="ConnectedDevice"/> class.
+        /// </summary>
+        ~ConnectedDevice()
+        {
+            this.Dispose(false);
         }
 
         /// <summary>
@@ -53,12 +61,22 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Button press event handler.
         /// </summary>
-        public event ReceivedButtonPressHandler OnButtonPress;
+        public event EventHandler<ButtonPressEventArgs> OnButtonPress;
+
+        /// <summary>
+        /// Event raised when the device is disconnected.
+        /// </summary>
+        public event EventHandler<EventArgs> OnDeviceDisconnected;
+
+        /// <summary>
+        /// Event raised when a device error occurs.
+        /// </summary>
+        public event EventHandler<Exception> OnDeviceError;
 
         /// <summary>
         /// Gets the vendor ID.
         /// </summary>
-        public int VId { get; }
+        public int VendorId { get; }
 
         /// <summary>
         /// Gets the USB HID device path.
@@ -91,7 +109,7 @@ namespace DeckSurf.SDK.Models
         public abstract int TouchButtonCount { get; }
 
         /// <summary>
-        /// Gets a value indicating the flip type for the image sent to the device.
+        /// Gets a value indicating the rotation applied to images for this device.
         /// </summary>
         public abstract DeviceRotation FlipType { get; }
 
@@ -193,7 +211,21 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         public void StopListening()
         {
-            this.UnderlyingInputStream.Close();
+            if (this.UnderlyingInputStream == null)
+            {
+                return;
+            }
+
+            try
+            {
+                this.UnderlyingInputStream.Close();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Stream was already disposed; nothing to do.
+            }
+
+            this.UnderlyingInputStream = null;
         }
 
         /// <summary>
@@ -229,8 +261,15 @@ namespace DeckSurf.SDK.Models
             brightnessRequest[1] = 0x08;
             brightnessRequest[2] = percentage;
 
-            using var stream = this.Open();
-            stream.SetFeature(brightnessRequest);
+            try
+            {
+                using var stream = this.Open();
+                stream.SetFeature(brightnessRequest);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Device was disposed; ignore.
+            }
         }
 
         /// <summary>
@@ -239,16 +278,29 @@ namespace DeckSurf.SDK.Models
         /// <param name="buttonMap">List of mappings, usually loaded from a configuration file.</param>
         public void SetupDeviceButtonMap(IEnumerable<CommandMapping> buttonMap)
         {
+            if (buttonMap == null)
+            {
+                throw new ArgumentNullException(nameof(buttonMap));
+            }
+
             foreach (var button in buttonMap)
             {
                 if (button.ButtonIndex <= this.ButtonCount - 1)
                 {
                     if (File.Exists(button.ButtonImagePath))
                     {
-                        byte[] imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
+                        byte[] imageBuffer;
+                        try
+                        {
+                            imageBuffer = File.ReadAllBytes(button.ButtonImagePath);
+                        }
+                        catch (IOException)
+                        {
+                            continue;
+                        }
 
                         imageBuffer = ImageHelpers.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
-                        this.SetKey(button.ButtonIndex, imageBuffer);
+                        this.SetKey(button.ButtonIndex, imageBuffer, alreadyResized: true);
                     }
                 }
             }
@@ -259,32 +311,53 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
         /// <param name="image">Binary content (JPEG) of the image that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
+        /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
         /// <returns>True if succesful, false if not.</returns>
-        public bool SetKey(int keyId, byte[] image)
+        public bool SetKey(int keyId, byte[] image, bool alreadyResized = false)
         {
-            var keyImage = ImageHelpers.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
+            if (keyId < 0 || keyId >= this.ButtonCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(keyId), $"Key ID must be between 0 and {this.ButtonCount - 1}.");
+            }
+
+            if (image == null || image.Length == 0)
+            {
+                throw new ArgumentException("Image must not be null or empty.", nameof(image));
+            }
+
+            var keyImage = alreadyResized ? image : ImageHelpers.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
 
             var iteration = 0;
             var remainingBytes = keyImage.Length;
 
-            using var stream = this.Open();
-            while (remainingBytes > 0)
+            try
             {
-                var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.KeyImageHeaderSize);
-                var bytesSent = iteration * (this.PacketSize - this.KeyImageHeaderSize);
+                using var stream = this.Open();
+                while (remainingBytes > 0)
+                {
+                    var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.KeyImageHeaderSize);
+                    var bytesSent = iteration * (this.PacketSize - this.KeyImageHeaderSize);
 
-                // Get the device-specific header
-                byte[] header = this.GetKeySetupHeader(keyId, sliceLength, iteration, remainingBytes);
+                    // Get the device-specific header
+                    byte[] header = this.GetKeySetupHeader(keyId, sliceLength, iteration, remainingBytes);
 
-                var payload = header.Concat(new ArraySegment<byte>(keyImage, bytesSent, sliceLength)).ToArray();
-                var padding = new byte[this.PacketSize - payload.Length];
+                    byte[] finalPayload = new byte[this.PacketSize];
+                    Buffer.BlockCopy(header, 0, finalPayload, 0, header.Length);
+                    Buffer.BlockCopy(keyImage, bytesSent, finalPayload, header.Length, sliceLength);
 
-                var finalPayload = payload.Concat(padding).ToArray();
+                    stream.Write(finalPayload);
 
-                stream.Write(finalPayload);
-
-                remainingBytes -= sliceLength;
-                iteration++;
+                    remainingBytes -= sliceLength;
+                    iteration++;
+                }
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (ObjectDisposedException)
+            {
+                return false;
             }
 
             return true;
@@ -301,7 +374,7 @@ namespace DeckSurf.SDK.Models
         /// <returns>If successful, returns true. Otherwise, false (including in scenarios where it's not available).</returns>
         public bool SetKeyColor(int index, DeviceColor color)
         {
-            if (Math.Min(Math.Max(index, 0), this.ButtonCount + this.TouchButtonCount - 1) != index)
+            if (index < 0 || index >= this.ButtonCount + this.TouchButtonCount)
             {
                 throw new IndexOutOfRangeException($"The index {index} for the touch key does not represent a real touch key.");
             }
@@ -327,12 +400,40 @@ namespace DeckSurf.SDK.Models
         /// <remarks>Currently only supported for the Stream Deck Plus.</remarks>
         /// <param name="image">Binary content (JPEG) of the image that needs to be set on the screen. The image will be resized to match the expectations of the connected device.</param>
         /// <param name="offset">Offset from the left where the image needs to be set. Set to zero if setting the full image.</param>
-        /// <param name="width">Image height.</param>
-        /// <param name="height">Image width.</param>
+        /// <param name="width">Image width.</param>
+        /// <param name="height">Image height.</param>
         /// <returns>True if succesful, false if not.</returns>
         public abstract bool SetScreen(byte[] image, int offset, int width, int height);
 
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         internal static ButtonKind GetButtonKind(byte[] identifier)
+        {
+            if (identifier.Length != 2)
+            {
+                return ButtonKind.Unknown;
+            }
+
+            return (identifier[0], identifier[1]) switch
+            {
+                (0x01, 0x00) => ButtonKind.Button,
+                (0x01, 0x02) => ButtonKind.Screen,
+                (0x01, 0x03) => ButtonKind.Knob,
+                _ => ButtonKind.Unknown,
+            };
+        }
+
+        /// <summary>
+        /// Gets the kind of button from a span-based identifier.
+        /// </summary>
+        /// <param name="identifier">A read-only span of bytes representing the button identifier.</param>
+        /// <returns>The kind of button represented by the identifier.</returns>
+        internal static ButtonKind GetButtonKind(ReadOnlySpan<byte> identifier)
         {
             if (identifier.Length != 2)
             {
@@ -356,13 +457,60 @@ namespace DeckSurf.SDK.Models
         /// <returns>If successful, returns the event args related to the key press event.</returns>
         protected abstract ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer);
 
+        /// <summary>
+        /// Releases unmanaged and optionally managed resources.
+        /// </summary>
+        /// <param name="disposing">True to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                if (this.UnderlyingInputStream != null)
+                {
+                    try
+                    {
+                        this.UnderlyingInputStream.Close();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Already disposed; ignore.
+                    }
+
+                    this.UnderlyingInputStream = null;
+                }
+            }
+
+            this.disposed = true;
+        }
+
         private void KeyPressCallback(IAsyncResult result)
         {
-            var args = this.HandleKeyPress(result, this.keyPressBuffer);
+            ButtonPressEventArgs args;
 
-            if (this.OnButtonPress != null)
+            try
             {
-                this.OnButtonPress(this.UnderlyingDevice, args);
+                args = this.HandleKeyPress(result, this.keyPressBuffer);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Device was disconnected.
+                this.OnDeviceDisconnected?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+            catch (IOException ex)
+            {
+                this.OnDeviceError?.Invoke(this, ex);
+                return;
+            }
+
+            if (args != null)
+            {
+                this.OnButtonPress?.Invoke(this.UnderlyingDevice, args);
             }
 
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);

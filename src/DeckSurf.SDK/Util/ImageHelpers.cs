@@ -34,22 +34,48 @@ namespace DeckSurf.SDK.Util
         /// <returns>Byte array representing the resized image.</returns>
         public static byte[] ResizeImage(byte[] buffer, int width, int height, DeviceRotation flipType, DeviceImageFormat format)
         {
-            using var image = SixLabors.ImageSharp.Image.Load<Rgb24>(buffer);
-
-            image.Mutate(ctx =>
+            if (buffer == null || buffer.Length == 0)
             {
-                ctx.Resize(new ResizeOptions
-                {
-                    Size = new SixLabors.ImageSharp.Size(width, height),
-                    Sampler = KnownResamplers.Bicubic,
-                    Mode = ResizeMode.Stretch,
-                });
-                ctx.Rotate(ToRotateMode(flipType));
-            });
+                throw new ArgumentException("The image buffer cannot be null or empty.", nameof(buffer));
+            }
 
-            using var outputStream = new MemoryStream();
-            image.Save(outputStream, ToEncoder(format));
-            return outputStream.ToArray();
+            if (width <= 0)
+            {
+                throw new ArgumentException("The width must be greater than zero.", nameof(width));
+            }
+
+            if (height <= 0)
+            {
+                throw new ArgumentException("The height must be greater than zero.", nameof(height));
+            }
+
+            Image<Rgb24> image;
+            try
+            {
+                image = SixLabors.ImageSharp.Image.Load<Rgb24>(buffer);
+            }
+            catch (SixLabors.ImageSharp.UnknownImageFormatException ex)
+            {
+                throw new ArgumentException("The provided buffer is not a recognized image format.", nameof(buffer), ex);
+            }
+
+            using (image)
+            {
+                image.Mutate(ctx =>
+                {
+                    ctx.Resize(new ResizeOptions
+                    {
+                        Size = new SixLabors.ImageSharp.Size(width, height),
+                        Sampler = KnownResamplers.Bicubic,
+                        Mode = ResizeMode.Stretch,
+                    });
+                    ctx.Rotate(ToRotateMode(flipType));
+                });
+
+                using var outputStream = new MemoryStream();
+                image.Save(outputStream, ToEncoder(format));
+                return outputStream.ToArray();
+            }
         }
 
         /// <summary>
@@ -60,6 +86,11 @@ namespace DeckSurf.SDK.Util
         /// <returns>If successful, returns a byte array representing the JPEG representation of the blank square.</returns>
         public static byte[] CreateBlankImage(int pixelSize, DeviceColor color)
         {
+            if (pixelSize <= 0)
+            {
+                throw new ArgumentException("The pixel size must be greater than zero.", nameof(pixelSize));
+            }
+
             using var image = new Image<Rgb24>(pixelSize, pixelSize, new Rgb24(color.R, color.G, color.B));
             using var ms = new MemoryStream();
             image.Save(ms, new JpegEncoder());

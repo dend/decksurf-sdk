@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DeckSurf.SDK.Models;
-using DeckSurf.SDK.Models.Devices;
 using HidSharp;
 
 namespace DeckSurf.SDK.Core
@@ -34,68 +33,10 @@ namespace DeckSurf.SDK.Core
                 bool supported = IsSupported(device.VendorID, device.ProductID);
                 if (supported)
                 {
-                    switch ((DeviceModel)device.ProductID)
+                    var connectedDevice = DeviceRegistry.CreateDevice(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber());
+                    if (connectedDevice != null)
                     {
-                        case DeviceModel.XL:
-                            {
-                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.XL2022:
-                            {
-                                connectedDevices.Add(new StreamDeckXL2022(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Plus:
-                            {
-                                connectedDevices.Add(new StreamDeckPlus(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Mini:
-                            {
-                                connectedDevices.Add(new StreamDeckMini(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Mini2022:
-                            {
-                                connectedDevices.Add(new StreamDeckMini2022(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Original:
-                            {
-                                connectedDevices.Add(new StreamDeckOriginal(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Original2019:
-                            {
-                                connectedDevices.Add(new StreamDeckOriginal2019(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.MK2:
-                            {
-                                connectedDevices.Add(new StreamDeckMK2(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Neo:
-                            {
-                                connectedDevices.Add(new StreamDeckNeo(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.MK2Scissor:
-                        default:
-                            {
-                                // Haven't yet implemented support for other Stream Deck device classes.
-                                break;
-                            }
+                        connectedDevices.Add(connectedDevice);
                     }
                 }
             }
@@ -135,12 +76,12 @@ namespace DeckSurf.SDK.Core
         /// <summary>
         /// Determines whether a given vendor ID (VID) and product ID (PID) are supported by the SDK. VID and PID should be representing a Stream Deck device.
         /// </summary>
-        /// <param name="vid">Device VID.</param>
-        /// <param name="pid">Device PID.</param>
+        /// <param name="vendorId">Device VID.</param>
+        /// <param name="productId">Device PID.</param>
         /// <returns>True if device is supported, false if not.</returns>
-        public static bool IsSupported(int vid, int pid)
+        public static bool IsSupported(int vendorId, int productId)
         {
-            if (SupportedVids.Contains(vid) && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
+            if (SupportedVids.Contains(vendorId) && Enum.IsDefined(typeof(DeviceModel), (byte)productId))
             {
                 return true;
             }

@@ -53,5 +53,22 @@ namespace DeckSurf.SDK.Util
 
             return value;
         }
+
+        /// <summary>
+        /// Converts a read-only span of bytes in Little Endian representation back into an integer.
+        /// </summary>
+        /// <param name="littleEndianBytes">Read-only span of bytes in Little Endian format.</param>
+        /// <returns>An unsigned integer obtained from the byte span.</returns>
+        public static int GetIntFromLittleEndianBytes(ReadOnlySpan<byte> littleEndianBytes)
+        {
+            if (littleEndianBytes.Length != 2)
+            {
+                throw new ArgumentException("The byte span must be exactly 2 bytes long.");
+            }
+
+            int value = littleEndianBytes[0] | (littleEndianBytes[1] << 8);
+
+            return value;
+        }
     }
 }

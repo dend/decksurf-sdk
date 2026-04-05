@@ -2,12 +2,14 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace DeckSurf.SDK.Models
 {
     /// <summary>
     /// Represents a point on a Stream Deck touch screen.
     /// </summary>
-    public readonly struct TouchPoint
+    public readonly struct TouchPoint : IEquatable<TouchPoint>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="TouchPoint"/> struct.
@@ -29,5 +31,21 @@ namespace DeckSurf.SDK.Models
         /// Gets the Y coordinate.
         /// </summary>
         public int Y { get; }
+
+        public static bool operator ==(TouchPoint left, TouchPoint right) => left.Equals(right);
+
+        public static bool operator !=(TouchPoint left, TouchPoint right) => !left.Equals(right);
+
+        /// <inheritdoc/>
+        public bool Equals(TouchPoint other) => this.X == other.X && this.Y == other.Y;
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj) => obj is TouchPoint tp && this.Equals(tp);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => HashCode.Combine(this.X, this.Y);
+
+        /// <inheritdoc/>
+        public override string ToString() => $"TouchPoint(X={this.X}, Y={this.Y})";
     }
 }
