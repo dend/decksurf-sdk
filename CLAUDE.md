@@ -55,6 +55,18 @@ dotnet test DeckSurf.SDK.Tests/      # Run tests with coverage enforcement
 - Before adding a global suppression to NoWarn, try a targeted `#pragma warning disable` with a justification comment.
 - When reviewing PRs, challenge any new suppression — the bar is "would this confuse a future contributor?"
 
+## Synchronous API Design
+
+All device I/O methods are **synchronous only**. This is a deliberate design decision:
+
+- **HidSharp 2.1.0 has no true async I/O primitives.** USB HID writes are inherently blocking at the hardware level — there is no `WriteAsync` that avoids thread blocking.
+- **Libraries must not lie about being async.** Wrapping synchronous calls in `Task.Run` is an anti-pattern for library code (per Stephen Toub / Microsoft guidance). It creates false async semantics, causes thread pool starvation under load, and provides fake `CancellationToken` support that can't actually cancel a USB write mid-transfer.
+- **The application should own the threading decision.** Consumers who need to avoid blocking the UI thread can use `Task.Run` at the call site — they understand their threading model, the SDK does not.
+
+If a future version of HidSharp (or a replacement library) provides true async I/O (e.g., `Stream.WriteAsync` backed by OS-level async), the SDK should adopt real async methods at that point. Until then, sync-only is the honest approach.
+
+**Never add `*Async` methods that internally wrap sync calls in `Task.Run`.** This was tried and reverted after expert review.
+
 ## Architecture Conventions
 
 ### Device Hierarchy
@@ -138,7 +150,8 @@ ConnectedDevice (abstract, implements IConnectedDevice)
 
 ## Dependencies
 
-- **HidSharp** (2.1.0) — USB HID communication, cross-platform.
+- **HidSharp** (2.1.0) — USB HID communication, cross-platform. No true async I/O — this is why the SDK is sync-only.
 - **SixLabors.ImageSharp** (3.1.12) — Cross-platform image processing (replaces System.Drawing for core operations).
 - **System.Drawing.Common** (9.0.0) — Retained only for Windows-guarded APIs (`GetFileIcon`).
+- **Microsoft.Extensions.Logging.Abstractions** (9.0.0) — Optional structured logging via `DeckSurfConfiguration.LoggerFactory`.
 - **StyleCop.Analyzers** + **Microsoft.CodeAnalysis.NetAnalyzers** — Linting (dev-only).
