@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Models;
 
@@ -27,6 +28,9 @@ namespace DeckSurf.SDK.Interfaces
         /// </summary>
         /// <remarks>
         /// After this event fires, the device should be considered unusable. Calling methods on a disconnected device may throw <see cref="ObjectDisposedException"/>.
+        /// After this event fires, the device instance is no longer usable and should be disposed.
+        /// To reconnect, call <see cref="DeviceManager.GetDeviceBySerial"/> or <see cref="DeviceManager.GetDeviceList"/>
+        /// to obtain a fresh device instance.
         /// </remarks>
         event EventHandler<EventArgs> DeviceDisconnected;
 
@@ -160,21 +164,21 @@ namespace DeckSurf.SDK.Interfaces
         /// Sets the content of a key on a Stream Deck device.
         /// </summary>
         /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
-        /// <param name="image">Binary content of the image that needs to be set on the key.</param>
+        /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key.</param>
         /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
-        /// <returns>True if successful, false if not.</returns>
+        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while writing the key image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
-        bool SetKey(int keyId, byte[] image, bool alreadyResized);
+        bool SetKey(int keyId, byte[] image, bool alreadyResized = false);
 
         /// <summary>
         /// Sets the key color to a specified color.
         /// </summary>
         /// <param name="index">Key index where the color must be set.</param>
         /// <param name="color">Color to set the key to.</param>
-        /// <returns>If successful, returns true. Otherwise, false.</returns>
+        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="IndexOutOfRangeException">Thrown when <paramref name="index"/> does not represent a valid key.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the key color.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>

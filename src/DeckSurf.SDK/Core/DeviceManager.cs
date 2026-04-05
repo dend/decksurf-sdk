@@ -99,32 +99,76 @@ namespace DeckSurf.SDK.Core
         /// Gets a connected Stream Deck device that matches the specified serial number.
         /// </summary>
         /// <param name="serial">The serial number of the device to find.</param>
-        /// <returns>The first <see cref="ConnectedDevice"/> whose serial matches, or <c>null</c> if no match is found.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="serial"/> is <c>null</c> or empty.</exception>
+        /// <returns>The first <see cref="ConnectedDevice"/> whose serial matches.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="serial"/> is <c>null</c>.</exception>
+        /// <exception cref="DeviceNotFoundException">Thrown when no device with the specified serial number is found.</exception>
         public static ConnectedDevice GetDeviceBySerial(string serial)
         {
-            if (string.IsNullOrEmpty(serial))
+            ArgumentNullException.ThrowIfNull(serial);
+
+            var device = GetDeviceList().FirstOrDefault(d => d.Serial == serial);
+            if (device == null)
             {
-                throw new ArgumentNullException(nameof(serial));
+                throw new DeviceNotFoundException($"No device found with serial '{serial}'.");
             }
 
-            return GetDeviceList().FirstOrDefault(d => d.Serial == serial);
+            return device;
+        }
+
+        /// <summary>
+        /// Attempts to get a connected Stream Deck device that matches the specified serial number.
+        /// </summary>
+        /// <param name="serial">The serial number of the device to find.</param>
+        /// <param name="device">When this method returns <c>true</c>, contains the matching <see cref="ConnectedDevice"/>; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if a device with the specified serial was found; otherwise, <c>false</c>.</returns>
+        public static bool TryGetDeviceBySerial(string serial, out ConnectedDevice device)
+        {
+            device = null;
+            if (string.IsNullOrEmpty(serial))
+            {
+                return false;
+            }
+
+            device = GetDeviceList().FirstOrDefault(d => d.Serial == serial);
+            return device != null;
         }
 
         /// <summary>
         /// Gets a connected Stream Deck device that matches the specified USB HID device path.
         /// </summary>
         /// <param name="devicePath">The USB HID device path to match.</param>
-        /// <returns>The first <see cref="ConnectedDevice"/> whose path matches, or <c>null</c> if no match is found.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="devicePath"/> is <c>null</c> or empty.</exception>
+        /// <returns>The first <see cref="ConnectedDevice"/> whose path matches.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="devicePath"/> is <c>null</c>.</exception>
+        /// <exception cref="DeviceNotFoundException">Thrown when no device with the specified path is found.</exception>
         public static ConnectedDevice GetDeviceByPath(string devicePath)
         {
-            if (string.IsNullOrEmpty(devicePath))
+            ArgumentNullException.ThrowIfNull(devicePath);
+
+            var device = GetDeviceList().FirstOrDefault(d => d.Path == devicePath);
+            if (device == null)
             {
-                throw new ArgumentNullException(nameof(devicePath));
+                throw new DeviceNotFoundException($"No device found with path '{devicePath}'.");
             }
 
-            return GetDeviceList().FirstOrDefault(d => d.Path == devicePath);
+            return device;
+        }
+
+        /// <summary>
+        /// Attempts to get a connected Stream Deck device that matches the specified USB HID device path.
+        /// </summary>
+        /// <param name="devicePath">The USB HID device path to match.</param>
+        /// <param name="device">When this method returns <c>true</c>, contains the matching <see cref="ConnectedDevice"/>; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if a device with the specified path was found; otherwise, <c>false</c>.</returns>
+        public static bool TryGetDeviceByPath(string devicePath, out ConnectedDevice device)
+        {
+            device = null;
+            if (string.IsNullOrEmpty(devicePath))
+            {
+                return false;
+            }
+
+            device = GetDeviceList().FirstOrDefault(d => d.Path == devicePath);
+            return device != null;
         }
 
         /// <summary>

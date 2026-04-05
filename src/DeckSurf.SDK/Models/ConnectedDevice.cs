@@ -227,21 +227,6 @@ namespace DeckSurf.SDK.Models
         }
 
         /// <summary>
-        /// Open the underlying Stream Deck device.
-        /// </summary>
-        /// <returns>HID stream that can be read or written to.</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
-        public HidStream Open()
-        {
-            if (this.disposed)
-            {
-                throw new ObjectDisposedException(nameof(ConnectedDevice));
-            }
-
-            return this.UnderlyingDevice.Open();
-        }
-
-        /// <summary>
         /// Clear the contents of the Stream Deck buttons.
         /// </summary>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
@@ -338,9 +323,9 @@ namespace DeckSurf.SDK.Models
         /// Sets the content of a key on a Stream Deck device.
         /// </summary>
         /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
-        /// <param name="image">Binary content (JPEG) of the image that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
+        /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
         /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
-        /// <returns>True if succesful, false if not.</returns>
+        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
@@ -409,7 +394,7 @@ namespace DeckSurf.SDK.Models
         /// </remarks>
         /// <param name="index">Key index where the color must be set.</param>
         /// <param name="color">Color to set the key to.</param>
-        /// <returns>If successful, returns true. Otherwise, false (including in scenarios where it's not available).</returns>
+        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="IndexOutOfRangeException">Thrown when <paramref name="index"/> does not represent a valid key.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the key color.</exception>
@@ -435,8 +420,19 @@ namespace DeckSurf.SDK.Models
             payload[4] = color.G;
             payload[5] = color.B;
 
-            using var stream = this.Open();
-            stream.SetFeature(payload);
+            try
+            {
+                using var stream = this.Open();
+                stream.SetFeature(payload);
+            }
+            catch (IOException ex)
+            {
+                throw new DeviceCommunicationException("A USB I/O failure occurred while setting the key color.", ex);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                throw new DeviceDisconnectedException("The device was disconnected during the SetKeyColor operation.", ex);
+            }
 
             return true;
         }
@@ -449,7 +445,7 @@ namespace DeckSurf.SDK.Models
         /// <param name="offset">Offset from the left where the image needs to be set. Set to zero if setting the full image.</param>
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
-        /// <returns>True if succesful, false if not.</returns>
+        /// <returns>True if successful, false if not.</returns>
         public abstract bool SetScreen(byte[] image, int offset, int width, int height);
 
         /// <inheritdoc/>
@@ -494,6 +490,21 @@ namespace DeckSurf.SDK.Models
                 (0x01, 0x03) => ButtonKind.Knob,
                 _ => ButtonKind.Unknown,
             };
+        }
+
+        /// <summary>
+        /// Open the underlying Stream Deck device.
+        /// </summary>
+        /// <returns>HID stream that can be read or written to.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        internal HidStream Open()
+        {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
+            return this.UnderlyingDevice.Open();
         }
 
         /// <summary>

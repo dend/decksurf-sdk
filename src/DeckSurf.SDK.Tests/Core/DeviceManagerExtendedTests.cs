@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using DeckSurf.SDK.Core;
+using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.Tests.Core
@@ -16,9 +17,9 @@ namespace DeckSurf.SDK.Tests.Core
         }
 
         [Fact]
-        public void GetDeviceBySerial_EmptySerial_ThrowsArgumentNullException()
+        public void GetDeviceBySerial_EmptySerial_ThrowsDeviceNotFoundException()
         {
-            Assert.Throws<ArgumentNullException>(() => DeviceManager.GetDeviceBySerial(string.Empty));
+            Assert.Throws<DeviceNotFoundException>(() => DeviceManager.GetDeviceBySerial(string.Empty));
         }
 
         [Fact]
@@ -28,25 +29,75 @@ namespace DeckSurf.SDK.Tests.Core
         }
 
         [Fact]
-        public void GetDeviceByPath_EmptyPath_ThrowsArgumentNullException()
+        public void GetDeviceByPath_EmptyPath_ThrowsDeviceNotFoundException()
         {
-            Assert.Throws<ArgumentNullException>(() => DeviceManager.GetDeviceByPath(string.Empty));
+            Assert.Throws<DeviceNotFoundException>(() => DeviceManager.GetDeviceByPath(string.Empty));
         }
 
         [Fact]
-        public void GetDeviceBySerial_NonExistentSerial_ReturnsNull()
+        public void GetDeviceBySerial_NonExistentSerial_ThrowsDeviceNotFoundException()
         {
-            var result = DeviceManager.GetDeviceBySerial("NONEXISTENT-SERIAL-12345");
-
-            Assert.Null(result);
+            Assert.Throws<DeviceNotFoundException>(() => DeviceManager.GetDeviceBySerial("NONEXISTENT-SERIAL-12345"));
         }
 
         [Fact]
-        public void GetDeviceByPath_NonExistentPath_ReturnsNull()
+        public void GetDeviceByPath_NonExistentPath_ThrowsDeviceNotFoundException()
         {
-            var result = DeviceManager.GetDeviceByPath("/dev/nonexistent/path/12345");
+            Assert.Throws<DeviceNotFoundException>(() => DeviceManager.GetDeviceByPath("/dev/nonexistent/path/12345"));
+        }
 
-            Assert.Null(result);
+        [Fact]
+        public void TryGetDeviceBySerial_NonExistentSerial_ReturnsFalse()
+        {
+            var result = DeviceManager.TryGetDeviceBySerial("NONEXISTENT-SERIAL-12345", out var device);
+
+            Assert.False(result);
+            Assert.Null(device);
+        }
+
+        [Fact]
+        public void TryGetDeviceByPath_NonExistentPath_ReturnsFalse()
+        {
+            var result = DeviceManager.TryGetDeviceByPath("/dev/nonexistent/path/12345", out var device);
+
+            Assert.False(result);
+            Assert.Null(device);
+        }
+
+        [Fact]
+        public void TryGetDeviceBySerial_NullSerial_ReturnsFalse()
+        {
+            var result = DeviceManager.TryGetDeviceBySerial(null, out var device);
+
+            Assert.False(result);
+            Assert.Null(device);
+        }
+
+        [Fact]
+        public void TryGetDeviceByPath_NullPath_ReturnsFalse()
+        {
+            var result = DeviceManager.TryGetDeviceByPath(null, out var device);
+
+            Assert.False(result);
+            Assert.Null(device);
+        }
+
+        [Fact]
+        public void TryGetDeviceBySerial_EmptySerial_ReturnsFalse()
+        {
+            var result = DeviceManager.TryGetDeviceBySerial(string.Empty, out var device);
+
+            Assert.False(result);
+            Assert.Null(device);
+        }
+
+        [Fact]
+        public void TryGetDeviceByPath_EmptyPath_ReturnsFalse()
+        {
+            var result = DeviceManager.TryGetDeviceByPath(string.Empty, out var device);
+
+            Assert.False(result);
+            Assert.Null(device);
         }
 
         [Fact]

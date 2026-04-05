@@ -173,7 +173,7 @@ namespace DeckSurf.SDK.Tests.Devices
 
         [Theory]
         [MemberData(nameof(GetDeviceTestData))]
-        public void Device_ReportsCorrectFlipType(
+        public void Device_ReportsCorrectImageRotation(
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
