@@ -28,6 +28,7 @@ jobs:
       with:
         dotnet-version: '10.0.x'
         cache: true
+        cache-dependency-path: 'src/**/packages.lock.json'
     - name: Build
       working-directory: ./src
       run: dotnet build DeckSurf.SDK.sln --configuration Release
