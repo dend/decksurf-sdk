@@ -35,33 +35,46 @@ if (devices.Count == 0)
 // Use the first device
 using var device = devices[0];
 
-// Listen for button presses
+// Listen for button presses (filter to Down to avoid double-firing on release)
 device.ButtonPressed += (sender, e) =>
 {
-    Console.WriteLine($"Button {e.Id} {e.EventKind} (type: {e.ButtonKind})");
-
-    // Touch screen coordinates (Stream Deck Plus only)
-    if (e.TapCoordinates != null)
-    {
-        Console.WriteLine($"  Touch at ({e.TapCoordinates.Value.X}, {e.TapCoordinates.Value.Y})");
-    }
-
-    // Knob rotation (Stream Deck Plus only)
-    if (e.IsKnobRotating == true)
-    {
-        Console.WriteLine($"  Knob rotating: {e.KnobRotationDirection}");
-    }
+    if (e.EventKind != ButtonEventKind.Down) return;
+    Console.WriteLine($"Button {e.Id} pressed (type: {e.ButtonKind})");
 };
 
 device.StartListening();
 
 // Set a button image (JPEG, PNG, BMP, GIF, or any ImageSharp-supported format)
+// Images are automatically resized to match the device's button resolution.
 byte[] image = File.ReadAllBytes("icon.png");
 device.SetKey(0, image);
 
 // Set brightness (0-100)
 device.SetBrightness(80);
 ```
+
+> **Tip:** Button events fire twice per physical press — once for `Down` (pressed) and once for `Up` (released). Filter on `ButtonEventKind.Down` if you only want to respond once per press.
+
+## Button Layout
+
+Buttons are numbered **left-to-right, top-to-bottom**, starting at 0. Use `device.ButtonColumns` and `device.ButtonRows` to understand the grid:
+
+```
+Stream Deck Original (5×3):
+ 0  1  2  3  4
+ 5  6  7  8  9
+10 11 12 13 14
+```
+
+| Device | Buttons | Layout | Button Resolution |
+|:---|:---|:---|:---|
+| Original / Original 2019 / MK.2 | 15 | 5×3 | 72×72 px |
+| XL / XL 2022 | 32 | 8×4 | 96×96 px |
+| Mini / Mini 2022 | 6 | 3×2 | 80×80 px |
+| Neo | 8 | 4×2 | 96×96 px |
+| Plus | 8 | 4×2 | 120×120 px |
+
+Images passed to `SetKey()` are **automatically resized** to the device's button resolution. For best results, use square images. Non-square images will be stretched.
 
 ## Error Handling
 
@@ -168,38 +181,70 @@ if (device.IsScreenSupported)
 
 ## Thread Safety
 
-The SDK is **not thread-safe**. If you call `SetKey()`, `SetBrightness()`, or `SetKeyColor()` from multiple threads, you must synchronize access:
+The SDK is **not thread-safe**. All events (`ButtonPressed`, `DeviceDisconnected`, `DeviceErrorOccurred`) fire on **background threads** (thread pool). If you need to update UI or call device methods from event handlers, you must synchronize access:
 
 ```csharp
 var deviceLock = new object();
 
-lock (deviceLock)
+// Safe to call SetKey from a button press handler
+device.ButtonPressed += (sender, e) =>
 {
-    device.SetKey(0, imageData);
-}
+    if (e.EventKind != ButtonEventKind.Down) return;
+    lock (deviceLock)
+    {
+        device.SetKey(e.Id, highlightImage);
+    }
+};
+
+// WPF/WinForms: marshal to UI thread
+device.ButtonPressed += (sender, e) =>
+{
+    Dispatcher.Invoke(() => statusLabel.Text = $"Button {e.Id} pressed");
+};
 ```
 
 ## Supported Devices
 
 | Device | Support |
-|:----------------------------|:--------|
-| Stream Deck XL              | Full |
-| Stream Deck XL (2022)       | Full |
-| Stream Deck Plus            | Full |
-| Stream Deck Original        | Full |
+|:---|:---|
+| Stream Deck XL | Full |
+| Stream Deck XL (2022) | Full |
+| Stream Deck Plus | Full |
+| Stream Deck Original | Full |
 | Stream Deck Original (2019) | Full |
-| Stream Deck MK.2            | Full |
-| Stream Deck Mini            | Full |
-| Stream Deck Mini (2022)     | Full |
-| Stream Deck Neo             | Full |
+| Stream Deck MK.2 | Full |
+| Stream Deck Mini | Full |
+| Stream Deck Mini (2022) | Full |
+| Stream Deck Neo | Full |
 
 ## Platform Support
 
-Core functionality is **cross-platform** (Windows, macOS, Linux). The SDK uses [HidSharp](https://github.com/IntergatedCircuits/HidSharp) for USB HID communication, which supports all three platforms.
+Core functionality is **cross-platform** (Windows, macOS, Linux). The SDK uses [HidSharp](https://github.com/IntergatedCircuits/HidSharp) for USB HID communication.
 
-A small number of utility methods (`ImageHelper.GetFileIcon()`, `ImageHelper.GetImageBuffer(Icon)`) are **Windows-only** and are marked with `[SupportedOSPlatform("windows")]`. These are optional helper methods — all core device operations work cross-platform.
+A small number of utility methods (`ImageHelper.GetFileIcon()`, `ImageHelper.GetImageBuffer(Icon)`) are **Windows-only** and are marked with `[SupportedOSPlatform("windows")]`. All core device operations work cross-platform.
 
-**Linux note:** You may need to configure udev rules for USB device access without root. See the [HidSharp documentation](https://github.com/IntergatedCircuits/HidSharp) for details.
+### Platform Setup
+
+**Windows:** Works out of the box. Close the Elgato Stream Deck software before running — it holds exclusive access to the device.
+
+**macOS:** USB HID access may require app entitlements (`com.apple.security.device.usb`). Without this, `GetDeviceList()` will return an empty list with no error.
+
+**Linux:** Configure udev rules for non-root USB access:
+```bash
+# /etc/udev/rules.d/99-streamdeck.rules
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", MODE="0666"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0fd9", MODE="0666"
+```
+Then reload: `sudo udevadm control --reload-rules && sudo udevadm trigger`
+
+## Troubleshooting
+
+**`GetDeviceList()` returns empty:**
+- Close the Elgato Stream Deck software (it holds exclusive USB access)
+- On Linux, ensure udev rules are configured (see above)
+- On macOS, check USB entitlements in your app's codesign profile
+- Disconnect and reconnect the device
+- Verify the device appears in your OS device manager
 
 ## Documentation
 
