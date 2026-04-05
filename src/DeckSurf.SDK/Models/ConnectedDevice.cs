@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Interfaces;
@@ -480,36 +479,6 @@ namespace DeckSurf.SDK.Models
         /// <param name="height">Image height.</param>
         /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
         public abstract bool SetScreen(byte[] image, int offset, int width, int height);
-
-        /// <inheritdoc/>
-        public Task SetKeyAsync(int keyId, byte[] image, bool alreadyResized = false, CancellationToken cancellationToken = default)
-        {
-            return Task.Run(() => this.SetKey(keyId, image, alreadyResized), cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public Task SetBrightnessAsync(byte percentage, CancellationToken cancellationToken = default)
-        {
-            return Task.Run(() => this.SetBrightness(percentage), cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public Task SetKeyColorAsync(int index, DeviceColor color, CancellationToken cancellationToken = default)
-        {
-            return Task.Run(() => this.SetKeyColor(index, color), cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public Task<bool> SetScreenAsync(byte[] image, int offset, int width, int height, CancellationToken cancellationToken = default)
-        {
-            return Task.Run(() => this.SetScreen(image, offset, width, height), cancellationToken);
-        }
-
-        /// <inheritdoc/>
-        public Task ClearButtonsAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.Run(() => this.ClearButtons(), cancellationToken);
-        }
 
         /// <inheritdoc/>
         public void Dispose()

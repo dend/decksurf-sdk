@@ -203,22 +203,17 @@ device.ButtonPressed += (sender, e) =>
 };
 ```
 
-## Async API
+## Offloading to Background Threads
 
-All device I/O methods have async counterparts with `CancellationToken` support:
+All device I/O is **synchronous** — USB HID has no true async primitives. If you need to avoid blocking the UI thread (WPF, WinForms), use `Task.Run` at the call site:
 
 ```csharp
-await device.SetKeyAsync(0, imageData, cancellationToken: cts.Token);
-await device.SetBrightnessAsync(80, cancellationToken: cts.Token);
-await device.ClearButtonsAsync(cancellationToken: cts.Token);
-
-if (device.IsScreenSupported)
-{
-    await device.SetScreenAsync(screenImage, 0, device.ScreenWidth, device.ScreenHeight);
-}
+// WPF button click handler — offload to thread pool
+await Task.Run(() => device.SetKey(0, imageData));
+await Task.Run(() => device.SetBrightness(80));
 ```
 
-> **Note:** Async methods wrap synchronous USB I/O via `Task.Run`. Cancellation is checked before execution starts but cannot interrupt an in-progress USB write.
+This is intentional: the SDK does not wrap sync calls in fake async methods. You control when and where thread pool threads are used.
 
 ## Device Monitoring
 
