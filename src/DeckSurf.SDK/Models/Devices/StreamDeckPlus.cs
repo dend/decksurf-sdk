@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DeckSurf.SDK.Exceptions;
@@ -49,11 +50,12 @@ namespace DeckSurf.SDK.Models.Devices
         public override int TouchButtonCount => 0;
 
         /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int offset, int width, int height)
+        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
         {
             ArgumentNullException.ThrowIfNull(image);
 
-            byte[] binaryOffset = DataHelper.GetLittleEndianBytesFromInt(offset);
+            byte[] binaryXOffset = DataHelper.GetLittleEndianBytesFromInt(xOffset);
+            byte[] binaryYOffset = DataHelper.GetLittleEndianBytesFromInt(yOffset);
             byte[] binaryWidth = DataHelper.GetLittleEndianBytesFromInt(width);
             byte[] binaryHeight = DataHelper.GetLittleEndianBytesFromInt(height);
 
@@ -77,10 +79,10 @@ namespace DeckSurf.SDK.Models.Devices
                     [
                         0x02,
                         0x0C,
-                        binaryOffset[0],
-                        binaryOffset[1],
-                        0x00,
-                        0x00,
+                        binaryXOffset[0],
+                        binaryXOffset[1],
+                        binaryYOffset[0],
+                        binaryYOffset[1],
                         binaryWidth[0],
                         binaryWidth[1],
                         binaryHeight[0],
@@ -160,38 +162,46 @@ namespace DeckSurf.SDK.Models.Devices
 
             var buttonData = new ArraySegment<byte>(keyPressBuffer, buttonMapOffset, buttonCount).ToArray();
 
-            int pressedButton = -1;
+            var pressedButtons = new List<int>();
 
             if (buttonKind == ButtonKind.Button || buttonKind == ButtonKind.Screen)
             {
-                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
+                for (int i = 0; i < buttonData.Length; i++)
+                {
+                    if (buttonData[i] == 0x01)
+                    {
+                        pressedButtons.Add(i);
+                    }
+                }
             }
             else
             {
                 isKnobRotated = keyPressBuffer[4] != (byte)0x00;
 
-                pressedButton = Array.IndexOf(buttonData, (byte)0x01);
-                if (pressedButton == -1)
+                for (int i = 0; i < buttonData.Length; i++)
                 {
-                    pressedButton = Array.IndexOf(buttonData, (byte)0xFF);
-
-                    if (isKnobRotated)
+                    if (buttonData[i] == 0x01)
                     {
-                        knobRotationDirection = KnobRotationDirection.Left;
+                        pressedButtons.Add(i);
+                        if (isKnobRotated)
+                        {
+                            knobRotationDirection = KnobRotationDirection.Right;
+                        }
                     }
-                }
-                else
-                {
-                    if (isKnobRotated)
+                    else if (buttonData[i] == 0xFF)
                     {
-                        knobRotationDirection = KnobRotationDirection.Right;
+                        pressedButtons.Add(i);
+                        if (isKnobRotated)
+                        {
+                            knobRotationDirection = KnobRotationDirection.Left;
+                        }
                     }
                 }
             }
 
-            var eventKind = pressedButton != -1 ? ButtonEventKind.Down : ButtonEventKind.Up;
+            var eventKind = pressedButtons.Count > 0 ? ButtonEventKind.Down : ButtonEventKind.Up;
 
-            return new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, touchPoint, isKnobRotated, knobRotationDirection);
+            return new ButtonPressEventArgs(pressedButtons, eventKind, buttonKind, touchPoint, isKnobRotated, knobRotationDirection);
         }
     }
 }

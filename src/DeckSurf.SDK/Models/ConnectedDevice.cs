@@ -472,13 +472,35 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Sets the screen image for a connected Stream Deck device.
         /// </summary>
-        /// <remarks>Supported on devices where <see cref="IsScreenSupported"/> is true (e.g., Stream Deck Plus and Neo).</remarks>
+        /// <remarks>Supported on devices where <see cref="IsScreenSupported"/> is true (e.g., Stream Deck Plus and Neo).
+        /// This overload calls <see cref="SetScreen(byte[], int, int, int, int)"/> with a yOffset of 0.</remarks>
         /// <param name="image">Binary content of the image that needs to be set on the screen.</param>
         /// <param name="offset">Offset from the left where the image needs to be set. Set to zero if setting the full image.</param>
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
         /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
-        public abstract bool SetScreen(byte[] image, int offset, int width, int height);
+        public virtual bool SetScreen(byte[] image, int offset, int width, int height)
+        {
+            return this.SetScreen(image, offset, 0, width, height);
+        }
+
+        /// <summary>
+        /// Sets the screen image for a connected Stream Deck device with both x and y offsets.
+        /// </summary>
+        /// <remarks>
+        /// <para>Supported on devices where <see cref="IsScreenSupported"/> is true (e.g., Stream Deck Plus and Neo).</para>
+        /// <para>
+        /// Future work: additional screen commands (0x08 for full screen, 0x09 for boot logo,
+        /// 0x0d for background) exist in the Stream Deck Plus protocol but are not yet implemented.
+        /// </para>
+        /// </remarks>
+        /// <param name="image">Binary content of the image that needs to be set on the screen.</param>
+        /// <param name="xOffset">Horizontal offset from the left where the image needs to be set. Set to zero if setting the full image.</param>
+        /// <param name="yOffset">Vertical offset from the top where the image needs to be set. Set to zero if setting the full image.</param>
+        /// <param name="width">Image width.</param>
+        /// <param name="height">Image height.</param>
+        /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
+        public abstract bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height);
 
         /// <inheritdoc/>
         public void Dispose()

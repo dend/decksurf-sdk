@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DeckSurf.SDK.Exceptions;
@@ -49,11 +50,10 @@ namespace DeckSurf.SDK.Models.Devices
         public override int TouchButtonCount => 2;
 
         /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int offset, int width, int height)
+        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
         {
             ArgumentNullException.ThrowIfNull(image);
 
-            byte[] binaryOffset = DataHelper.GetLittleEndianBytesFromInt(offset);
             byte[] binaryWidth = DataHelper.GetLittleEndianBytesFromInt(width);
             byte[] binaryHeight = DataHelper.GetLittleEndianBytesFromInt(height);
 
@@ -118,10 +118,19 @@ namespace DeckSurf.SDK.Models.Devices
             var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
             var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
 
-            int pressedButton = Array.IndexOf(new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
-            var eventKind = pressedButton != -1 ? ButtonEventKind.Down : ButtonEventKind.Up;
+            var buttonData = new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray();
+            var pressedButtons = new List<int>();
+            for (int i = 0; i < buttonData.Length; i++)
+            {
+                if (buttonData[i] == 0x01)
+                {
+                    pressedButtons.Add(i);
+                }
+            }
 
-            return new ButtonPressEventArgs(pressedButton, eventKind, buttonKind, null, null, null);
+            var eventKind = pressedButtons.Count > 0 ? ButtonEventKind.Down : ButtonEventKind.Up;
+
+            return new ButtonPressEventArgs(pressedButtons, eventKind, buttonKind, null, null, null);
         }
     }
 }

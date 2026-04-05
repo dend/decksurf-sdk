@@ -218,5 +218,26 @@ namespace DeckSurf.SDK.Interfaces
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the screen image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         bool SetScreen(byte[] image, int offset, int width, int height);
+
+        /// <summary>
+        /// Sets the screen image for a connected Stream Deck device with both x and y offsets.
+        /// </summary>
+        /// <remarks>
+        /// <para>Use this overload for partial screen updates that require a vertical offset.</para>
+        /// <para>
+        /// Future work: additional screen commands (0x08 for full screen, 0x09 for boot logo,
+        /// 0x0d for background) exist in the Stream Deck Plus protocol but are not yet implemented.
+        /// </para>
+        /// </remarks>
+        /// <param name="image">Binary content of the image that needs to be set on the screen.</param>
+        /// <param name="xOffset">Horizontal offset from the left where the image needs to be set.</param>
+        /// <param name="yOffset">Vertical offset from the top where the image needs to be set.</param>
+        /// <param name="width">Image width.</param>
+        /// <param name="height">Image height.</param>
+        /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the screen image.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
+        bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height);
     }
 }

@@ -2,6 +2,8 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using DeckSurf.SDK.Models;
 
 namespace DeckSurf.SDK.Tests.Models
@@ -239,6 +241,72 @@ namespace DeckSurf.SDK.Tests.Models
             Assert.Equal(tapPoint, args.TapCoordinates);
             Assert.Null(args.IsKnobRotating);
             Assert.Null(args.KnobRotationDirection);
+        }
+
+        [Fact]
+        public void Constructor_SingleId_SetsPressedButtonsWithOneEntry()
+        {
+            var args = new ButtonPressEventArgs(3, ButtonEventKind.Down, ButtonKind.Button, null, null, null);
+
+            Assert.Single(args.PressedButtons);
+            Assert.Equal(3, args.PressedButtons[0]);
+            Assert.Equal(3, args.Id);
+        }
+
+        [Fact]
+        public void Constructor_NegativeId_SetsPressedButtonsEmpty()
+        {
+            var args = new ButtonPressEventArgs(-1, ButtonEventKind.Up, null, null, null, null);
+
+            Assert.Empty(args.PressedButtons);
+            Assert.Equal(-1, args.Id);
+        }
+
+        [Fact]
+        public void Constructor_WithPressedButtonsList_SetsAllProperties()
+        {
+            IReadOnlyList<int> buttons = new List<int> { 1, 3, 5 };
+            var args = new ButtonPressEventArgs(buttons, ButtonEventKind.Down, ButtonKind.Button, null, null, null);
+
+            Assert.Equal(3, args.PressedButtons.Count);
+            Assert.Equal(1, args.PressedButtons[0]);
+            Assert.Equal(3, args.PressedButtons[1]);
+            Assert.Equal(5, args.PressedButtons[2]);
+            Assert.Equal(1, args.Id);
+        }
+
+        [Fact]
+        public void Constructor_WithEmptyPressedButtonsList_IdIsNegativeOne()
+        {
+            IReadOnlyList<int> buttons = Array.Empty<int>();
+            var args = new ButtonPressEventArgs(buttons, ButtonEventKind.Up, null, null, null, null);
+
+            Assert.Empty(args.PressedButtons);
+            Assert.Equal(-1, args.Id);
+        }
+
+        [Fact]
+        public void Constructor_WithMultipleKnobs_AllAreReported()
+        {
+            IReadOnlyList<int> knobs = new List<int> { 0, 2 };
+            var args = new ButtonPressEventArgs(knobs, ButtonEventKind.Down, ButtonKind.Knob, null, true, KnobRotationDirection.Right);
+
+            Assert.Equal(2, args.PressedButtons.Count);
+            Assert.Equal(0, args.PressedButtons[0]);
+            Assert.Equal(2, args.PressedButtons[1]);
+            Assert.Equal(0, args.Id);
+            Assert.True(args.IsKnobRotating);
+            Assert.Equal(KnobRotationDirection.Right, args.KnobRotationDirection);
+        }
+
+        [Fact]
+        public void Constructor_WithSinglePressedButton_IdMatchesFirstEntry()
+        {
+            IReadOnlyList<int> buttons = new List<int> { 7 };
+            var args = new ButtonPressEventArgs(buttons, ButtonEventKind.Down, ButtonKind.Button, null, null, null);
+
+            Assert.Single(args.PressedButtons);
+            Assert.Equal(7, args.Id);
         }
     }
 }

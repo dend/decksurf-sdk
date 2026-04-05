@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Util;
@@ -49,7 +50,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int offset, int width, int height)
+        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
         {
             return false;
         }
@@ -112,10 +113,18 @@ namespace DeckSurf.SDK.Models.Devices
             }
 
             var buttonData = new ArraySegment<byte>(keyPressBuffer, 1, 6).ToArray();
-            int pressedButton = Array.IndexOf(buttonData, (byte)0x01);
-            var eventKind = pressedButton != -1 ? ButtonEventKind.Down : ButtonEventKind.Up;
+            var pressedButtons = new List<int>();
+            for (int i = 0; i < buttonData.Length; i++)
+            {
+                if (buttonData[i] == 0x01)
+                {
+                    pressedButtons.Add(i);
+                }
+            }
 
-            return new ButtonPressEventArgs(pressedButton, eventKind, ButtonKind.Button, null, null, null);
+            var eventKind = pressedButtons.Count > 0 ? ButtonEventKind.Down : ButtonEventKind.Up;
+
+            return new ButtonPressEventArgs(pressedButtons, eventKind, ButtonKind.Button, null, null, null);
         }
     }
 }
