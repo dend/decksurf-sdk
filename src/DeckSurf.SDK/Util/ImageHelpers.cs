@@ -1,14 +1,20 @@
-﻿// Copyright (c) Den Delimarsky
+// Copyright (c) Den Delimarsky
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using DeckSurf.SDK.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace DeckSurf.SDK.Util
 {
@@ -23,64 +29,41 @@ namespace DeckSurf.SDK.Util
         /// <param name="buffer">Byte array containing the image.</param>
         /// <param name="width">Target width, in pixels.</param>
         /// <param name="height">Target height, in pixels.</param>
-        /// <param name="flipType">Determines the flip type for a given image.</param>
+        /// <param name="flipType">Determines the rotation for a given image.</param>
         /// <param name="format">Image format to be sent to the device.</param>
         /// <returns>Byte array representing the resized image.</returns>
-        public static byte[] ResizeImage(byte[] buffer, int width, int height, RotateFlipType flipType, ImageFormat format)
+        public static byte[] ResizeImage(byte[] buffer, int width, int height, DeviceRotation flipType, DeviceImageFormat format)
         {
-            Image currentImage = GetImage(buffer);
+            using var image = SixLabors.ImageSharp.Image.Load<Rgb24>(buffer);
 
-            var targetRectangle = new Rectangle(0, 0, width, height);
-            Bitmap targetImage = new(width, height, PixelFormat.Format24bppRgb);
-
-            targetImage.SetResolution(currentImage.HorizontalResolution, currentImage.VerticalResolution);
-
-            using (Graphics graphics = Graphics.FromImage(targetImage))
+            image.Mutate(ctx =>
             {
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                ctx.Resize(new ResizeOptions
+                {
+                    Size = new SixLabors.ImageSharp.Size(width, height),
+                    Sampler = KnownResamplers.Bicubic,
+                    Mode = ResizeMode.Stretch,
+                });
+                ctx.Rotate(ToRotateMode(flipType));
+            });
 
-                graphics.DrawImage(currentImage, targetRectangle, 0, 0, currentImage.Width, currentImage.Height, GraphicsUnit.Pixel);
-            }
-
-            // TODO: I am not sure if every image needs to be rotated, but
-            // in my limited experiments, this seems to be the case.
-            targetImage.RotateFlip(flipType);
-
-            using var bufferStream = new MemoryStream();
-            targetImage.Save(bufferStream, format);
-            return bufferStream.ToArray();
+            using var outputStream = new MemoryStream();
+            image.Save(outputStream, ToEncoder(format));
+            return outputStream.ToArray();
         }
 
         /// <summary>
-        /// Converts a byte array to an Image object.
+        /// Creates a new blank square.
         /// </summary>
-        /// <param name="buffer">Byte array containing the image.</param>
-        /// <returns>Image object, generated from a given byte array.</returns>
-        public static Image GetImage(byte[] buffer)
+        /// <param name="pixelSize">Size, in pixels, of the square sides.</param>
+        /// <param name="color">The color of the blank square to be created.</param>
+        /// <returns>If successful, returns a byte array representing the JPEG representation of the blank square.</returns>
+        public static byte[] CreateBlankImage(int pixelSize, DeviceColor color)
         {
-            Image image = null;
-            using (MemoryStream ms = new(buffer))
-            {
-                image = Image.FromStream(ms);
-            }
-
-            return image;
-        }
-
-        /// <summary>
-        /// Converts an Image object to a byte array.
-        /// </summary>
-        /// <param name="image">Image object containing the image.</param>
-        /// <returns>Byte array, generated from an Image object.</returns>
-        public static byte[] GetImageBuffer(Image image)
-        {
-            ImageConverter converter = new();
-            byte[] buffer = (byte[])converter.ConvertTo(image, typeof(byte[]));
-            return buffer;
+            using var image = new Image<Rgb24>(pixelSize, pixelSize, new Rgb24(color.R, color.G, color.B));
+            using var ms = new MemoryStream();
+            image.Save(ms, new JpegEncoder());
+            return ms.ToArray();
         }
 
         /// <summary>
@@ -88,8 +71,15 @@ namespace DeckSurf.SDK.Util
         /// </summary>
         /// <param name="icon">Icon object containing the image.</param>
         /// <returns>Byte array, generated from an Icon object.</returns>
+        /// <exception cref="PlatformNotSupportedException">Thrown when called on a non-Windows operating system.</exception>
+        [SupportedOSPlatform("windows")]
         public static byte[] GetImageBuffer(Icon icon)
         {
+            if (!OperatingSystem.IsWindows())
+            {
+                throw new PlatformNotSupportedException("GetImageBuffer(Icon) is only supported on Windows.");
+            }
+
             using MemoryStream stream = new();
             icon.Save(stream);
             return stream.ToArray();
@@ -103,8 +93,15 @@ namespace DeckSurf.SDK.Util
         /// <param name="height">Desired icon height.</param>
         /// <param name="options">Icon extraction flags, represented by a standard Windows API <see cref="SIIGBF"/> enum.</param>
         /// <returns>Bitmap object containing the file icon.</returns>
+        /// <exception cref="PlatformNotSupportedException">Thrown when called on a non-Windows operating system.</exception>
+        [SupportedOSPlatform("windows")]
         public static Bitmap GetFileIcon(string fileName, int width, int height, SIIGBF options)
         {
+            if (!OperatingSystem.IsWindows())
+            {
+                throw new PlatformNotSupportedException("GetFileIcon is only supported on Windows.");
+            }
+
             IntPtr hBitmap = GetBitmapPointer(fileName, width, height, options);
 
             try
@@ -117,39 +114,45 @@ namespace DeckSurf.SDK.Util
             }
         }
 
-        /// <summary>
-        /// Creates a new blank square.
-        /// </summary>
-        /// <param name="pixelSize">Size, in pixels, of the square sides.</param>
-        /// <param name="color">The color of the blank square to be created.</param>
-        /// <returns>If successful, returns a byte array representing the JPEG representation of the blank square.</returns>
-        public static byte[] CreateBlankImage(int pixelSize, Color color)
+        private static RotateMode ToRotateMode(DeviceRotation rotation)
         {
-            using var image = new Bitmap(pixelSize, pixelSize);
-            using var graphics = Graphics.FromImage(image);
-            graphics.Clear(color);
-            using MemoryStream ms = new MemoryStream();
-            image.Save(ms, ImageFormat.Jpeg);
-            return ms.ToArray();
+            return rotation switch
+            {
+                DeviceRotation.Rotate180FlipNone => RotateMode.Rotate180,
+                DeviceRotation.Rotate270FlipNone => RotateMode.Rotate270,
+                _ => RotateMode.None,
+            };
         }
 
+        private static IImageEncoder ToEncoder(DeviceImageFormat format)
+        {
+            return format switch
+            {
+                DeviceImageFormat.Jpeg => new JpegEncoder(),
+                DeviceImageFormat.Bmp => new BmpEncoder(),
+                _ => new JpegEncoder(),
+            };
+        }
+
+        [SupportedOSPlatform("windows")]
         private static Bitmap GetBitmapFromHBitmap(IntPtr nativeHBitmap)
         {
-            Bitmap bitmap = Image.FromHbitmap(nativeHBitmap);
+            Bitmap bitmap = System.Drawing.Image.FromHbitmap(nativeHBitmap);
 
-            if (Image.GetPixelFormatSize(bitmap.PixelFormat) < 32)
+            if (System.Drawing.Image.GetPixelFormatSize(bitmap.PixelFormat) < 32)
             {
                 return bitmap;
             }
 
-            return CreateAlphaBitmap(bitmap, PixelFormat.Format32bppArgb);
+            return CreateAlphaBitmap(bitmap, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         }
 
         // Refer to Stack Overflow answer: https://stackoverflow.com/a/21752100 and https://stackoverflow.com/a/42178963
-        private static Bitmap CreateAlphaBitmap(Bitmap sourceBitmap, PixelFormat targetPixelFormat)
+        [SupportedOSPlatform("windows")]
+        private static Bitmap CreateAlphaBitmap(Bitmap sourceBitmap, System.Drawing.Imaging.PixelFormat targetPixelFormat)
         {
             Bitmap outputBitmap = new(sourceBitmap.Width, sourceBitmap.Height, targetPixelFormat);
-            Rectangle boundary = new(0, 0, sourceBitmap.Width, sourceBitmap.Height);
+            System.Drawing.Rectangle boundary = new(0, 0, sourceBitmap.Width, sourceBitmap.Height);
             BitmapData sourceBitmapData = sourceBitmap.LockBits(boundary, ImageLockMode.ReadOnly, sourceBitmap.PixelFormat);
 
             try
@@ -158,7 +161,7 @@ namespace DeckSurf.SDK.Util
                 {
                     for (int j = 0; j <= sourceBitmapData.Width - 1; j++)
                     {
-                        Color pixelColor = Color.FromArgb(Marshal.ReadInt32(sourceBitmapData.Scan0, (sourceBitmapData.Stride * i) + (4 * j)));
+                        System.Drawing.Color pixelColor = System.Drawing.Color.FromArgb(Marshal.ReadInt32(sourceBitmapData.Scan0, (sourceBitmapData.Stride * i) + (4 * j)));
 
                         outputBitmap.SetPixel(j, i, pixelColor);
                     }
@@ -172,6 +175,7 @@ namespace DeckSurf.SDK.Util
             return outputBitmap;
         }
 
+        [SupportedOSPlatform("windows")]
         private static IntPtr GetBitmapPointer(string fileName, int width, int height, SIIGBF options)
         {
             Guid itemIdentifier = new(WindowsAPIHelpers.IID_IShellItem2);

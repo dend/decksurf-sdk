@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Drawing;
 
 namespace DeckSurf.SDK.Models
 {
@@ -19,7 +18,7 @@ namespace DeckSurf.SDK.Models
     /// <param name="tapCoordinates">Coordinates on the touch screen where a tap occurred.</param>
     /// <param name="isKnobRotating">Determines whether a knob is being rotated.</param>
     /// <param name="knobRotationDirection">Direction of a knob being rotated.</param>
-    public class ButtonPressEventArgs(int id, ButtonEventKind eventKind, ButtonKind? buttonKind, Point? tapCoordinates, bool? isKnobRotating, KnobRotationDirection? knobRotationDirection) : EventArgs
+    public class ButtonPressEventArgs(int id, ButtonEventKind eventKind, ButtonKind? buttonKind, TouchPoint? tapCoordinates, bool? isKnobRotating, KnobRotationDirection? knobRotationDirection) : EventArgs
     {
         /// <summary>
         /// Gets a value indicating whether a knob is being rotated.
@@ -34,7 +33,7 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets the coordinates on the touch screen where the tap occurred.
         /// </summary>
-        public Point? TapCoordinates { get; } = tapCoordinates;
+        public TouchPoint? TapCoordinates { get; } = tapCoordinates;
 
         /// <summary>
         /// Gets the kind of the button pressed.

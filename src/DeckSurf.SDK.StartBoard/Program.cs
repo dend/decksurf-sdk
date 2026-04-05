@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
 using DeckSurf.SDK.Core;
@@ -30,7 +28,7 @@ namespace DeckSurf.SDK.StartBoard
 
             byte[] testImage = File.ReadAllBytes(args[0]);
 
-            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, RotateFlipType.Rotate180FlipNone, ImageFormat.Jpeg);
+            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180FlipNone, DeviceImageFormat.Jpeg);
             device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
 
             device.SetKey(1, testImage);
@@ -38,8 +36,8 @@ namespace DeckSurf.SDK.StartBoard
             device.SetBrightness(45);
             //device.ClearButtons();
 
-            device.SetKeyColor(2, Color.Red);
-            device.SetKeyColor(4, Color.Green);
+            device.SetKeyColor(2, DeviceColor.Red);
+            device.SetKeyColor(4, DeviceColor.Green);
 
             Console.WriteLine("Done");
             exitSignal.WaitOne();

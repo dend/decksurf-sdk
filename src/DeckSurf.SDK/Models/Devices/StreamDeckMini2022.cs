@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using DeckSurf.SDK.Util;
 
 namespace DeckSurf.SDK.Models.Devices
@@ -45,7 +43,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
-        public override ImageFormat KeyImageFormat => ImageFormat.Bmp;
+        public override DeviceImageFormat KeyImageFormat => DeviceImageFormat.Bmp;
 
         /// <inheritdoc/>
         public override int KeyImageHeaderSize => 16;
@@ -57,7 +55,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenImageHeaderSize => 16;
 
         /// <inheritdoc/>
-        public override RotateFlipType FlipType => RotateFlipType.Rotate270FlipNone;
+        public override DeviceRotation FlipType => DeviceRotation.Rotate270FlipNone;
 
         /// <inheritdoc/>
         public override int TouchButtonCount => 0;

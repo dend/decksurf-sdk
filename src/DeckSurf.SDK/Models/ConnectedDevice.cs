@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -95,7 +93,7 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets a value indicating the flip type for the image sent to the device.
         /// </summary>
-        public abstract RotateFlipType FlipType { get; }
+        public abstract DeviceRotation FlipType { get; }
 
         /// <summary>
         /// Gets a value indicating whether the Stream Deck device has a screen in addition to buttons.
@@ -149,7 +147,7 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets the image format used for individual keys on the Stream Deck device.
         /// </summary>
-        public abstract ImageFormat KeyImageFormat { get; }
+        public abstract DeviceImageFormat KeyImageFormat { get; }
 
         /// <summary>
         /// Gets the size of the header for the packets used to set the key image.
@@ -214,7 +212,7 @@ namespace DeckSurf.SDK.Models
         {
             for (int i = 0; i < this.ButtonCount; i++)
             {
-                this.SetKey(i, ImageHelpers.CreateBlankImage(this.ButtonResolution, Color.Black));
+                this.SetKey(i, ImageHelpers.CreateBlankImage(this.ButtonResolution, DeviceColor.Black));
             }
         }
 
@@ -301,7 +299,7 @@ namespace DeckSurf.SDK.Models
         /// <param name="index">Key index where the color must be set.</param>
         /// <param name="color">Color to set the key to.</param>
         /// <returns>If successful, returns true. Otherwise, false (including in scenarios where it's not available).</returns>
-        public bool SetKeyColor(int index, Color color)
+        public bool SetKeyColor(int index, DeviceColor color)
         {
             if (Math.Min(Math.Max(index, 0), this.ButtonCount + this.TouchButtonCount - 1) != index)
             {

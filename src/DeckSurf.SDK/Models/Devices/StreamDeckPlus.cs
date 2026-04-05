@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
 using DeckSurf.SDK.Util;
 
@@ -46,7 +44,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => 200;
 
         /// <inheritdoc/>
-        public override ImageFormat KeyImageFormat => ImageFormat.Jpeg;
+        public override DeviceImageFormat KeyImageFormat => DeviceImageFormat.Jpeg;
 
         /// <inheritdoc/>
         public override int KeyImageHeaderSize => 8;
@@ -58,7 +56,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenImageHeaderSize => 16;
 
         /// <inheritdoc/>
-        public override RotateFlipType FlipType => RotateFlipType.Rotate180FlipNone;
+        public override DeviceRotation FlipType => DeviceRotation.Rotate180FlipNone;
 
         /// <inheritdoc/>
         public override int TouchButtonCount => 0;
@@ -157,14 +155,14 @@ namespace DeckSurf.SDK.Models.Devices
 
             // If this was not a touch screen, we should provide
             // dummy coordinates.
-            Point touchPoint = new() { X = -1, Y = -1 };
+            TouchPoint touchPoint = new(-1, -1);
 
             if (buttonKind == ButtonKind.Screen)
             {
                 var xCoord = new ArraySegment<byte>(keyPressBuffer, 6, 2).ToArray();
                 var yCoord = new ArraySegment<byte>(keyPressBuffer, 8, 2).ToArray();
 
-                touchPoint = new Point() { X = DataHelpers.GetIntFromLittleEndianBytes(xCoord), Y = DataHelpers.GetIntFromLittleEndianBytes(yCoord) };
+                touchPoint = new TouchPoint(DataHelpers.GetIntFromLittleEndianBytes(xCoord), DataHelpers.GetIntFromLittleEndianBytes(yCoord));
             }
 
             // For whatever reason, the number of knobs is reported as 5, even though
