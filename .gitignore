@@ -354,3 +354,4 @@ MigrationBackup/
 
 # Launch settings
 launchSettings.json
+src/DeckSurf.SDK.Tests/coverage/

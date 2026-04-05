@@ -13,7 +13,7 @@
     <CoverletOutputFormat>cobertura</CoverletOutputFormat>
     <CoverletOutput>./coverage/</CoverletOutput>
     <ThresholdType>line</ThresholdType>
-    <Threshold>40</Threshold>
+    <Threshold>50</Threshold>
     <ExcludeByFile>**/Program.cs</ExcludeByFile>
     <ExcludeByAttribute>SupportedOSPlatform</ExcludeByAttribute>
   </PropertyGroup>
