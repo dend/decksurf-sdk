@@ -21,6 +21,17 @@ namespace DeckSurf.SDK.Core
 #pragma warning restore SA1010 // Opening square brackets should be spaced correctly
 
         /// <summary>
+        /// Event raised when the system detects a change in connected HID devices.
+        /// Call <see cref="GetDeviceList"/> after this event to get the updated list.
+        /// </summary>
+        public static event EventHandler DeviceListChanged;
+
+        static DeviceManager()
+        {
+            DeviceList.Local.Changed += (sender, e) => DeviceListChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
         /// </summary>
         /// <returns>Read-only list containing supported devices.</returns>
@@ -47,31 +58,71 @@ namespace DeckSurf.SDK.Core
 
         /// <summary>
         /// Gets a connected Stream Deck device based on a pre-defined configuration profile.
+        /// The method prefers matching by <see cref="ConfigurationProfile.DeviceSerial"/> (which is
+        /// stable across re-plugs) and falls back to <see cref="ConfigurationProfile.DeviceIndex"/>
+        /// when no serial match is found.
         /// </summary>
         /// <param name="profile">An instance representing the pre-defined configuration profile.</param>
-        /// <returns>If the call is successful, returns a Stream Deck device.</returns>
+        /// <returns>The matching <see cref="ConnectedDevice"/> with its button map configured.</returns>
+        /// <exception cref="DeviceNotFoundException">
+        /// Thrown when no device matches the serial number or index specified in <paramref name="profile"/>.
+        /// </exception>
         public static ConnectedDevice SetupDevice(ConfigurationProfile profile)
         {
-            try
+            var devices = GetDeviceList();
+            ConnectedDevice targetDevice = null;
+
+            // Prefer serial number (stable across re-plugs)
+            if (!string.IsNullOrEmpty(profile.DeviceSerial))
             {
-                var devices = GetDeviceList();
-                if (devices != null &&
-                    devices.Any() &&
-                    profile.DeviceIndex <= devices.Count() - 1)
-                {
-                    var targetDevice = devices.ElementAt(profile.DeviceIndex);
-                    targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
-                    return targetDevice;
-                }
-                else
-                {
-                    return null;
-                }
+                targetDevice = devices.FirstOrDefault(d => d.Serial == profile.DeviceSerial);
             }
-            catch (Exception ex)
+
+            // Fall back to index
+            if (targetDevice == null && profile.DeviceIndex >= 0 && profile.DeviceIndex < devices.Count)
             {
-                throw new DeviceNotFoundException("Could not find or set up the requested device.", ex);
+                targetDevice = devices[profile.DeviceIndex];
             }
+
+            if (targetDevice == null)
+            {
+                throw new DeviceNotFoundException($"No device found matching serial '{profile.DeviceSerial}' or index {profile.DeviceIndex}.");
+            }
+
+            targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
+            return targetDevice;
+        }
+
+        /// <summary>
+        /// Gets a connected Stream Deck device that matches the specified serial number.
+        /// </summary>
+        /// <param name="serial">The serial number of the device to find.</param>
+        /// <returns>The first <see cref="ConnectedDevice"/> whose serial matches, or <c>null</c> if no match is found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="serial"/> is <c>null</c> or empty.</exception>
+        public static ConnectedDevice GetDeviceBySerial(string serial)
+        {
+            if (string.IsNullOrEmpty(serial))
+            {
+                throw new ArgumentNullException(nameof(serial));
+            }
+
+            return GetDeviceList().FirstOrDefault(d => d.Serial == serial);
+        }
+
+        /// <summary>
+        /// Gets a connected Stream Deck device that matches the specified USB HID device path.
+        /// </summary>
+        /// <param name="devicePath">The USB HID device path to match.</param>
+        /// <returns>The first <see cref="ConnectedDevice"/> whose path matches, or <c>null</c> if no match is found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="devicePath"/> is <c>null</c> or empty.</exception>
+        public static ConnectedDevice GetDeviceByPath(string devicePath)
+        {
+            if (string.IsNullOrEmpty(devicePath))
+            {
+                throw new ArgumentNullException(nameof(devicePath));
+            }
+
+            return GetDeviceList().FirstOrDefault(d => d.Path == devicePath);
         }
 
         /// <summary>

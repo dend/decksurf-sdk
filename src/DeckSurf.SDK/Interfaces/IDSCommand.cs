@@ -26,7 +26,7 @@ namespace DeckSurf.SDK.Interfaces
         /// </summary>
         /// <param name="mappedCommand">Instance of a command mapped to a button.</param>
         /// <param name="mappedDevice">Connected Stream Deck device.</param>
-        public void ExecuteOnActivation(CommandMapping mappedCommand, ConnectedDevice mappedDevice);
+        public void ExecuteOnActivation(CommandMapping mappedCommand, IConnectedDevice mappedDevice);
 
         /// <summary>
         /// Function that is executed when the command is triggered by a mapped button.
@@ -34,6 +34,6 @@ namespace DeckSurf.SDK.Interfaces
         /// <param name="mappedCommand">Instance of a command mapped to a button.</param>
         /// <param name="mappedDevice">Connected Stream Deck device.</param>
         /// <param name="activatingButton">The numeric ID of the button activating the command. -1 is used for any button on the Stream Deck surface.</param>
-        public void ExecuteOnAction(CommandMapping mappedCommand, ConnectedDevice mappedDevice, int activatingButton = -1);
+        public void ExecuteOnAction(CommandMapping mappedCommand, IConnectedDevice mappedDevice, int activatingButton = -1);
     }
 }

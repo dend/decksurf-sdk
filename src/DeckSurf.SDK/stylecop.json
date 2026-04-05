@@ -7,8 +7,8 @@
       "xmlHeader": false,
       "headerDecoration": "",
       "fileNamingConvention": "metadata",
-      "documentInterfaces": false,
-      "documentExposedElements": false,
+      "documentInterfaces": true,
+      "documentExposedElements": true,
       "documentInternalElements": false
     },
     "layoutRules": {

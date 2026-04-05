@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Models;
-using HidSharp;
 
 namespace DeckSurf.SDK.Interfaces
 {
@@ -133,12 +132,6 @@ namespace DeckSurf.SDK.Interfaces
         /// Stops listening for events for the specific device.
         /// </summary>
         void StopListening();
-
-        /// <summary>
-        /// Open the underlying Stream Deck device.
-        /// </summary>
-        /// <returns>HID stream that can be read or written to.</returns>
-        HidStream Open();
 
         /// <summary>
         /// Clear the contents of the Stream Deck buttons.

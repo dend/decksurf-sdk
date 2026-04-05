@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using DeckSurf.SDK.Exceptions;
+using DeckSurf.SDK.Interfaces;
 using DeckSurf.SDK.Util;
 using HidSharp;
 
@@ -20,7 +22,7 @@ namespace DeckSurf.SDK.Models
     /// from multiple threads. In particular, <see cref="SetKey"/>, <see cref="SetBrightness"/>,
     /// and <see cref="SetKeyColor"/> should not be called concurrently for the same device.
     /// </remarks>
-    public abstract class ConnectedDevice : IDisposable
+    public abstract class ConnectedDevice : IConnectedDevice
     {
         private byte[] keyPressBuffer = new byte[1024];
         private bool disposed;
@@ -46,7 +48,8 @@ namespace DeckSurf.SDK.Models
             this.Path = path;
             this.Name = name;
             this.Serial = serial;
-            this.UnderlyingDevice = DeviceList.Local.GetHidDeviceOrNull(vid, pid);
+            this.UnderlyingDevice = DeviceList.Local.GetHidDevices()
+                .FirstOrDefault(d => d.VendorID == vid && d.ProductID == pid && d.DevicePath == path);
         }
 
         /// <summary>

@@ -5,10 +5,22 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <NoWarn>xUnit1026;CA2000</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+    <CoverletOutput>./coverage/</CoverletOutput>
+    <ThresholdType>line</ThresholdType>
+    <Threshold>40</Threshold>
+    <ExcludeByFile>**/Program.cs</ExcludeByFile>
+    <ExcludeByAttribute>SupportedOSPlatform</ExcludeByAttribute>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="coverlet.msbuild" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
