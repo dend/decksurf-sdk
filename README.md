@@ -75,7 +75,8 @@ The SDK uses a structured exception model rooted in `DeckSurfException`:
 | `ImageProcessingException` | Unrecognized image format in `SetKey` or `ImageHelper.ResizeImage` | — |
 | `ObjectDisposedException` | Method called on a disposed device | — |
 | `InvalidOperationException` | `StartListening()` called when already listening | — |
-| `ArgumentOutOfRangeException` | Button index out of range in `SetKey`/`SetKeyColor` | — |
+| `ArgumentOutOfRangeException` | Button index out of range in `SetKey` | — |
+| `IndexOutOfRangeException` | Key index out of range in `SetKeyColor` | — |
 
 ```csharp
 using DeckSurf.SDK.Exceptions;

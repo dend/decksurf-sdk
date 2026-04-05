@@ -186,6 +186,7 @@ namespace DeckSurf.SDK.Interfaces
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
+        /// <exception cref="ImageProcessingException">Thrown when the image buffer is not a recognized format (only when <paramref name="alreadyResized"/> is false).</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while writing the key image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         bool SetKey(int keyId, byte[] image, bool alreadyResized = false);
