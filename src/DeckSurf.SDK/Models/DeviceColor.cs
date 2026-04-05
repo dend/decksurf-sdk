@@ -40,6 +40,31 @@ namespace DeckSurf.SDK.Models
         public static DeviceColor Green => new(0, 128, 0);
 
         /// <summary>
+        /// Gets a blue color (0, 0, 255).
+        /// </summary>
+        public static DeviceColor Blue => new(0, 0, 255);
+
+        /// <summary>
+        /// Gets a white color (255, 255, 255).
+        /// </summary>
+        public static DeviceColor White => new(255, 255, 255);
+
+        /// <summary>
+        /// Gets a yellow color (255, 255, 0).
+        /// </summary>
+        public static DeviceColor Yellow => new(255, 255, 0);
+
+        /// <summary>
+        /// Gets a cyan color (0, 255, 255).
+        /// </summary>
+        public static DeviceColor Cyan => new(0, 255, 255);
+
+        /// <summary>
+        /// Gets a magenta color (255, 0, 255).
+        /// </summary>
+        public static DeviceColor Magenta => new(255, 0, 255);
+
+        /// <summary>
         /// Gets the red component of the color.
         /// </summary>
         public byte R { get; }

@@ -192,11 +192,17 @@ namespace DeckSurf.SDK.Models
         /// Initialize the device and start reading the input stream.
         /// </summary>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the device is already listening. Call <see cref="StopListening"/> first.</exception>
         public void StartListening()
         {
             if (this.disposed)
             {
                 throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
+            if (this.UnderlyingInputStream != null)
+            {
+                throw new InvalidOperationException("The device is already listening. Call StopListening() before calling StartListening() again.");
             }
 
             this.UnderlyingInputStream = this.UnderlyingDevice.Open();

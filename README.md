@@ -1,6 +1,6 @@
 ![DeckSurf SDK Icon](images/logo-small.webp)
 
-# 🌊 DeckSurf SDK for .NET
+# DeckSurf SDK for .NET
 
 _**Unofficial Software Development Kit for your Stream Deck, built in C# for the .NET platform.**_
 
@@ -12,39 +12,176 @@ _**Unofficial Software Development Kit for your Stream Deck, built in C# for the
 
 [![NuGet Version](https://img.shields.io/nuget/v/DeckSurf.SDK)](https://www.nuget.org/packages/DeckSurf.SDK)
 
-## About
-
-The DeckSurf SDK is used to manage Stream Deck devices and create plugins for [DeckSurf tools](https://github.com/dend/DeckSurf). It is completely independent of the Elgato software and/or libraries and can be used as a standalone library.
-
 ## Installation
 
-You can use the SDK by installing it [from NuGet](https://www.nuget.org/packages/DeckSurf.SDK):
-
-```powershell
+```bash
 dotnet add package DeckSurf.SDK
 ```
 
-## Supported devices
+## Quick Start
 
-| Device | Level of support |
+```csharp
+using DeckSurf.SDK.Core;
+using DeckSurf.SDK.Models;
+
+// Enumerate connected Stream Deck devices
+var devices = DeviceManager.GetDeviceList();
+if (devices.Count == 0)
+{
+    Console.WriteLine("No Stream Deck devices found.");
+    return;
+}
+
+// Use the first device
+using var device = devices[0];
+
+// Listen for button presses
+device.ButtonPressed += (sender, e) =>
+{
+    Console.WriteLine($"Button {e.Id} {e.EventKind}");
+};
+
+device.StartListening();
+
+// Set a button image (JPEG, PNG, BMP, GIF, or any ImageSharp-supported format)
+byte[] image = File.ReadAllBytes("icon.png");
+device.SetKey(0, image);
+
+// Set brightness (0-100)
+device.SetBrightness(80);
+```
+
+## Error Handling
+
+The SDK uses a structured exception model rooted in `DeckSurfException`:
+
+```csharp
+using DeckSurf.SDK.Exceptions;
+
+try
+{
+    device.SetKey(0, imageData);
+}
+catch (DeviceCommunicationException ex) when (ex.IsTransient)
+{
+    // USB I/O failure — safe to retry
+}
+catch (DeviceDisconnectedException ex)
+{
+    // Device was physically unplugged
+    Console.WriteLine($"Lost device {ex.DeviceSerial}");
+}
+```
+
+For event-driven error handling, subscribe to `DeviceErrorOccurred`:
+
+```csharp
+device.DeviceErrorOccurred += (sender, e) =>
+{
+    Console.WriteLine($"Error in {e.OperationName}: {e.Category} (transient: {e.IsTransient})");
+};
+```
+
+## Device Disconnection
+
+When a device is unplugged, the `DeviceDisconnected` event fires. After this event, the device instance is unusable — dispose it and acquire a new one:
+
+```csharp
+device.DeviceDisconnected += (sender, e) =>
+{
+    Console.WriteLine("Device disconnected. Attempting to reconnect...");
+    device.Dispose();
+
+    // Re-enumerate to find the device again
+    if (DeviceManager.TryGetDeviceBySerial(knownSerial, out var newDevice))
+    {
+        // Use newDevice
+    }
+};
+```
+
+## Multiple Devices
+
+Use serial numbers for stable device identification across re-plugs:
+
+```csharp
+// Find a specific device
+if (DeviceManager.TryGetDeviceBySerial("CL12K1A00042", out var myDevice))
+{
+    using (myDevice)
+    {
+        myDevice.StartListening();
+        myDevice.SetKey(0, imageData);
+    }
+}
+
+// Or throw if not found
+var device = DeviceManager.GetDeviceBySerial("CL12K1A00042");
+
+// Monitor for device connection changes
+DeviceManager.DeviceListChanged += (sender, e) =>
+{
+    Console.WriteLine("USB device change detected — re-enumerate devices.");
+};
+```
+
+## Screen Support (Plus & Neo)
+
+Devices with LCD screens expose screen operations:
+
+```csharp
+if (device.IsScreenSupported)
+{
+    byte[] screenImage = File.ReadAllBytes("banner.jpg");
+    var resized = ImageHelper.ResizeImage(
+        screenImage,
+        device.ScreenWidth,
+        device.ScreenHeight,
+        device.ImageRotation,
+        device.KeyImageFormat);
+    device.SetScreen(resized, 0, device.ScreenWidth, device.ScreenHeight);
+}
+```
+
+## Thread Safety
+
+The SDK is **not thread-safe**. If you call `SetKey()`, `SetBrightness()`, or `SetKeyColor()` from multiple threads, you must synchronize access:
+
+```csharp
+var deviceLock = new object();
+
+lock (deviceLock)
+{
+    device.SetKey(0, imageData);
+}
+```
+
+## Supported Devices
+
+| Device | Support |
 |:----------------------------|:--------|
-| Stream Deck XL              | ✅ Full |
-| Stream Deck XL (2022)       | ✅ Full |
-| Stream Deck Plus            | ✅ Full |
-| Stream Deck Original        | ✅ Full |
-| Stream Deck Original (2019) | ✅ Full |
-| Stream Deck MK.2            | ✅ Full |
-| Stream Deck MK.2 (Scissor)  | ✅ Full |
-| Stream Deck Mini            | ✅ Full |
-| Stream Deck Mini (2022)     | ✅ Full |
-| Stream Deck Neo             | ✅ Full |
+| Stream Deck XL              | Full |
+| Stream Deck XL (2022)       | Full |
+| Stream Deck Plus            | Full |
+| Stream Deck Original        | Full |
+| Stream Deck Original (2019) | Full |
+| Stream Deck MK.2            | Full |
+| Stream Deck Mini            | Full |
+| Stream Deck Mini (2022)     | Full |
+| Stream Deck Neo             | Full |
 
-Device IDs mapped from the [`streamdeck-kit-ipad`](https://github.com/elgatosf/streamdeck-kit-ipad/blob/c53ef3eb17b8746f80af7224bafa770883e127c6/Sources/StreamDeckKit/Device/StreamDeckProductId.swift#L45) repository.
+## Platform Support
+
+Core functionality is **cross-platform** (Windows, macOS, Linux). The SDK uses [HidSharp](https://github.com/IntergatedCircuits/HidSharp) for USB HID communication, which supports all three platforms.
+
+A small number of utility methods (`ImageHelper.GetFileIcon()`, `ImageHelper.GetImageBuffer(Icon)`) are **Windows-only** and are marked with `[SupportedOSPlatform("windows")]`. These are optional helper methods — all core device operations work cross-platform.
+
+**Linux note:** You may need to configure udev rules for USB device access without root. See the [HidSharp documentation](https://github.com/IntergatedCircuits/HidSharp) for details.
 
 ## Documentation
 
-Refer to [`https://docs.deck.surf`](https://docs.deck.surf/) for tutorials and SDK documentation.
+Refer to [`https://docs.deck.surf`](https://docs.deck.surf/) for tutorials and full API documentation.
 
-## Platform compatibility
+## License
 
-The SDK in its current implementation has a number of dependencies on Windows APIs, therefore will only work on Windows. In future releases, I am thinking of a way to rip out native components and separate them in their own package, allowing the SDK to be fully cross-platform.
+This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for details.
