@@ -133,6 +133,11 @@ namespace DeckSurf.SDK.Interfaces
         DeviceImageFormat KeyImageFormat { get; }
 
         /// <summary>
+        /// Gets a value indicating whether the device is currently listening for button press events.
+        /// </summary>
+        bool IsListening { get; }
+
+        /// <summary>
         /// Initialize the device and start reading the input stream.
         /// </summary>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>

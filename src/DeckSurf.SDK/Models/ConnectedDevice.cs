@@ -170,6 +170,11 @@ namespace DeckSurf.SDK.Models
         public abstract DeviceImageFormat KeyImageFormat { get; }
 
         /// <summary>
+        /// Gets a value indicating whether the device is currently listening for button press events.
+        /// </summary>
+        public bool IsListening => this.UnderlyingInputStream != null && !this.disposed;
+
+        /// <summary>
         /// Gets the size of the header for the packets used to set the key image.
         /// </summary>
         public abstract int KeyImageHeaderSize { get; }

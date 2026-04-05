@@ -38,7 +38,19 @@ using var device = devices[0];
 // Listen for button presses
 device.ButtonPressed += (sender, e) =>
 {
-    Console.WriteLine($"Button {e.Id} {e.EventKind}");
+    Console.WriteLine($"Button {e.Id} {e.EventKind} (type: {e.ButtonKind})");
+
+    // Touch screen coordinates (Stream Deck Plus only)
+    if (e.TapCoordinates != null)
+    {
+        Console.WriteLine($"  Touch at ({e.TapCoordinates.Value.X}, {e.TapCoordinates.Value.Y})");
+    }
+
+    // Knob rotation (Stream Deck Plus only)
+    if (e.IsKnobRotating == true)
+    {
+        Console.WriteLine($"  Knob rotating: {e.KnobRotationDirection}");
+    }
 };
 
 device.StartListening();
@@ -54,6 +66,16 @@ device.SetBrightness(80);
 ## Error Handling
 
 The SDK uses a structured exception model rooted in `DeckSurfException`:
+
+| Exception | When | Key Property |
+|:---|:---|:---|
+| `DeviceCommunicationException` | USB I/O failure during operation | `IsTransient` — true if safe to retry |
+| `DeviceDisconnectedException` | Device unplugged mid-operation | `DeviceSerial` — identifies which device |
+| `DeviceNotFoundException` | Device lookup failed (serial/path not found) | — |
+| `ImageProcessingException` | Invalid image data passed to `SetKey` | — |
+| `ObjectDisposedException` | Method called on a disposed device | — |
+| `InvalidOperationException` | `StartListening()` called when already listening | — |
+| `ArgumentOutOfRangeException` | Button index out of range in `SetKey`/`SetKeyColor` | — |
 
 ```csharp
 using DeckSurf.SDK.Exceptions;
