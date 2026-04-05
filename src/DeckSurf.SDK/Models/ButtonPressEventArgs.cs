@@ -10,7 +10,13 @@ namespace DeckSurf.SDK.Models
     /// Event arguments that are passed back to the developer when a Stream Deck button is pressed.
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="ButtonPressEventArgs"/> class. Default constructor for button press event arguments.
+    /// <para>Initializes a new instance of the <see cref="ButtonPressEventArgs"/> class. Default constructor for button press event arguments.</para>
+    /// <para>Which properties are populated depends on <see cref="ButtonKind"/>:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="Models.ButtonKind.Button"/>: only <see cref="Id"/> and <see cref="EventKind"/> are set.</description></item>
+    /// <item><description><see cref="Models.ButtonKind.Screen"/>: <see cref="TapCoordinates"/> is also set.</description></item>
+    /// <item><description><see cref="Models.ButtonKind.Knob"/>: <see cref="IsKnobRotating"/> and <see cref="KnobRotationDirection"/> are also set.</description></item>
+    /// </list>
     /// </remarks>
     /// <param name="id">Numeric ID of the button being pressed.</param>
     /// <param name="eventKind">Kind of event.</param>

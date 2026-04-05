@@ -49,9 +49,9 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         public override bool SetScreen(byte[] image, int offset, int width, int height)
         {
-            byte[] binaryOffset = DataHelpers.GetLittleEndianBytesFromInt(offset);
-            byte[] binaryWidth = DataHelpers.GetLittleEndianBytesFromInt(width);
-            byte[] binaryHeight = DataHelpers.GetLittleEndianBytesFromInt(height);
+            byte[] binaryOffset = DataHelper.GetLittleEndianBytesFromInt(offset);
+            byte[] binaryWidth = DataHelper.GetLittleEndianBytesFromInt(width);
+            byte[] binaryHeight = DataHelper.GetLittleEndianBytesFromInt(height);
 
             var iteration = 0;
             var remainingBytes = image.Length;
@@ -64,8 +64,8 @@ namespace DeckSurf.SDK.Models.Devices
 
                 byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
-                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
+                var binaryLength = DataHelper.GetLittleEndianBytesFromInt(sliceLength);
+                var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
 
                 byte[] header =
                 [
@@ -99,7 +99,7 @@ namespace DeckSurf.SDK.Models.Devices
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 
             var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
-            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
+            var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
 
             int pressedButton = Array.IndexOf(new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
             var eventKind = pressedButton != -1 ? ButtonEventKind.Down : ButtonEventKind.Up;

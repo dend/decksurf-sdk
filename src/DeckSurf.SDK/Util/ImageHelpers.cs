@@ -21,7 +21,7 @@ namespace DeckSurf.SDK.Util
     /// <summary>
     /// Collection of methods used for image manipulation, allowing easier Stream Deck button image preparation.
     /// </summary>
-    public class ImageHelpers
+    public class ImageHelper
     {
         /// <summary>
         /// Resize an image buffer to the expected size, in pixels.
@@ -149,8 +149,8 @@ namespace DeckSurf.SDK.Util
         {
             return rotation switch
             {
-                DeviceRotation.Rotate180FlipNone => RotateMode.Rotate180,
-                DeviceRotation.Rotate270FlipNone => RotateMode.Rotate270,
+                DeviceRotation.Rotate180 => RotateMode.Rotate180,
+                DeviceRotation.Rotate270 => RotateMode.Rotate270,
                 _ => RotateMode.None,
             };
         }

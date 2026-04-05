@@ -9,7 +9,7 @@ namespace DeckSurf.SDK.Interfaces
     /// <summary>
     /// Interface used to implement executable commands for a DeckSurf plugin.
     /// </summary>
-    public interface IDSCommand
+    public interface IDeckSurfCommand
     {
         /// <summary>
         /// Gets the name of the command.

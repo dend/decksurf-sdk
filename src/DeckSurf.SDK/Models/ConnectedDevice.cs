@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Util;
 using HidSharp;
 
@@ -14,6 +15,11 @@ namespace DeckSurf.SDK.Models
     /// <summary>
     /// Abstract class representing a connected Stream Deck device. Use specific implementations for a given connected model.
     /// </summary>
+    /// <remarks>
+    /// This class is not thread-safe. Callers must synchronize access when invoking methods
+    /// from multiple threads. In particular, <see cref="SetKey"/>, <see cref="SetBrightness"/>,
+    /// and <see cref="SetKeyColor"/> should not be called concurrently for the same device.
+    /// </remarks>
     public abstract class ConnectedDevice : IDisposable
     {
         private byte[] keyPressBuffer = new byte[1024];
@@ -52,26 +58,19 @@ namespace DeckSurf.SDK.Models
         }
 
         /// <summary>
-        /// Delegate responsible for handling Stream Deck button presses.
-        /// </summary>
-        /// <param name="source">The device where the button was pressed.</param>
-        /// <param name="e">Information on the button press.</param>
-        public delegate void ReceivedButtonPressHandler(object source, ButtonPressEventArgs e);
-
-        /// <summary>
         /// Button press event handler.
         /// </summary>
-        public event EventHandler<ButtonPressEventArgs> OnButtonPress;
+        public event EventHandler<ButtonPressEventArgs> ButtonPressed;
 
         /// <summary>
         /// Event raised when the device is disconnected.
         /// </summary>
-        public event EventHandler<EventArgs> OnDeviceDisconnected;
+        public event EventHandler<EventArgs> DeviceDisconnected;
 
         /// <summary>
         /// Event raised when a device error occurs.
         /// </summary>
-        public event EventHandler<Exception> OnDeviceError;
+        public event EventHandler<DeviceErrorEventArgs> DeviceErrorOccurred;
 
         /// <summary>
         /// Gets the vendor ID.
@@ -111,7 +110,7 @@ namespace DeckSurf.SDK.Models
         /// <summary>
         /// Gets a value indicating the rotation applied to images for this device.
         /// </summary>
-        public abstract DeviceRotation FlipType { get; }
+        public abstract DeviceRotation ImageRotation { get; }
 
         /// <summary>
         /// Gets a value indicating whether the Stream Deck device has a screen in addition to buttons.
@@ -187,20 +186,16 @@ namespace DeckSurf.SDK.Models
         internal HidStream UnderlyingInputStream { get; set; }
 
         /// <summary>
-        /// Abstract method to get the device-specific header.
-        /// </summary>
-        /// <param name="keyId">The key ID.</param>
-        /// <param name="sliceLength">The length of the slice.</param>
-        /// <param name="iteration">The iteration number.</param>
-        /// <param name="remainingBytes">The remaining bytes to be sent.</param>
-        /// <returns>The device-specific header as a byte array.</returns>
-        public abstract byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes);
-
-        /// <summary>
         /// Initialize the device and start reading the input stream.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         public void StartListening()
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
             this.UnderlyingInputStream = this.UnderlyingDevice.Open();
             this.UnderlyingInputStream.ReadTimeout = Timeout.Infinite;
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
@@ -232,19 +227,32 @@ namespace DeckSurf.SDK.Models
         /// Open the underlying Stream Deck device.
         /// </summary>
         /// <returns>HID stream that can be read or written to.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         public HidStream Open()
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
             return this.UnderlyingDevice.Open();
         }
 
         /// <summary>
         /// Clear the contents of the Stream Deck buttons.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while clearing buttons.</exception>
         public void ClearButtons()
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
             for (int i = 0; i < this.ButtonCount; i++)
             {
-                this.SetKey(i, ImageHelpers.CreateBlankImage(this.ButtonResolution, DeviceColor.Black));
+                this.SetKey(i, ImageHelper.CreateBlankImage(this.ButtonResolution, DeviceColor.Black));
             }
         }
 
@@ -252,8 +260,16 @@ namespace DeckSurf.SDK.Models
         /// Sets the brightness of the Stream Deck device display.
         /// </summary>
         /// <param name="percentage">Percentage, from 0 to 100, to which brightness should be set. Any values larger than 100 will be set to 100.</param>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting brightness.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         public virtual void SetBrightness(byte percentage)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
             percentage = Math.Min(percentage, (byte)100);
 
             byte[] brightnessRequest = new byte[32];
@@ -276,8 +292,17 @@ namespace DeckSurf.SDK.Models
         /// Sets up the button mapping to associated plugins.
         /// </summary>
         /// <param name="buttonMap">List of mappings, usually loaded from a configuration file.</param>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="buttonMap"/> is <c>null</c>.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting a button image.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         public void SetupDeviceButtonMap(IEnumerable<CommandMapping> buttonMap)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
             if (buttonMap == null)
             {
                 throw new ArgumentNullException(nameof(buttonMap));
@@ -299,7 +324,7 @@ namespace DeckSurf.SDK.Models
                             continue;
                         }
 
-                        imageBuffer = ImageHelpers.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
+                        imageBuffer = ImageHelper.ResizeImage(imageBuffer, this.ButtonResolution, this.ButtonResolution, this.ImageRotation, this.KeyImageFormat);
                         this.SetKey(button.ButtonIndex, imageBuffer, alreadyResized: true);
                     }
                 }
@@ -313,8 +338,18 @@ namespace DeckSurf.SDK.Models
         /// <param name="image">Binary content (JPEG) of the image that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
         /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
         /// <returns>True if succesful, false if not.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while writing the key image.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         public bool SetKey(int keyId, byte[] image, bool alreadyResized = false)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
             if (keyId < 0 || keyId >= this.ButtonCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(keyId), $"Key ID must be between 0 and {this.ButtonCount - 1}.");
@@ -325,7 +360,7 @@ namespace DeckSurf.SDK.Models
                 throw new ArgumentException("Image must not be null or empty.", nameof(image));
             }
 
-            var keyImage = alreadyResized ? image : ImageHelpers.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.FlipType, this.KeyImageFormat);
+            var keyImage = alreadyResized ? image : ImageHelper.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.ImageRotation, this.KeyImageFormat);
 
             var iteration = 0;
             var remainingBytes = keyImage.Length;
@@ -351,13 +386,13 @@ namespace DeckSurf.SDK.Models
                     iteration++;
                 }
             }
-            catch (IOException)
+            catch (IOException ex)
             {
-                return false;
+                throw new DeviceCommunicationException("A USB I/O failure occurred while writing the key image.", ex);
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException ex)
             {
-                return false;
+                throw new DeviceDisconnectedException("The device was disconnected during the SetKey operation.", ex);
             }
 
             return true;
@@ -372,8 +407,17 @@ namespace DeckSurf.SDK.Models
         /// <param name="index">Key index where the color must be set.</param>
         /// <param name="color">Color to set the key to.</param>
         /// <returns>If successful, returns true. Otherwise, false (including in scenarios where it's not available).</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="IndexOutOfRangeException">Thrown when <paramref name="index"/> does not represent a valid key.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the key color.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         public bool SetKeyColor(int index, DeviceColor color)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(ConnectedDevice));
+            }
+
             if (index < 0 || index >= this.ButtonCount + this.TouchButtonCount)
             {
                 throw new IndexOutOfRangeException($"The index {index} for the touch key does not represent a real touch key.");
@@ -450,6 +494,16 @@ namespace DeckSurf.SDK.Models
         }
 
         /// <summary>
+        /// Abstract method to get the device-specific header.
+        /// </summary>
+        /// <param name="keyId">The key ID.</param>
+        /// <param name="sliceLength">The length of the slice.</param>
+        /// <param name="iteration">The iteration number.</param>
+        /// <param name="remainingBytes">The remaining bytes to be sent.</param>
+        /// <returns>The device-specific header as a byte array.</returns>
+        protected internal abstract byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes);
+
+        /// <summary>
         /// Handles the key press. Different devices carry different implementations.
         /// </summary>
         /// <param name="result">Result passed from the existing stream.</param>
@@ -499,18 +553,18 @@ namespace DeckSurf.SDK.Models
             catch (ObjectDisposedException)
             {
                 // Device was disconnected.
-                this.OnDeviceDisconnected?.Invoke(this, EventArgs.Empty);
+                this.DeviceDisconnected?.Invoke(this, EventArgs.Empty);
                 return;
             }
             catch (IOException ex)
             {
-                this.OnDeviceError?.Invoke(this, ex);
+                this.DeviceErrorOccurred?.Invoke(this, new DeviceErrorEventArgs(ex, DeviceErrorCategory.CommunicationFailure, isTransient: true, recoveryHint: "Check the USB connection and try reconnecting the device.", operationName: nameof(this.KeyPressCallback)));
                 return;
             }
 
             if (args != null)
             {
-                this.OnButtonPress?.Invoke(this.UnderlyingDevice, args);
+                this.ButtonPressed?.Invoke(this, args);
             }
 
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);

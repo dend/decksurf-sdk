@@ -9,7 +9,7 @@ namespace DeckSurf.SDK.Util
     /// <summary>
     /// Helper class used for data conversion and management.
     /// </summary>
-    public class DataHelpers
+    public class DataHelper
     {
         /// <summary>
         /// Converts a byte array to string.

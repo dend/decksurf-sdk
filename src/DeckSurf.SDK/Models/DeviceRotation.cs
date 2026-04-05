@@ -10,13 +10,13 @@ namespace DeckSurf.SDK.Models
     public enum DeviceRotation
     {
         /// <summary>
-        /// Rotate the image 180 degrees with no flip.
+        /// Rotate the image 180 degrees.
         /// </summary>
-        Rotate180FlipNone,
+        Rotate180,
 
         /// <summary>
-        /// Rotate the image 270 degrees with no flip.
+        /// Rotate the image 270 degrees.
         /// </summary>
-        Rotate270FlipNone,
+        Rotate270,
     }
 }

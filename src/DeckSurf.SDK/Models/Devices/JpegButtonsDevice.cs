@@ -27,7 +27,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenImageHeaderSize => 16;
 
         /// <inheritdoc/>
-        public override DeviceRotation FlipType => DeviceRotation.Rotate180FlipNone;
+        public override DeviceRotation ImageRotation => DeviceRotation.Rotate180;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => false;
@@ -48,11 +48,11 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
-        public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
+        protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
-            var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-            var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
+            var binaryLength = DataHelper.GetLittleEndianBytesFromInt(sliceLength);
+            var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
 
             return
             [
@@ -79,7 +79,7 @@ namespace DeckSurf.SDK.Models.Devices
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 
             var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
-            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
+            var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
 
             int pressedButton = Array.IndexOf(new ArraySegment<byte>(keyPressBuffer, 4, buttonCount).ToArray(), (byte)0x01);
             var eventKind = pressedButton != -1 ? ButtonEventKind.Down : ButtonEventKind.Up;

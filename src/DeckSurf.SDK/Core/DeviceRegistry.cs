@@ -15,6 +15,8 @@ namespace DeckSurf.SDK.Core
     /// </summary>
     public static class DeviceRegistry
     {
+        private static readonly object RegistryLock = new();
+
         private static readonly Dictionary<DeviceModel, Func<int, int, string, string, string, ConnectedDevice>> DeviceFactories = new()
         {
             { DeviceModel.Original, (vid, pid, path, name, serial) => new StreamDeckOriginal(vid, pid, path, name, serial) },
@@ -29,6 +31,20 @@ namespace DeckSurf.SDK.Core
         };
 
         /// <summary>
+        /// Registers a factory function for a given <see cref="DeviceModel"/>, allowing
+        /// third-party or custom device implementations to be created by the registry.
+        /// </summary>
+        /// <param name="model">The device model to register.</param>
+        /// <param name="factory">A factory function that creates a <see cref="ConnectedDevice"/> given vid, pid, path, name, and serial.</param>
+        public static void Register(DeviceModel model, Func<int, int, string, string, string, ConnectedDevice> factory)
+        {
+            lock (RegistryLock)
+            {
+                DeviceFactories[model] = factory;
+            }
+        }
+
+        /// <summary>
         /// Creates a <see cref="ConnectedDevice"/> instance for the given device parameters.
         /// </summary>
         /// <param name="vid">Vendor ID.</param>
@@ -39,13 +55,16 @@ namespace DeckSurf.SDK.Core
         /// <returns>A <see cref="ConnectedDevice"/> instance if the device model is supported; otherwise, <c>null</c>.</returns>
         public static ConnectedDevice CreateDevice(int vid, int pid, string path, string name, string serial)
         {
-            var model = (DeviceModel)pid;
-            if (DeviceFactories.TryGetValue(model, out var factory))
+            lock (RegistryLock)
             {
-                return factory(vid, pid, path, name, serial);
-            }
+                var model = (DeviceModel)pid;
+                if (DeviceFactories.TryGetValue(model, out var factory))
+                {
+                    return factory(vid, pid, path, name, serial);
+                }
 
-            return null;
+                return null;
+            }
         }
     }
 }

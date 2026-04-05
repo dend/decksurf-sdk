@@ -26,7 +26,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenImageHeaderSize => 16;
 
         /// <inheritdoc/>
-        public override DeviceRotation FlipType => DeviceRotation.Rotate270FlipNone;
+        public override DeviceRotation ImageRotation => DeviceRotation.Rotate270;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => false;
@@ -47,11 +47,11 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
-        public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
+        protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte[] header = new byte[16];
             byte finalizer = (byte)(sliceLength == remainingBytes ? 1 : 0);
-            var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
+            var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
 
             header[0] = 0x02;
             header[1] = 0x01;

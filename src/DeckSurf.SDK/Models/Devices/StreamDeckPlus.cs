@@ -49,9 +49,9 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         public override bool SetScreen(byte[] image, int offset, int width, int height)
         {
-            byte[] binaryOffset = DataHelpers.GetLittleEndianBytesFromInt(offset);
-            byte[] binaryWidth = DataHelpers.GetLittleEndianBytesFromInt(width);
-            byte[] binaryHeight = DataHelpers.GetLittleEndianBytesFromInt(height);
+            byte[] binaryOffset = DataHelper.GetLittleEndianBytesFromInt(offset);
+            byte[] binaryWidth = DataHelper.GetLittleEndianBytesFromInt(width);
+            byte[] binaryHeight = DataHelper.GetLittleEndianBytesFromInt(height);
 
             var iteration = 0;
             var remainingBytes = image.Length;
@@ -64,8 +64,8 @@ namespace DeckSurf.SDK.Models.Devices
 
                 byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
-                var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-                var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
+                var binaryLength = DataHelper.GetLittleEndianBytesFromInt(sliceLength);
+                var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
 
                 byte[] header =
                 [
@@ -116,7 +116,7 @@ namespace DeckSurf.SDK.Models.Devices
             var buttonKind = GetButtonKind(header);
             var isKnobRotated = false;
             var knobRotationDirection = KnobRotationDirection.None;
-            var buttonCount = DataHelpers.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
+            var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());
 
             // If this was not a touch screen, we should provide
             // dummy coordinates.
@@ -127,7 +127,7 @@ namespace DeckSurf.SDK.Models.Devices
                 var xCoord = new ArraySegment<byte>(keyPressBuffer, 6, 2).ToArray();
                 var yCoord = new ArraySegment<byte>(keyPressBuffer, 8, 2).ToArray();
 
-                touchPoint = new TouchPoint(DataHelpers.GetIntFromLittleEndianBytes(xCoord), DataHelpers.GetIntFromLittleEndianBytes(yCoord));
+                touchPoint = new TouchPoint(DataHelper.GetIntFromLittleEndianBytes(xCoord), DataHelper.GetIntFromLittleEndianBytes(yCoord));
             }
 
             // For whatever reason, the number of knobs is reported as 5, even though

@@ -9,6 +9,10 @@ namespace DeckSurf.SDK.Models
     /// <summary>
     /// Represents a point on a Stream Deck touch screen.
     /// </summary>
+    /// <remarks>
+    /// Coordinates use a top-left origin where (0,0) is the top-left corner of the touch area.
+    /// X increases rightward, Y increases downward.
+    /// </remarks>
     public readonly struct TouchPoint : IEquatable<TouchPoint>
     {
         /// <summary>

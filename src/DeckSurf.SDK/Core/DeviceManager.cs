@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Models;
 using HidSharp;
 
@@ -22,8 +23,8 @@ namespace DeckSurf.SDK.Core
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
         /// </summary>
-        /// <returns>Enumerable containing a list of supported devices.</returns>
-        public static IEnumerable<ConnectedDevice> GetDeviceList()
+        /// <returns>Read-only list containing supported devices.</returns>
+        public static IReadOnlyList<ConnectedDevice> GetDeviceList()
         {
             var connectedDevices = new List<ConnectedDevice>();
             var deviceList = DeviceList.Local.GetHidDevices();
@@ -67,9 +68,9 @@ namespace DeckSurf.SDK.Core
                     return null;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                throw new DeviceNotFoundException("Could not find or set up the requested device.", ex);
             }
         }
 

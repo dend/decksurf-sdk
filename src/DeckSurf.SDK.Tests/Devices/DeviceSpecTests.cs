@@ -16,7 +16,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckOriginal(0, 0, "", "", ""),
                 DeviceModel.Original, 15, 72, 5, 3,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180FlipNone,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -25,7 +25,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckOriginal2019(0, 0, "", "", ""),
                 DeviceModel.Original2019, 15, 72, 5, 3,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180FlipNone,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -34,7 +34,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckMK2(0, 0, "", "", ""),
                 DeviceModel.MK2, 15, 72, 5, 3,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180FlipNone,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -43,7 +43,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckXL(0, 0, "", "", ""),
                 DeviceModel.XL, 32, 96, 8, 4,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180FlipNone,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -52,7 +52,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckXL2022(0, 0, "", "", ""),
                 DeviceModel.XL2022, 32, 96, 8, 4,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180FlipNone,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -61,7 +61,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckMini(0, 0, "", "", ""),
                 DeviceModel.Mini, 6, 80, 3, 2,
-                DeviceImageFormat.Bmp, DeviceRotation.Rotate270FlipNone,
+                DeviceImageFormat.Bmp, DeviceRotation.Rotate270,
                 false, false, 0, 1024, 16,
             };
 
@@ -70,7 +70,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckMini2022(0, 0, "", "", ""),
                 DeviceModel.Mini2022, 6, 80, 3, 2,
-                DeviceImageFormat.Bmp, DeviceRotation.Rotate270FlipNone,
+                DeviceImageFormat.Bmp, DeviceRotation.Rotate270,
                 false, false, 0, 1024, 16,
             };
 
@@ -79,7 +79,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckNeo(0, 0, "", "", ""),
                 DeviceModel.Neo, 8, 96, 4, 2,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180FlipNone,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 true, false, 2, 1024, 8,
             };
 
@@ -88,7 +88,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckPlus(0, 0, "", "", ""),
                 DeviceModel.Plus, 8, 120, 4, 2,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180FlipNone,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 true, true, 0, 1024, 8,
             };
         }
@@ -99,7 +99,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -112,7 +112,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -125,7 +125,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -138,7 +138,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -151,7 +151,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -164,7 +164,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -177,11 +177,11 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
-            Assert.Equal(expectedFlipType, device.FlipType);
+            Assert.Equal(expectedImageRotation, device.ImageRotation);
         }
 
         [Theory]
@@ -190,7 +190,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -203,7 +203,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -216,7 +216,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -229,7 +229,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {
@@ -242,7 +242,7 @@ namespace DeckSurf.SDK.Tests.Devices
             ConnectedDevice device,
             DeviceModel expectedModel, int expectedButtonCount, int expectedButtonResolution,
             int expectedColumns, int expectedRows,
-            DeviceImageFormat expectedImageFormat, DeviceRotation expectedFlipType,
+            DeviceImageFormat expectedImageFormat, DeviceRotation expectedImageRotation,
             bool expectedScreenSupported, bool expectedKnobSupported,
             int expectedTouchButtonCount, int expectedPacketSize, int expectedKeyImageHeaderSize)
         {

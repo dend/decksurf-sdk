@@ -17,7 +17,7 @@ namespace DeckSurf.SDK.Tests.Helpers
         [InlineData(1024, new byte[] { 0x00, 0x04 })]
         public void GetLittleEndianBytesFromInt_ReturnsExpectedBytes(int value, byte[] expected)
         {
-            byte[] result = DataHelpers.GetLittleEndianBytesFromInt(value);
+            byte[] result = DataHelper.GetLittleEndianBytesFromInt(value);
 
             Assert.Equal(expected, result);
         }
@@ -31,8 +31,8 @@ namespace DeckSurf.SDK.Tests.Helpers
         [InlineData(65535)]
         public void GetIntFromLittleEndianBytes_ByteArray_RoundtripsWithGetLittleEndianBytesFromInt(int originalValue)
         {
-            byte[] bytes = DataHelpers.GetLittleEndianBytesFromInt(originalValue);
-            int result = DataHelpers.GetIntFromLittleEndianBytes(bytes);
+            byte[] bytes = DataHelper.GetLittleEndianBytesFromInt(originalValue);
+            int result = DataHelper.GetIntFromLittleEndianBytes(bytes);
 
             Assert.Equal(originalValue, result);
         }
@@ -40,19 +40,19 @@ namespace DeckSurf.SDK.Tests.Helpers
         [Fact]
         public void GetIntFromLittleEndianBytes_ByteArray_ThrowsForEmptyArray()
         {
-            Assert.Throws<ArgumentException>(() => DataHelpers.GetIntFromLittleEndianBytes(Array.Empty<byte>()));
+            Assert.Throws<ArgumentException>(() => DataHelper.GetIntFromLittleEndianBytes(Array.Empty<byte>()));
         }
 
         [Fact]
         public void GetIntFromLittleEndianBytes_ByteArray_ThrowsForSingleByte()
         {
-            Assert.Throws<ArgumentException>(() => DataHelpers.GetIntFromLittleEndianBytes(new byte[] { 0x01 }));
+            Assert.Throws<ArgumentException>(() => DataHelper.GetIntFromLittleEndianBytes(new byte[] { 0x01 }));
         }
 
         [Fact]
         public void GetIntFromLittleEndianBytes_ByteArray_ThrowsForThreeBytes()
         {
-            Assert.Throws<ArgumentException>(() => DataHelpers.GetIntFromLittleEndianBytes(new byte[] { 0x01, 0x02, 0x03 }));
+            Assert.Throws<ArgumentException>(() => DataHelper.GetIntFromLittleEndianBytes(new byte[] { 0x01, 0x02, 0x03 }));
         }
 
         [Theory]
@@ -64,9 +64,9 @@ namespace DeckSurf.SDK.Tests.Helpers
         [InlineData(65535)]
         public void GetIntFromLittleEndianBytes_Span_RoundtripsWithGetLittleEndianBytesFromInt(int originalValue)
         {
-            byte[] bytes = DataHelpers.GetLittleEndianBytesFromInt(originalValue);
+            byte[] bytes = DataHelper.GetLittleEndianBytesFromInt(originalValue);
             ReadOnlySpan<byte> span = bytes.AsSpan();
-            int result = DataHelpers.GetIntFromLittleEndianBytes(span);
+            int result = DataHelper.GetIntFromLittleEndianBytes(span);
 
             Assert.Equal(originalValue, result);
         }
@@ -74,21 +74,21 @@ namespace DeckSurf.SDK.Tests.Helpers
         [Fact]
         public void GetIntFromLittleEndianBytes_Span_ThrowsForEmptySpan()
         {
-            Assert.Throws<ArgumentException>(() => DataHelpers.GetIntFromLittleEndianBytes(ReadOnlySpan<byte>.Empty));
+            Assert.Throws<ArgumentException>(() => DataHelper.GetIntFromLittleEndianBytes(ReadOnlySpan<byte>.Empty));
         }
 
         [Fact]
         public void GetIntFromLittleEndianBytes_Span_ThrowsForSingleByte()
         {
             byte[] data = new byte[] { 0x01 };
-            Assert.Throws<ArgumentException>(() => DataHelpers.GetIntFromLittleEndianBytes((ReadOnlySpan<byte>)data));
+            Assert.Throws<ArgumentException>(() => DataHelper.GetIntFromLittleEndianBytes((ReadOnlySpan<byte>)data));
         }
 
         [Fact]
         public void GetIntFromLittleEndianBytes_Span_ThrowsForThreeBytes()
         {
             byte[] data = new byte[] { 0x01, 0x02, 0x03 };
-            Assert.Throws<ArgumentException>(() => DataHelpers.GetIntFromLittleEndianBytes((ReadOnlySpan<byte>)data));
+            Assert.Throws<ArgumentException>(() => DataHelper.GetIntFromLittleEndianBytes((ReadOnlySpan<byte>)data));
         }
 
         [Theory]
@@ -99,9 +99,9 @@ namespace DeckSurf.SDK.Tests.Helpers
         [InlineData(1024)]
         public void GetIntFromLittleEndianBytes_SpanAndByteArray_ProduceSameResult(int originalValue)
         {
-            byte[] bytes = DataHelpers.GetLittleEndianBytesFromInt(originalValue);
-            int fromArray = DataHelpers.GetIntFromLittleEndianBytes(bytes);
-            int fromSpan = DataHelpers.GetIntFromLittleEndianBytes((ReadOnlySpan<byte>)bytes);
+            byte[] bytes = DataHelper.GetLittleEndianBytesFromInt(originalValue);
+            int fromArray = DataHelper.GetIntFromLittleEndianBytes(bytes);
+            int fromSpan = DataHelper.GetIntFromLittleEndianBytes((ReadOnlySpan<byte>)bytes);
 
             Assert.Equal(fromArray, fromSpan);
         }
@@ -110,7 +110,7 @@ namespace DeckSurf.SDK.Tests.Helpers
         public void ByteArrayToString_ProducesExpectedHexFormat()
         {
             byte[] data = new byte[] { 0xDE, 0xAD, 0xBE, 0xEF };
-            string result = DataHelpers.ByteArrayToString(data);
+            string result = DataHelper.ByteArrayToString(data);
 
             Assert.Equal("DE-AD-BE-EF", result);
         }
@@ -119,7 +119,7 @@ namespace DeckSurf.SDK.Tests.Helpers
         public void ByteArrayToString_SingleByte_ProducesExpectedFormat()
         {
             byte[] data = new byte[] { 0x0A };
-            string result = DataHelpers.ByteArrayToString(data);
+            string result = DataHelper.ByteArrayToString(data);
 
             Assert.Equal("0A", result);
         }
@@ -128,7 +128,7 @@ namespace DeckSurf.SDK.Tests.Helpers
         public void ByteArrayToString_EmptyArray_ReturnsEmptyString()
         {
             byte[] data = Array.Empty<byte>();
-            string result = DataHelpers.ByteArrayToString(data);
+            string result = DataHelper.ByteArrayToString(data);
 
             Assert.Equal(string.Empty, result);
         }

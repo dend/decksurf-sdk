@@ -22,13 +22,13 @@ namespace DeckSurf.SDK.StartBoard
                 Console.WriteLine($"{connectedDevice.Name} ({connectedDevice.Serial})");
             }
 
-            var device = ((List<ConnectedDevice>)devices)[0];
+            var device = devices[0];
             device.StartListening();
-            device.OnButtonPress += Device_OnButtonPress;
+            device.ButtonPressed += Device_OnButtonPress;
 
             byte[] testImage = File.ReadAllBytes(args[0]);
 
-            var image = ImageHelpers.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180FlipNone, DeviceImageFormat.Jpeg);
+            var image = ImageHelper.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180, DeviceImageFormat.Jpeg);
             device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
 
             device.SetKey(1, testImage);

@@ -22,17 +22,17 @@ namespace DeckSurf.SDK.Models.Devices
         public override int PacketSize => 1024;
 
         /// <inheritdoc/>
-        public override DeviceRotation FlipType => DeviceRotation.Rotate180FlipNone;
+        public override DeviceRotation ImageRotation => DeviceRotation.Rotate180;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => true;
 
         /// <inheritdoc/>
-        public override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
+        protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
-            var binaryLength = DataHelpers.GetLittleEndianBytesFromInt(sliceLength);
-            var binaryIteration = DataHelpers.GetLittleEndianBytesFromInt(iteration);
+            var binaryLength = DataHelper.GetLittleEndianBytesFromInt(sliceLength);
+            var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
 
             return
             [

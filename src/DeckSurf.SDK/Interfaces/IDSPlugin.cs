@@ -11,7 +11,7 @@ namespace DeckSurf.SDK.Interfaces
     /// <summary>
     /// Interface required by DeckSurf plugins to be recognized by DeckSurf tooling.
     /// </summary>
-    public interface IDSPlugin
+    public interface IDeckSurfPlugin
     {
         /// <summary>
         /// Gets non-functional information about the plugin.
@@ -21,7 +21,7 @@ namespace DeckSurf.SDK.Interfaces
         /// <summary>
         /// Provides a list of commands that the plugin exposes.
         /// </summary>
-        /// <returns>List of managed types that represent <see cref="DeckSurf.SDK.Interfaces.IDSCommand"/> implementations.</returns>
+        /// <returns>List of managed types that represent <see cref="DeckSurf.SDK.Interfaces.IDeckSurfCommand"/> implementations.</returns>
         public List<Type> GetSupportedCommands();
     }
 }
