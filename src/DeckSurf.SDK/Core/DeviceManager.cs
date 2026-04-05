@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Models;
-using DeckSurf.SDK.Models.Devices;
 using HidSharp;
 
 namespace DeckSurf.SDK.Core
@@ -14,17 +14,32 @@ namespace DeckSurf.SDK.Core
     /// <summary>
     /// Class used to manage connected Stream Deck devices.
     /// </summary>
-    public class DeviceManager
+    public static class DeviceManager
     {
 #pragma warning disable SA1010 // Opening square brackets should be spaced correctly
         private static readonly int[] SupportedVids = [0x0FD9];
 #pragma warning restore SA1010 // Opening square brackets should be spaced correctly
 
+        private static readonly object DeviceLock = new();
+        private static HashSet<DeviceInfo> previousDevices = new();
+
+        static DeviceManager()
+        {
+            DeviceList.Local.Changed += OnHidDeviceListChanged;
+        }
+
+        /// <summary>
+        /// Event raised when the system detects a change in connected HID devices.
+        /// The event arguments include the lists of added and removed devices since the
+        /// previous evaluation.
+        /// </summary>
+        public static event EventHandler<Models.DeviceListChangedEventArgs> DeviceListChanged;
+
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
         /// </summary>
-        /// <returns>Enumerable containing a list of supported devices.</returns>
-        public static IEnumerable<ConnectedDevice> GetDeviceList()
+        /// <returns>Read-only list containing supported devices.</returns>
+        public static IReadOnlyList<ConnectedDevice> GetDeviceList()
         {
             var connectedDevices = new List<ConnectedDevice>();
             var deviceList = DeviceList.Local.GetHidDevices();
@@ -34,68 +49,10 @@ namespace DeckSurf.SDK.Core
                 bool supported = IsSupported(device.VendorID, device.ProductID);
                 if (supported)
                 {
-                    switch ((DeviceModel)device.ProductID)
+                    var connectedDevice = DeviceRegistry.CreateDevice(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber());
+                    if (connectedDevice != null)
                     {
-                        case DeviceModel.XL:
-                            {
-                                connectedDevices.Add(new StreamDeckXL(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.XL2022:
-                            {
-                                connectedDevices.Add(new StreamDeckXL2022(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Plus:
-                            {
-                                connectedDevices.Add(new StreamDeckPlus(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Mini:
-                            {
-                                connectedDevices.Add(new StreamDeckMini(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Mini2022:
-                            {
-                                connectedDevices.Add(new StreamDeckMini2022(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Original:
-                            {
-                                connectedDevices.Add(new StreamDeckOriginal(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Original2019:
-                            {
-                                connectedDevices.Add(new StreamDeckOriginal2019(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.MK2:
-                            {
-                                connectedDevices.Add(new StreamDeckMK2(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.Neo:
-                            {
-                                connectedDevices.Add(new StreamDeckNeo(device.VendorID, device.ProductID, device.DevicePath, device.GetFriendlyName(), device.GetSerialNumber()));
-                                break;
-                            }
-
-                        case DeviceModel.MK2Scissor:
-                        default:
-                            {
-                                // Haven't yet implemented support for other Stream Deck device classes.
-                                break;
-                            }
+                        connectedDevices.Add(connectedDevice);
                     }
                 }
             }
@@ -105,47 +62,188 @@ namespace DeckSurf.SDK.Core
 
         /// <summary>
         /// Gets a connected Stream Deck device based on a pre-defined configuration profile.
+        /// The method prefers matching by <see cref="ConfigurationProfile.DeviceSerial"/> (which is
+        /// stable across re-plugs) and falls back to <see cref="ConfigurationProfile.DeviceIndex"/>
+        /// when no serial match is found.
         /// </summary>
         /// <param name="profile">An instance representing the pre-defined configuration profile.</param>
-        /// <returns>If the call is successful, returns a Stream Deck device.</returns>
+        /// <returns>The matching <see cref="ConnectedDevice"/> with its button map configured.</returns>
+        /// <exception cref="DeviceNotFoundException">
+        /// Thrown when no device matches the serial number or index specified in <paramref name="profile"/>.
+        /// </exception>
         public static ConnectedDevice SetupDevice(ConfigurationProfile profile)
         {
-            try
+            ArgumentNullException.ThrowIfNull(profile);
+
+            var devices = GetDeviceList();
+            ConnectedDevice targetDevice = null;
+
+            // Prefer serial number (stable across re-plugs)
+            if (!string.IsNullOrEmpty(profile.DeviceSerial))
             {
-                var devices = GetDeviceList();
-                if (devices != null &&
-                    devices.Any() &&
-                    profile.DeviceIndex <= devices.Count() - 1)
-                {
-                    var targetDevice = devices.ElementAt(profile.DeviceIndex);
-                    targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
-                    return targetDevice;
-                }
-                else
-                {
-                    return null;
-                }
+                targetDevice = devices.FirstOrDefault(d => d.Serial == profile.DeviceSerial);
             }
-            catch
+
+            // Fall back to index
+            if (targetDevice == null && profile.DeviceIndex >= 0 && profile.DeviceIndex < devices.Count)
             {
-                return null;
+                targetDevice = devices[profile.DeviceIndex];
             }
+
+            if (targetDevice == null)
+            {
+                throw new DeviceNotFoundException($"No device found matching serial '{profile.DeviceSerial}' or index {profile.DeviceIndex}.");
+            }
+
+            targetDevice.SetupDeviceButtonMap(profile.ButtonMap);
+            return targetDevice;
+        }
+
+        /// <summary>
+        /// Gets a connected Stream Deck device that matches the specified serial number.
+        /// </summary>
+        /// <param name="serial">The serial number of the device to find.</param>
+        /// <returns>The first <see cref="ConnectedDevice"/> whose serial matches.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="serial"/> is <c>null</c>.</exception>
+        /// <exception cref="DeviceNotFoundException">Thrown when no device with the specified serial number is found.</exception>
+        public static ConnectedDevice GetDeviceBySerial(string serial)
+        {
+            ArgumentNullException.ThrowIfNull(serial);
+
+            var device = GetDeviceList().FirstOrDefault(d => d.Serial == serial);
+            if (device == null)
+            {
+                throw new DeviceNotFoundException($"No device found with serial '{serial}'.");
+            }
+
+            return device;
+        }
+
+        /// <summary>
+        /// Attempts to get a connected Stream Deck device that matches the specified serial number.
+        /// </summary>
+        /// <param name="serial">The serial number of the device to find.</param>
+        /// <param name="device">When this method returns <c>true</c>, contains the matching <see cref="ConnectedDevice"/>; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if a device with the specified serial was found; otherwise, <c>false</c>.</returns>
+        public static bool TryGetDeviceBySerial(string serial, out ConnectedDevice device)
+        {
+            device = null;
+            if (string.IsNullOrEmpty(serial))
+            {
+                return false;
+            }
+
+            device = GetDeviceList().FirstOrDefault(d => d.Serial == serial);
+            return device != null;
+        }
+
+        /// <summary>
+        /// Gets a connected Stream Deck device that matches the specified USB HID device path.
+        /// </summary>
+        /// <param name="devicePath">The USB HID device path to match.</param>
+        /// <returns>The first <see cref="ConnectedDevice"/> whose path matches.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="devicePath"/> is <c>null</c>.</exception>
+        /// <exception cref="DeviceNotFoundException">Thrown when no device with the specified path is found.</exception>
+        public static ConnectedDevice GetDeviceByPath(string devicePath)
+        {
+            ArgumentNullException.ThrowIfNull(devicePath);
+
+            var device = GetDeviceList().FirstOrDefault(d => d.Path == devicePath);
+            if (device == null)
+            {
+                throw new DeviceNotFoundException($"No device found with path '{devicePath}'.");
+            }
+
+            return device;
+        }
+
+        /// <summary>
+        /// Attempts to get a connected Stream Deck device that matches the specified USB HID device path.
+        /// </summary>
+        /// <param name="devicePath">The USB HID device path to match.</param>
+        /// <param name="device">When this method returns <c>true</c>, contains the matching <see cref="ConnectedDevice"/>; otherwise, <c>null</c>.</param>
+        /// <returns><c>true</c> if a device with the specified path was found; otherwise, <c>false</c>.</returns>
+        public static bool TryGetDeviceByPath(string devicePath, out ConnectedDevice device)
+        {
+            device = null;
+            if (string.IsNullOrEmpty(devicePath))
+            {
+                return false;
+            }
+
+            device = GetDeviceList().FirstOrDefault(d => d.Path == devicePath);
+            return device != null;
         }
 
         /// <summary>
         /// Determines whether a given vendor ID (VID) and product ID (PID) are supported by the SDK. VID and PID should be representing a Stream Deck device.
         /// </summary>
-        /// <param name="vid">Device VID.</param>
-        /// <param name="pid">Device PID.</param>
+        /// <param name="vendorId">Device VID.</param>
+        /// <param name="productId">Device PID.</param>
         /// <returns>True if device is supported, false if not.</returns>
-        public static bool IsSupported(int vid, int pid)
+        public static bool IsSupported(int vendorId, int productId)
         {
-            if (SupportedVids.Contains(vid) && Enum.IsDefined(typeof(DeviceModel), (byte)pid))
+            if (SupportedVids.Contains(vendorId) && Enum.IsDefined(typeof(DeviceModel), (byte)productId))
             {
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns a snapshot of currently connected devices as lightweight <see cref="DeviceInfo"/> descriptors.
+        /// </summary>
+        /// <returns>A set of <see cref="DeviceInfo"/> values representing the currently connected devices.</returns>
+        internal static HashSet<DeviceInfo> GetDeviceInfoSnapshot()
+        {
+            var snapshot = new HashSet<DeviceInfo>();
+            var deviceList = DeviceList.Local.GetHidDevices();
+
+            foreach (var device in deviceList)
+            {
+                if (IsSupported(device.VendorID, device.ProductID))
+                {
+                    var model = (DeviceModel)(byte)device.ProductID;
+                    var info = new DeviceInfo(device.GetSerialNumber(), device.GetFriendlyName(), model, device.DevicePath);
+                    snapshot.Add(info);
+                }
+            }
+
+            return snapshot;
+        }
+
+        private static void OnHidDeviceListChanged(object sender, EventArgs e)
+        {
+            List<DeviceInfo> added;
+            List<DeviceInfo> removed;
+
+            lock (DeviceLock)
+            {
+                var currentDevices = GetDeviceInfoSnapshot();
+
+                added = new List<DeviceInfo>();
+                foreach (var device in currentDevices)
+                {
+                    if (!previousDevices.Contains(device))
+                    {
+                        added.Add(device);
+                    }
+                }
+
+                removed = new List<DeviceInfo>();
+                foreach (var device in previousDevices)
+                {
+                    if (!currentDevices.Contains(device))
+                    {
+                        removed.Add(device);
+                    }
+                }
+
+                previousDevices = currentDevices;
+            }
+
+            DeviceListChanged?.Invoke(null, new Models.DeviceListChangedEventArgs(added, removed));
         }
     }
 }

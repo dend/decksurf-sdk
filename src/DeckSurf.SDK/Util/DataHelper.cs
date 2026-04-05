@@ -9,7 +9,7 @@ namespace DeckSurf.SDK.Util
     /// <summary>
     /// Helper class used for data conversion and management.
     /// </summary>
-    public class DataHelpers
+    public static class DataHelper
     {
         /// <summary>
         /// Converts a byte array to string.
@@ -44,9 +44,28 @@ namespace DeckSurf.SDK.Util
         /// <returns>An unsigned integer obtained from the byte array.</returns>
         public static int GetIntFromLittleEndianBytes(byte[] littleEndianBytes)
         {
+            ArgumentNullException.ThrowIfNull(littleEndianBytes);
+
             if (littleEndianBytes.Length != 2)
             {
                 throw new ArgumentException("The byte array must be exactly 2 bytes long.");
+            }
+
+            int value = littleEndianBytes[0] | (littleEndianBytes[1] << 8);
+
+            return value;
+        }
+
+        /// <summary>
+        /// Converts a read-only span of bytes in Little Endian representation back into an integer.
+        /// </summary>
+        /// <param name="littleEndianBytes">Read-only span of bytes in Little Endian format.</param>
+        /// <returns>An unsigned integer obtained from the byte span.</returns>
+        public static int GetIntFromLittleEndianBytes(ReadOnlySpan<byte> littleEndianBytes)
+        {
+            if (littleEndianBytes.Length != 2)
+            {
+                throw new ArgumentException("The byte span must be exactly 2 bytes long.");
             }
 
             int value = littleEndianBytes[0] | (littleEndianBytes[1] << 8);

@@ -2,8 +2,15 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Internal Windows API interop types — documentation not required
+#pragma warning disable SA1600
+
+// Multiple Windows API interop types grouped in one file
+#pragma warning disable SA1649 // File name should match first type name
+
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace DeckSurf.SDK.Models
 {
@@ -12,6 +19,7 @@ namespace DeckSurf.SDK.Models
     /// Refer to <see href="https://docs.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-ishellitemimagefactory-getimage">Microsoft documentation</see> on the enum.
     /// </summary>
     [Flags]
+    [SupportedOSPlatform("windows")]
     public enum SIIGBF
     {
         /// <summary>
@@ -110,7 +118,6 @@ namespace DeckSurf.SDK.Models
     [ComImport]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Interface does not need to match file name because the file contains more native structures than one.")]
     internal interface IShellItem
     {
         void BindToHandler(IntPtr pbc, [MarshalAs(UnmanagedType.LPStruct)] Guid bhid, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, out IntPtr ppv);
@@ -156,34 +163,5 @@ namespace DeckSurf.SDK.Models
         {
             set { this.cy = value; }
         }
-    }
-
-    /// <summary>
-    /// The RGBQUAD structure describes a color consisting of relative intensities of red, green, and blue.
-    /// Refer to <see href="https://docs.microsoft.com/windows/win32/api/wingdi/ns-wingdi-rgbquad">Microsoft documentation</see> on the struct.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.NamingRules", "SA1307:Accessible fields should begin with upper-case letter", Justification = "Matches Windows API setup.")]
-    internal struct RGBQUAD
-    {
-        /// <summary>
-        /// The intensity of blue in the color.
-        /// </summary>
-        public byte rgbBlue;
-
-        /// <summary>
-        /// The intensity of green in the color.
-        /// </summary>
-        public byte rgbGreen;
-
-        /// <summary>
-        /// The intensity of red in the color.
-        /// </summary>
-        public byte rgbRed;
-
-        /// <summary>
-        /// This member is reserved and must be zero.
-        /// </summary>
-        public byte rgbReserved;
     }
 }

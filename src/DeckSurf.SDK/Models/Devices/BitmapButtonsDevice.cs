@@ -1,0 +1,130 @@
+// Copyright (c) Den Delimarsky
+// Den Delimarsky licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using DeckSurf.SDK.Exceptions;
+using DeckSurf.SDK.Util;
+
+namespace DeckSurf.SDK.Models.Devices
+{
+    /// <summary>
+    /// Abstract base class for Stream Deck devices that use BMP-encoded button images.
+    /// Covers the Mini and Mini 2022 models.
+    /// </summary>
+    public abstract class BitmapButtonsDevice(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
+    {
+        /// <inheritdoc/>
+        public override DeviceImageFormat KeyImageFormat => DeviceImageFormat.Bmp;
+
+        /// <inheritdoc/>
+        public override int KeyImageHeaderSize => 16;
+
+        /// <inheritdoc/>
+        public override int PacketSize => 1024;
+
+        /// <inheritdoc/>
+        public override int ScreenImageHeaderSize => 16;
+
+        /// <inheritdoc/>
+        public override DeviceRotation ImageRotation => DeviceRotation.Rotate270;
+
+        /// <inheritdoc/>
+        public override bool IsScreenSupported => false;
+
+        /// <inheritdoc/>
+        public override bool IsKnobSupported => false;
+
+        /// <inheritdoc/>
+        public override int TouchButtonCount => 0;
+
+        /// <inheritdoc/>
+        public override int ScreenWidth => -1;
+
+        /// <inheritdoc/>
+        public override int ScreenHeight => -1;
+
+        /// <inheritdoc/>
+        public override int ScreenSegmentWidth => -1;
+
+        /// <inheritdoc/>
+        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public override void SetBrightness(byte percentage)
+        {
+            percentage = Math.Min(percentage, (byte)100);
+
+            byte[] brightnessRequest = new byte[17];
+            brightnessRequest[0] = 0x05;
+            brightnessRequest[1] = 0x55;
+            brightnessRequest[2] = 0xAA;
+            brightnessRequest[3] = 0xD1;
+            brightnessRequest[4] = 0x01;
+            brightnessRequest[5] = percentage;
+
+            try
+            {
+                using var stream = this.Open();
+                stream.SetFeature(brightnessRequest);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                throw new DeviceDisconnectedException("Device was disconnected during SetBrightness operation.", ex) { DeviceSerial = this.Serial };
+            }
+            catch (IOException ex)
+            {
+                throw new DeviceCommunicationException("USB communication error during SetBrightness.", ex) { IsTransient = true };
+            }
+        }
+
+        /// <inheritdoc/>
+        protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
+        {
+            byte[] header = new byte[16];
+            byte finalizer = (byte)(sliceLength == remainingBytes ? 1 : 0);
+            var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
+
+            header[0] = 0x02;
+            header[1] = 0x01;
+            header[2] = binaryIteration[0];
+            header[3] = binaryIteration[1];
+            header[4] = finalizer;
+            header[5] = (byte)keyId;
+
+            return header;
+        }
+
+        /// <inheritdoc/>
+        protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
+        {
+            ArgumentNullException.ThrowIfNull(keyPressBuffer);
+
+            this.UnderlyingInputStream.EndRead(result);
+
+            if (keyPressBuffer[0] != 0x01)
+            {
+                return new ButtonPressEventArgs(-1, ButtonEventKind.Up, ButtonKind.Unknown, null, null, null);
+            }
+
+            var buttonData = new ArraySegment<byte>(keyPressBuffer, 1, 6).ToArray();
+            var pressedButtons = new List<int>();
+            for (int i = 0; i < buttonData.Length; i++)
+            {
+                if (buttonData[i] == 0x01)
+                {
+                    pressedButtons.Add(i);
+                }
+            }
+
+            var eventKind = pressedButtons.Count > 0 ? ButtonEventKind.Down : ButtonEventKind.Up;
+
+            return new ButtonPressEventArgs(pressedButtons, eventKind, ButtonKind.Button, null, null, null);
+        }
+    }
+}

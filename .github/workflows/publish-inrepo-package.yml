@@ -9,12 +9,14 @@ on:
       - '**/*.gitignore'
       - '**/*.gitattributes'
   workflow_dispatch:
-    branches:
-      - main
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.gitignore'
-      - '**/*.gitattributes'
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-inrepo-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -22,23 +24,25 @@ jobs:
     timeout-minutes: 15
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x'
+        dotnet-version: '10.0.x'
+        cache: true
+        cache-dependency-path: 'src/**/packages.lock.json'
     - name: Verify commit exists in origin/main
       run: |
         git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
         git branch --remote --contains | grep origin/main
     - name: Build
-      working-directory: ./src/DeckSurf.SDK
-      run: dotnet build --configuration Release
+      working-directory: ./src
+      run: dotnet build DeckSurf.SDK.sln --configuration Release
     - name: Test
-      working-directory: ./src/DeckSurf.SDK
-      run: dotnet test --configuration Release --no-build
+      working-directory: ./src
+      run: dotnet test DeckSurf.SDK.Tests/DeckSurf.SDK.Tests.csproj --configuration Release --no-build
     - name: Pack
       working-directory: ./src/DeckSurf.SDK
-      run: dotnet pack --configuration Release --no-build --output .
+      run: dotnet pack --configuration Release --no-build --include-symbols --output .
     - name: Push
       working-directory: ./src/DeckSurf.SDK
       run: dotnet nuget push *.nupkg --source https://nuget.pkg.github.com/dend/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

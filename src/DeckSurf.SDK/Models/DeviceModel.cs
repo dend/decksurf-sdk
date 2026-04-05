@@ -25,11 +25,8 @@ namespace DeckSurf.SDK.Models
         MK2 = 0x0080,
 
         /// <summary>
-        /// The MK.2 Scissor of the Stream Deck device.
+        /// The Stream Deck MK.2 Scissor variant.
         /// </summary>
-        /// <remarks>
-        /// Need to document what the "Scissor" variant actually is.
-        /// </remarks>
         MK2Scissor = 0x00A5,
 
         /// <summary>

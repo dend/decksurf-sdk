@@ -1,16 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Platforms>x64</Platforms>
+    <TargetFramework>net10.0</TargetFramework>
     <Company>Den Delimarsky</Company>
     <Authors>Den Delimarsky</Authors>
-    <Version>0.0.5</Version>
+    <Version>0.0.7</Version>
     <ApplicationIcon>piglet.ico</ApplicationIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Copyright>Copyright © 2024 by Den Delimarsky. All rights reserved.</Copyright>
+    <Copyright>Copyright © 2026 by Den Delimarsky. All rights reserved.</Copyright>
     <PackageProjectUrl>https://deck.surf</PackageProjectUrl>
     <PackageIcon>logo.png</PackageIcon>
     <PackageIconUrl />
@@ -22,39 +21,43 @@
     <RepositoryUrl>https://github.com/dend/decksurf-sdk</RepositoryUrl>
     <PackageTags>streamdeck,sdk,decksurf,hid,buttons</PackageTags>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>0.0.5.0</AssemblyVersion>
-    <FileVersion>0.0.5.0</FileVersion>
+    <AssemblyVersion>0.0.7.0</AssemblyVersion>
+    <FileVersion>0.0.7.0</FileVersion>
     <Description>Open-source SDK to manage your Stream Deck device from .NET.</Description>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>SA1010;SA1101</NoWarn>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>$(MSBuildThisFileDirectory)\bin\$(Configuration)\$(TargetFramework)\DeckSurf.SDK.xml</DocumentationFile>
-    <OutputPath>$(MSBuildThisFileDirectory)\bin\$(Configuration)</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>$(MSBuildThisFileDirectory)\bin\$(Configuration)\$(TargetFramework)\DeckSurf.SDK.xml</DocumentationFile>
-    <OutputPath>$(MSBuildThisFileDirectory)\bin\$(Configuration)</OutputPath>
+  <PropertyGroup>
+    <DocumentationFile>$(MSBuildThisFileDirectory)/bin/$(Configuration)/$(TargetFramework)/DeckSurf.SDK.xml</DocumentationFile>
+    <OutputPath>$(MSBuildThisFileDirectory)/bin/$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="stylecop.json" />
-    <None Include="..\..\images\logo.png">
+    <None Include="../../images/logo.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="..\..\LICENSE.md">
+    <None Include="../../LICENSE.md">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="..\..\README.md">
+    <None Include="../../README.md">
       <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath>/</PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DeckSurf.SDK.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,6 +66,16 @@
 
   <ItemGroup>
     <PackageReference Include="HidSharp" Version="2.1.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
