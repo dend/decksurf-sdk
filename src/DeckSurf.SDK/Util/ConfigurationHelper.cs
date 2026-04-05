@@ -32,6 +32,7 @@ namespace DeckSurf.SDK.Util
         /// </summary>
         /// <param name="profile">Name of the profile.</param>
         /// <returns>Object representing the DeckSurf configuration profile.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the profile file contains invalid JSON.</exception>
         public static ConfigurationProfile GetProfile(string profile)
         {
             var path = GetProfilePath(profile);

@@ -29,10 +29,10 @@ namespace DeckSurf.SDK.Util
         /// <param name="buffer">Byte array containing the image.</param>
         /// <param name="width">Target width, in pixels.</param>
         /// <param name="height">Target height, in pixels.</param>
-        /// <param name="flipType">Determines the rotation for a given image.</param>
+        /// <param name="rotation">Determines the rotation for a given image.</param>
         /// <param name="format">Image format to be sent to the device.</param>
         /// <returns>Byte array representing the resized image.</returns>
-        public static byte[] ResizeImage(byte[] buffer, int width, int height, DeviceRotation flipType, DeviceImageFormat format)
+        public static byte[] ResizeImage(byte[] buffer, int width, int height, DeviceRotation rotation, DeviceImageFormat format)
         {
             if (buffer == null || buffer.Length == 0)
             {
@@ -69,7 +69,7 @@ namespace DeckSurf.SDK.Util
                         Sampler = KnownResamplers.Bicubic,
                         Mode = ResizeMode.Stretch,
                     });
-                    ctx.Rotate(ToRotateMode(flipType));
+                    ctx.Rotate(ToRotateMode(rotation));
                 });
 
                 using var outputStream = new MemoryStream();

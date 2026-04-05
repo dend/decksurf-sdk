@@ -13,6 +13,11 @@ namespace DeckSurf.SDK.Interfaces
     /// <summary>
     /// Interface representing a connected Stream Deck device.
     /// </summary>
+    /// <remarks>
+    /// Implementations of this interface are not thread-safe. Callers must synchronize access when
+    /// invoking methods from multiple threads. In particular, <see cref="SetKey"/>, <see cref="SetBrightness"/>,
+    /// and <see cref="SetKeyColor"/> should not be called concurrently for the same device instance.
+    /// </remarks>
     public interface IConnectedDevice : IDisposable
     {
         /// <summary>

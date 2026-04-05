@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
+using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Util;
 
 namespace DeckSurf.SDK.Models.Devices
@@ -65,8 +67,19 @@ namespace DeckSurf.SDK.Models.Devices
             brightnessRequest[4] = 0x01;
             brightnessRequest[5] = percentage;
 
-            using var stream = this.Open();
-            stream.SetFeature(brightnessRequest);
+            try
+            {
+                using var stream = this.Open();
+                stream.SetFeature(brightnessRequest);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                throw new DeviceDisconnectedException("Device was disconnected during SetBrightness operation.", ex) { DeviceSerial = this.Serial };
+            }
+            catch (IOException ex)
+            {
+                throw new DeviceCommunicationException("USB communication error during SetBrightness.", ex) { IsTransient = true };
+            }
         }
 
         /// <inheritdoc/>

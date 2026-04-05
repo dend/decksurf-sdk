@@ -270,9 +270,13 @@ namespace DeckSurf.SDK.Models
                 using var stream = this.Open();
                 stream.SetFeature(brightnessRequest);
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException ex)
             {
-                // Device was disposed; ignore.
+                throw new DeviceDisconnectedException("Device was disconnected during SetBrightness operation.", ex) { DeviceSerial = this.Serial };
+            }
+            catch (IOException ex)
+            {
+                throw new DeviceCommunicationException("USB communication error during SetBrightness.", ex) { IsTransient = true };
             }
         }
 
@@ -300,7 +304,7 @@ namespace DeckSurf.SDK.Models
             {
                 if (button.ButtonIndex <= this.ButtonCount - 1)
                 {
-                    if (File.Exists(button.ButtonImagePath))
+                    if (!string.IsNullOrEmpty(button.ButtonImagePath) && File.Exists(button.ButtonImagePath))
                     {
                         byte[] imageBuffer;
                         try
@@ -583,7 +587,20 @@ namespace DeckSurf.SDK.Models
 
             Array.Clear(this.keyPressBuffer, 0, this.keyPressBuffer.Length);
 
-            this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
+            var stream = this.UnderlyingInputStream;
+            if (stream == null)
+            {
+                return;
+            }
+
+            try
+            {
+                stream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Stream was closed during callback; exit gracefully.
+            }
         }
     }
 }

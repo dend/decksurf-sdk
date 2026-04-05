@@ -24,7 +24,7 @@ namespace DeckSurf.SDK.StartBoard
 
             var device = devices[0];
             device.StartListening();
-            device.ButtonPressed += Device_OnButtonPress;
+            device.ButtonPressed += Device_ButtonPressed;
 
             byte[] testImage = File.ReadAllBytes(args[0]);
 
@@ -43,7 +43,7 @@ namespace DeckSurf.SDK.StartBoard
             exitSignal.WaitOne();
         }
 
-        private static void Device_OnButtonPress(object source, ButtonPressEventArgs e)
+        private static void Device_ButtonPressed(object source, ButtonPressEventArgs e)
         {
             Console.WriteLine($"Button with ID {e.Id} was pressed. It's identified as {e.ButtonKind}. Event is {e.EventKind}. Is knob rotated: {e.IsKnobRotating}. Rotation direction: {e.KnobRotationDirection}.");
 
