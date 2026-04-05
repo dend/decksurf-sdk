@@ -32,6 +32,8 @@ namespace DeckSurf.SDK.Util
         /// <param name="rotation">Determines the rotation for a given image.</param>
         /// <param name="format">Image format to be sent to the device.</param>
         /// <returns>Byte array representing the resized image.</returns>
+        /// <exception cref="ArgumentException">Thrown when buffer is null/empty or dimensions are invalid.</exception>
+        /// <exception cref="Exceptions.ImageProcessingException">Thrown when the buffer is not a recognized image format.</exception>
         public static byte[] ResizeImage(byte[] buffer, int width, int height, DeviceRotation rotation, DeviceImageFormat format)
         {
             if (buffer == null || buffer.Length == 0)
@@ -56,7 +58,7 @@ namespace DeckSurf.SDK.Util
             }
             catch (SixLabors.ImageSharp.UnknownImageFormatException ex)
             {
-                throw new ArgumentException("The provided buffer is not a recognized image format.", nameof(buffer), ex);
+                throw new Exceptions.ImageProcessingException("The provided buffer is not a recognized image format.", ex);
             }
 
             using (image)

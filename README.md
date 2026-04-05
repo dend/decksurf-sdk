@@ -72,7 +72,7 @@ The SDK uses a structured exception model rooted in `DeckSurfException`:
 | `DeviceCommunicationException` | USB I/O failure during operation | `IsTransient` — true if safe to retry |
 | `DeviceDisconnectedException` | Device unplugged mid-operation | `DeviceSerial` — identifies which device |
 | `DeviceNotFoundException` | Device lookup failed (serial/path not found) | — |
-| `ImageProcessingException` | Invalid image data passed to `SetKey` | — |
+| `ImageProcessingException` | Unrecognized image format in `SetKey` or `ImageHelper.ResizeImage` | — |
 | `ObjectDisposedException` | Method called on a disposed device | — |
 | `InvalidOperationException` | `StartListening()` called when already listening | — |
 | `ArgumentOutOfRangeException` | Button index out of range in `SetKey`/`SetKeyColor` | — |
@@ -106,7 +106,7 @@ device.DeviceErrorOccurred += (sender, e) =>
 
 ## Device Disconnection
 
-When a device is unplugged, the `DeviceDisconnected` event fires. After this event, the device instance is unusable — dispose it and acquire a new one:
+When a device is unplugged, the `DeviceDisconnected` event fires. After this event, the device instance is unusable — no further events will fire and all method calls will throw `ObjectDisposedException`. Dispose it and acquire a fresh instance to reconnect:
 
 ```csharp
 device.DeviceDisconnected += (sender, e) =>

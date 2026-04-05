@@ -43,11 +43,11 @@ namespace DeckSurf.SDK.Tests.Helpers
         }
 
         [Fact]
-        public void ResizeImage_InvalidImageData_ThrowsArgumentException()
+        public void ResizeImage_InvalidImageData_ThrowsImageProcessingException()
         {
             byte[] randomBytes = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
 
-            Assert.Throws<ArgumentException>(() =>
+            Assert.Throws<DeckSurf.SDK.Exceptions.ImageProcessingException>(() =>
                 ImageHelper.ResizeImage(randomBytes, 72, 72, DeviceRotation.Rotate180, DeviceImageFormat.Jpeg));
         }
 
