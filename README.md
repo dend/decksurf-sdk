@@ -203,6 +203,76 @@ device.ButtonPressed += (sender, e) =>
 };
 ```
 
+## Async API
+
+All device I/O methods have async counterparts with `CancellationToken` support:
+
+```csharp
+await device.SetKeyAsync(0, imageData, cancellationToken: cts.Token);
+await device.SetBrightnessAsync(80, cancellationToken: cts.Token);
+await device.ClearButtonsAsync(cancellationToken: cts.Token);
+
+if (device.IsScreenSupported)
+{
+    await device.SetScreenAsync(screenImage, 0, device.ScreenWidth, device.ScreenHeight);
+}
+```
+
+> **Note:** Async methods wrap synchronous USB I/O via `Task.Run`. Cancellation is checked before execution starts but cannot interrupt an in-progress USB write.
+
+## Device Monitoring
+
+`DeviceWatcher` monitors a specific device by serial number and raises events on connect/disconnect:
+
+```csharp
+using DeckSurf.SDK.Core;
+
+using var watcher = new DeviceWatcher("CL12K1A00042");
+watcher.DeviceConnected += (sender, device) =>
+{
+    Console.WriteLine($"Device reconnected: {device.DisplayName}");
+    device.StartListening();
+};
+watcher.DeviceLost += (sender, e) =>
+{
+    Console.WriteLine("Device lost — waiting for reconnection...");
+};
+watcher.Start();
+```
+
+For raw change notifications, subscribe to `DeviceManager.DeviceListChanged`:
+
+```csharp
+using DeckSurf.SDK.Core;
+
+DeviceManager.DeviceListChanged += (sender, e) =>
+{
+    foreach (var added in e.Added)
+        Console.WriteLine($"Connected: {added.Name} ({added.Serial})");
+    foreach (var removed in e.Removed)
+        Console.WriteLine($"Disconnected: {removed.Name} ({removed.Serial})");
+};
+```
+
+## Logging
+
+The SDK integrates with `Microsoft.Extensions.Logging`. Configure before creating devices:
+
+```csharp
+using Microsoft.Extensions.Logging;
+using DeckSurf.SDK.Core;
+
+DeckSurfConfiguration.LoggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddConsole().SetMinimumLevel(LogLevel.Debug);
+});
+
+// All subsequent device operations will be logged
+var devices = DeviceManager.GetDeviceList();
+```
+
+The SDK logs device operations at appropriate levels: `Debug` for SetKey/SetBrightness calls, `Information` for StartListening/StopListening, `Warning` for transient USB errors, and `Error` for device disconnections.
+
 ## Supported Devices
 
 | Device | Support |
