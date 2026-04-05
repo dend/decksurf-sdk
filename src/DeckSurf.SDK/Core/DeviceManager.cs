@@ -14,22 +14,22 @@ namespace DeckSurf.SDK.Core
     /// <summary>
     /// Class used to manage connected Stream Deck devices.
     /// </summary>
-    public class DeviceManager
+    public static class DeviceManager
     {
 #pragma warning disable SA1010 // Opening square brackets should be spaced correctly
         private static readonly int[] SupportedVids = [0x0FD9];
 #pragma warning restore SA1010 // Opening square brackets should be spaced correctly
+
+        static DeviceManager()
+        {
+            DeviceList.Local.Changed += (sender, e) => DeviceListChanged?.Invoke(null, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Event raised when the system detects a change in connected HID devices.
         /// Call <see cref="GetDeviceList"/> after this event to get the updated list.
         /// </summary>
         public static event EventHandler DeviceListChanged;
-
-        static DeviceManager()
-        {
-            DeviceList.Local.Changed += (sender, e) => DeviceListChanged?.Invoke(null, EventArgs.Empty);
-        }
 
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
@@ -69,6 +69,8 @@ namespace DeckSurf.SDK.Core
         /// </exception>
         public static ConnectedDevice SetupDevice(ConfigurationProfile profile)
         {
+            ArgumentNullException.ThrowIfNull(profile);
+
             var devices = GetDeviceList();
             ConnectedDevice targetDevice = null;
 

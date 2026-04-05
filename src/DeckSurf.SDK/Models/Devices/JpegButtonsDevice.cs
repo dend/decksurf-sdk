@@ -48,6 +48,12 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
+        public override bool SetScreen(byte[] image, int offset, int width, int height)
+        {
+            return false;
+        }
+
+        /// <inheritdoc/>
         protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
@@ -65,12 +71,6 @@ namespace DeckSurf.SDK.Models.Devices
                 binaryIteration[0],
                 binaryIteration[1],
             ];
-        }
-
-        /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int offset, int width, int height)
-        {
-            return false;
         }
 
         /// <inheritdoc/>

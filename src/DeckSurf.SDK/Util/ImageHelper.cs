@@ -21,7 +21,7 @@ namespace DeckSurf.SDK.Util
     /// <summary>
     /// Collection of methods used for image manipulation, allowing easier Stream Deck button image preparation.
     /// </summary>
-    public class ImageHelper
+    public static class ImageHelper
     {
         /// <summary>
         /// Resize an image buffer to the expected size, in pixels.
@@ -106,6 +106,8 @@ namespace DeckSurf.SDK.Util
         [SupportedOSPlatform("windows")]
         public static byte[] GetImageBuffer(Icon icon)
         {
+            ArgumentNullException.ThrowIfNull(icon);
+
             if (!OperatingSystem.IsWindows())
             {
                 throw new PlatformNotSupportedException("GetImageBuffer(Icon) is only supported on Windows.");

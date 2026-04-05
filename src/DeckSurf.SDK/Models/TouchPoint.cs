@@ -36,8 +36,20 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         public int Y { get; }
 
+        /// <summary>
+        /// Determines whether two <see cref="TouchPoint"/> values are equal.
+        /// </summary>
+        /// <param name="left">The first touch point to compare.</param>
+        /// <param name="right">The second touch point to compare.</param>
+        /// <returns><c>true</c> if the two touch points are equal; otherwise, <c>false</c>.</returns>
         public static bool operator ==(TouchPoint left, TouchPoint right) => left.Equals(right);
 
+        /// <summary>
+        /// Determines whether two <see cref="TouchPoint"/> values are not equal.
+        /// </summary>
+        /// <param name="left">The first touch point to compare.</param>
+        /// <param name="right">The second touch point to compare.</param>
+        /// <returns><c>true</c> if the two touch points are not equal; otherwise, <c>false</c>.</returns>
         public static bool operator !=(TouchPoint left, TouchPoint right) => !left.Equals(right);
 
         /// <inheritdoc/>

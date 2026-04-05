@@ -49,6 +49,8 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         public override bool SetScreen(byte[] image, int offset, int width, int height)
         {
+            ArgumentNullException.ThrowIfNull(image);
+
             byte[] binaryOffset = DataHelper.GetLittleEndianBytesFromInt(offset);
             byte[] binaryWidth = DataHelper.GetLittleEndianBytesFromInt(width);
             byte[] binaryHeight = DataHelper.GetLittleEndianBytesFromInt(height);
@@ -104,6 +106,8 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
         {
+            ArgumentNullException.ThrowIfNull(keyPressBuffer);
+
             var buttonMapOffset = 4;
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 

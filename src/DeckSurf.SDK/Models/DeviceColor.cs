@@ -54,8 +54,20 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         public byte B { get; }
 
+        /// <summary>
+        /// Determines whether two <see cref="DeviceColor"/> values are equal.
+        /// </summary>
+        /// <param name="left">The first color to compare.</param>
+        /// <param name="right">The second color to compare.</param>
+        /// <returns><c>true</c> if the two colors are equal; otherwise, <c>false</c>.</returns>
         public static bool operator ==(DeviceColor left, DeviceColor right) => left.Equals(right);
 
+        /// <summary>
+        /// Determines whether two <see cref="DeviceColor"/> values are not equal.
+        /// </summary>
+        /// <param name="left">The first color to compare.</param>
+        /// <param name="right">The second color to compare.</param>
+        /// <returns><c>true</c> if the two colors are not equal; otherwise, <c>false</c>.</returns>
         public static bool operator !=(DeviceColor left, DeviceColor right) => !left.Equals(right);
 
         /// <inheritdoc/>

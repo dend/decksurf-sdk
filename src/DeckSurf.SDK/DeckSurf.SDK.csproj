@@ -27,7 +27,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>SA1010;SA1101;SA1516;SA1649;SA1201;SA1202;SA1600;CS1591</NoWarn>
+    <NoWarn>SA1010;SA1101</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

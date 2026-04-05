@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <NoWarn>xUnit1026;CA2000;SA1600;CS1591;SA1010;SA1101;SA1516;SA1649;SA1201;SA1202;SA1122;SA1512;SA0001;SA1117</NoWarn>
+    <NoWarn>xUnit1026;CA2000;CA1062;CA1031;SA1600;CS1591;SA1010;SA1101;SA1516;SA1649;SA1201;SA1202;SA1122;SA1512;SA0001;SA1117</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 

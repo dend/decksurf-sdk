@@ -119,17 +119,30 @@ dotnet_naming_style.camel_case_style.capitalization = camel_case
 
 #### Code Quality Analyzers ####
 
-# CA1816: Call GC.SuppressFinalize correctly (Dispose pattern)
-dotnet_diagnostic.CA1816.severity = suggestion
-
-# CA1063: Implement IDisposable correctly
+# Dispose pattern
+dotnet_diagnostic.CA1816.severity = error
 dotnet_diagnostic.CA1063.severity = error
-
-# CA2000: Dispose objects before losing scope
 dotnet_diagnostic.CA2000.severity = error
+dotnet_diagnostic.CA2213.severity = warning
 
-# CA1062: Validate arguments of public methods
-dotnet_diagnostic.CA1062.severity = suggestion
+# Argument validation
+dotnet_diagnostic.CA1062.severity = warning
+
+# Exception design
+dotnet_diagnostic.CA1032.severity = error
+dotnet_diagnostic.CA1064.severity = error
+dotnet_diagnostic.CA1065.severity = error
+
+# Type design
+dotnet_diagnostic.CA1052.severity = error
+dotnet_diagnostic.CA1051.severity = error
+dotnet_diagnostic.CA1034.severity = error
+
+# Catch discipline
+dotnet_diagnostic.CA1031.severity = warning
+
+# Collection safety
+dotnet_diagnostic.CA2227.severity = warning
 
 #### Disabled Rules ####
 

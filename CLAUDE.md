@@ -40,9 +40,20 @@ dotnet test DeckSurf.SDK.Tests/      # Run tests with coverage enforcement
 - **StyleCop.Analyzers** enforces code style (ordering, documentation, naming).
 - **Microsoft.CodeAnalysis.NetAnalyzers** enforces code quality (CA rules).
 - `.editorconfig` at `src/` root defines formatting, naming conventions, and analyzer severity.
+- `TreatWarningsAsErrors` is enabled — all warnings are build errors.
 - All public and interface members must have XML documentation (`documentExposedElements` and `documentInterfaces` are enabled in `stylecop.json`).
 - Use `this.` prefix for instance member access (project convention).
-- Copyright header required on all `.cs` files.
+- Copyright header required on all `.cs` files (SA1633 enforced as error).
+- Elements must be separated by blank lines (SA1516).
+- Members must be ordered by kind (fields, constructors, events, properties, methods) and access level (public before private) per SA1201/SA1202.
+
+### Analyzer Suppression Policy
+
+- **Suppressing a warning is never the default.** Fix the code instead.
+- A suppression requires **strong justification** — document the reason in a code comment or the `.csproj` NoWarn line.
+- Legitimate suppression reasons: modern C# syntax not yet recognized by analyzers (e.g., SA1010 for collection expressions), deliberate architectural grouping (e.g., SA1649 for NativeStructures.cs), or rules that conflict with project conventions (e.g., SA1101 — this project uses `this.` prefix).
+- Before adding a global suppression to NoWarn, try a targeted `#pragma warning disable` with a justification comment.
+- When reviewing PRs, challenge any new suppression — the bar is "would this confuse a future contributor?"
 
 ## Architecture Conventions
 

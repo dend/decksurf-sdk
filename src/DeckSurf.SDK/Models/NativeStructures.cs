@@ -2,6 +2,12 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Internal Windows API interop types — documentation not required
+#pragma warning disable SA1600
+
+// Multiple Windows API interop types grouped in one file
+#pragma warning disable SA1649 // File name should match first type name
+
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -112,7 +118,6 @@ namespace DeckSurf.SDK.Models
     [ComImport]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [Guid("43826d1e-e718-42ee-bc55-a1e261c37bfe")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Interface does not need to match file name because the file contains more native structures than one.")]
     internal interface IShellItem
     {
         void BindToHandler(IntPtr pbc, [MarshalAs(UnmanagedType.LPStruct)] Guid bhid, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, out IntPtr ppv);

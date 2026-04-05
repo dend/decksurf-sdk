@@ -47,23 +47,6 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
-        protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
-        {
-            byte[] header = new byte[16];
-            byte finalizer = (byte)(sliceLength == remainingBytes ? 1 : 0);
-            var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
-
-            header[0] = 0x02;
-            header[1] = 0x01;
-            header[2] = binaryIteration[0];
-            header[3] = binaryIteration[1];
-            header[4] = finalizer;
-            header[5] = (byte)keyId;
-
-            return header;
-        }
-
-        /// <inheritdoc/>
         public override bool SetScreen(byte[] image, int offset, int width, int height)
         {
             return false;
@@ -87,8 +70,27 @@ namespace DeckSurf.SDK.Models.Devices
         }
 
         /// <inheritdoc/>
+        protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
+        {
+            byte[] header = new byte[16];
+            byte finalizer = (byte)(sliceLength == remainingBytes ? 1 : 0);
+            var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
+
+            header[0] = 0x02;
+            header[1] = 0x01;
+            header[2] = binaryIteration[0];
+            header[3] = binaryIteration[1];
+            header[4] = finalizer;
+            header[5] = (byte)keyId;
+
+            return header;
+        }
+
+        /// <inheritdoc/>
         protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
         {
+            ArgumentNullException.ThrowIfNull(keyPressBuffer);
+
             int bytesRead = this.UnderlyingInputStream.EndRead(result);
 
             if (keyPressBuffer[0] != 0x01)

@@ -12,7 +12,7 @@ namespace DeckSurf.SDK.Util
     /// <summary>
     /// Class that is used to manage DeckSurf configuration files.
     /// </summary>
-    public class ConfigurationHelper
+    public static class ConfigurationHelper
     {
         private const string ProfileFileName = "profile.json";
 
