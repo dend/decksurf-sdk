@@ -9,12 +9,13 @@ on:
       - '**/*.gitignore'
       - '**/*.gitattributes'
   workflow_dispatch:
-    branches:
-      - main
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.gitignore'
-      - '**/*.gitattributes'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-docs-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
