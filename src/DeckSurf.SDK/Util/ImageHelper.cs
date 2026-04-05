@@ -100,6 +100,33 @@ namespace DeckSurf.SDK.Util
         }
 
         /// <summary>
+        /// Creates a new blank image with the specified dimensions, color, and format.
+        /// </summary>
+        /// <param name="width">Width in pixels.</param>
+        /// <param name="height">Height in pixels.</param>
+        /// <param name="color">The fill color.</param>
+        /// <param name="format">The output image format.</param>
+        /// <returns>Byte array representing the image in the specified format.</returns>
+        /// <exception cref="ArgumentException">Thrown when dimensions are not positive.</exception>
+        public static byte[] CreateBlankImage(int width, int height, DeviceColor color, DeviceImageFormat format)
+        {
+            if (width <= 0)
+            {
+                throw new ArgumentException("Width must be greater than zero.", nameof(width));
+            }
+
+            if (height <= 0)
+            {
+                throw new ArgumentException("Height must be greater than zero.", nameof(height));
+            }
+
+            using var image = new Image<Rgb24>(width, height, new Rgb24(color.R, color.G, color.B));
+            using var ms = new MemoryStream();
+            image.Save(ms, ToEncoder(format));
+            return ms.ToArray();
+        }
+
+        /// <summary>
         /// Converts an Icon object to a byte array.
         /// </summary>
         /// <param name="icon">Icon object containing the image.</param>

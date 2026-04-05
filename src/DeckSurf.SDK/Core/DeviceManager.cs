@@ -20,16 +20,20 @@ namespace DeckSurf.SDK.Core
         private static readonly int[] SupportedVids = [0x0FD9];
 #pragma warning restore SA1010 // Opening square brackets should be spaced correctly
 
+        private static readonly object DeviceLock = new();
+        private static HashSet<DeviceInfo> previousDevices = new();
+
         static DeviceManager()
         {
-            DeviceList.Local.Changed += (sender, e) => DeviceListChanged?.Invoke(null, EventArgs.Empty);
+            DeviceList.Local.Changed += OnHidDeviceListChanged;
         }
 
         /// <summary>
         /// Event raised when the system detects a change in connected HID devices.
-        /// Call <see cref="GetDeviceList"/> after this event to get the updated list.
+        /// The event arguments include the lists of added and removed devices since the
+        /// previous evaluation.
         /// </summary>
-        public static event EventHandler DeviceListChanged;
+        public static event EventHandler<Models.DeviceListChangedEventArgs> DeviceListChanged;
 
         /// <summary>
         /// Return a list of connected Stream Deck devices supported by DeckSurf.
@@ -185,6 +189,61 @@ namespace DeckSurf.SDK.Core
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns a snapshot of currently connected devices as lightweight <see cref="DeviceInfo"/> descriptors.
+        /// </summary>
+        /// <returns>A set of <see cref="DeviceInfo"/> values representing the currently connected devices.</returns>
+        internal static HashSet<DeviceInfo> GetDeviceInfoSnapshot()
+        {
+            var snapshot = new HashSet<DeviceInfo>();
+            var deviceList = DeviceList.Local.GetHidDevices();
+
+            foreach (var device in deviceList)
+            {
+                if (IsSupported(device.VendorID, device.ProductID))
+                {
+                    var model = (DeviceModel)(byte)device.ProductID;
+                    var info = new DeviceInfo(device.GetSerialNumber(), device.GetFriendlyName(), model, device.DevicePath);
+                    snapshot.Add(info);
+                }
+            }
+
+            return snapshot;
+        }
+
+        private static void OnHidDeviceListChanged(object sender, EventArgs e)
+        {
+            List<DeviceInfo> added;
+            List<DeviceInfo> removed;
+
+            lock (DeviceLock)
+            {
+                var currentDevices = GetDeviceInfoSnapshot();
+
+                added = new List<DeviceInfo>();
+                foreach (var device in currentDevices)
+                {
+                    if (!previousDevices.Contains(device))
+                    {
+                        added.Add(device);
+                    }
+                }
+
+                removed = new List<DeviceInfo>();
+                foreach (var device in previousDevices)
+                {
+                    if (!currentDevices.Contains(device))
+                    {
+                        removed.Add(device);
+                    }
+                }
+
+                previousDevices = currentDevices;
+            }
+
+            DeviceListChanged?.Invoke(null, new Models.DeviceListChangedEventArgs(added, removed));
         }
     }
 }

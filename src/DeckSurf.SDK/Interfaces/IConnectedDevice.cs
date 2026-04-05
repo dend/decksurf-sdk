@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Models;
@@ -138,6 +140,11 @@ namespace DeckSurf.SDK.Interfaces
         bool IsListening { get; }
 
         /// <summary>
+        /// Gets a human-readable display name for the device, suitable for UI binding.
+        /// </summary>
+        string DisplayName { get; }
+
+        /// <summary>
         /// Initialize the device and start reading the input stream.
         /// </summary>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
@@ -182,26 +189,24 @@ namespace DeckSurf.SDK.Interfaces
         /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
         /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key.</param>
         /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
-        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
         /// <exception cref="ImageProcessingException">Thrown when the image buffer is not a recognized format (only when <paramref name="alreadyResized"/> is false).</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while writing the key image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
-        bool SetKey(int keyId, byte[] image, bool alreadyResized = false);
+        void SetKey(int keyId, byte[] image, bool alreadyResized = false);
 
         /// <summary>
         /// Sets the key color to a specified color.
         /// </summary>
         /// <param name="index">Key index where the color must be set.</param>
         /// <param name="color">Color to set the key to.</param>
-        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="IndexOutOfRangeException">Thrown when <paramref name="index"/> does not represent a valid key.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the key color.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
-        bool SetKeyColor(int index, DeviceColor color);
+        void SetKeyColor(int index, DeviceColor color);
 
         /// <summary>
         /// Sets the screen image for a connected Stream Deck device.
@@ -215,5 +220,68 @@ namespace DeckSurf.SDK.Interfaces
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the screen image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         bool SetScreen(byte[] image, int offset, int width, int height);
+
+        /// <summary>
+        /// Asynchronously sets the content of a key on a Stream Deck device.
+        /// </summary>
+        /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
+        /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key.</param>
+        /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
+        /// <exception cref="ImageProcessingException">Thrown when the image buffer is not a recognized format (only when <paramref name="alreadyResized"/> is false).</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while writing the key image.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
+        Task SetKeyAsync(int keyId, byte[] image, bool alreadyResized = false, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously sets the brightness of the Stream Deck device display.
+        /// </summary>
+        /// <param name="percentage">Percentage, from 0 to 100, to which brightness should be set.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting brightness.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
+        Task SetBrightnessAsync(byte percentage, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously sets the key color to a specified color.
+        /// </summary>
+        /// <param name="index">Key index where the color must be set.</param>
+        /// <param name="color">Color to set the key to.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="IndexOutOfRangeException">Thrown when <paramref name="index"/> does not represent a valid key.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the key color.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
+        Task SetKeyColorAsync(int index, DeviceColor color, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously sets the screen image for a connected Stream Deck device.
+        /// </summary>
+        /// <param name="image">Binary content of the image that needs to be set on the screen.</param>
+        /// <param name="offset">Offset from the left where the image needs to be set.</param>
+        /// <param name="width">Image width.</param>
+        /// <param name="height">Image height.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>A task whose result is true if successful, or false if the device does not support a screen.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the screen image.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
+        Task<bool> SetScreenAsync(byte[] image, int offset, int width, int height, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously clears the contents of the Stream Deck buttons.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while clearing buttons.</exception>
+        Task ClearButtonsAsync(CancellationToken cancellationToken = default);
     }
 }

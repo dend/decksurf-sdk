@@ -112,7 +112,7 @@ namespace DeckSurf.SDK.Tests.Core
         [Fact]
         public void DeviceListChanged_CanSubscribeAndUnsubscribeWithoutThrowing()
         {
-            EventHandler handler = (sender, args) => { };
+            EventHandler<DeckSurf.SDK.Models.DeviceListChangedEventArgs> handler = (sender, args) => { };
 
             var exception = Record.Exception(() =>
             {

@@ -7,10 +7,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using DeckSurf.SDK.Core;
 using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Interfaces;
 using DeckSurf.SDK.Util;
 using HidSharp;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeckSurf.SDK.Models
 {
@@ -24,6 +28,7 @@ namespace DeckSurf.SDK.Models
     /// </remarks>
     public abstract class ConnectedDevice : IConnectedDevice
     {
+        private readonly ILogger logger;
         private byte[] keyPressBuffer = new byte[1024];
         private bool disposed;
 
@@ -32,6 +37,7 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         public ConnectedDevice()
         {
+            this.logger = DeckSurfConfiguration.LoggerFactory?.CreateLogger<ConnectedDevice>() ?? NullLogger<ConnectedDevice>.Instance;
         }
 
         /// <summary>
@@ -44,6 +50,7 @@ namespace DeckSurf.SDK.Models
         /// <param name="serial">Serial number for the device.</param>
         public ConnectedDevice(int vid, int pid, string path, string name, string serial)
         {
+            this.logger = DeckSurfConfiguration.LoggerFactory?.CreateLogger<ConnectedDevice>() ?? NullLogger<ConnectedDevice>.Instance;
             this.VendorId = vid;
             this.Path = path;
             this.Name = name;
@@ -175,6 +182,11 @@ namespace DeckSurf.SDK.Models
         public bool IsListening => this.UnderlyingInputStream != null && !this.disposed;
 
         /// <summary>
+        /// Gets a human-readable display name for the device, suitable for UI binding.
+        /// </summary>
+        public string DisplayName => $"{this.Model} ({this.Serial})";
+
+        /// <summary>
         /// Gets the size of the header for the packets used to set the key image.
         /// </summary>
         public abstract int KeyImageHeaderSize { get; }
@@ -213,6 +225,8 @@ namespace DeckSurf.SDK.Models
             this.UnderlyingInputStream = this.UnderlyingDevice.Open();
             this.UnderlyingInputStream.ReadTimeout = Timeout.Infinite;
             this.UnderlyingInputStream.BeginRead(this.keyPressBuffer, 0, this.keyPressBuffer.Length, this.KeyPressCallback, null);
+
+            this.logger.LogInformation("Started listening on device {Serial}", this.Serial);
         }
 
         /// <summary>
@@ -235,6 +249,8 @@ namespace DeckSurf.SDK.Models
             }
 
             this.UnderlyingInputStream = null;
+
+            this.logger.LogInformation("Stopped listening on device {Serial}", this.Serial);
         }
 
         /// <summary>
@@ -271,6 +287,8 @@ namespace DeckSurf.SDK.Models
 
             percentage = Math.Min(percentage, (byte)100);
 
+            this.logger.LogDebug("Setting brightness to {Percentage}", percentage);
+
             byte[] brightnessRequest = new byte[32];
             brightnessRequest[0] = 0x03;
             brightnessRequest[1] = 0x08;
@@ -287,6 +305,7 @@ namespace DeckSurf.SDK.Models
             }
             catch (IOException ex)
             {
+                this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
                 throw new DeviceCommunicationException("USB communication error during SetBrightness.", ex) { IsTransient = true };
             }
         }
@@ -340,14 +359,13 @@ namespace DeckSurf.SDK.Models
         /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
         /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
         /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
-        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
         /// <exception cref="Exceptions.ImageProcessingException">Thrown when the image buffer is not a recognized format (only when <paramref name="alreadyResized"/> is false).</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while writing the key image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
-        public bool SetKey(int keyId, byte[] image, bool alreadyResized = false)
+        public void SetKey(int keyId, byte[] image, bool alreadyResized = false)
         {
             if (this.disposed)
             {
@@ -363,6 +381,8 @@ namespace DeckSurf.SDK.Models
             {
                 throw new ArgumentException("Image must not be null or empty.", nameof(image));
             }
+
+            this.logger.LogDebug("Setting key {KeyId} with {ImageLength} bytes", keyId, image.Length);
 
             var keyImage = alreadyResized ? image : ImageHelper.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.ImageRotation, this.KeyImageFormat);
 
@@ -392,14 +412,13 @@ namespace DeckSurf.SDK.Models
             }
             catch (IOException ex)
             {
+                this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
                 throw new DeviceCommunicationException("A USB I/O failure occurred while writing the key image.", ex) { IsTransient = true };
             }
             catch (ObjectDisposedException ex)
             {
                 throw new DeviceDisconnectedException("The device was disconnected during the SetKey operation.", ex) { DeviceSerial = this.Serial };
             }
-
-            return true;
         }
 
         /// <summary>
@@ -410,12 +429,11 @@ namespace DeckSurf.SDK.Models
         /// </remarks>
         /// <param name="index">Key index where the color must be set.</param>
         /// <param name="color">Color to set the key to.</param>
-        /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="IndexOutOfRangeException">Thrown when <paramref name="index"/> does not represent a valid key.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the key color.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
-        public bool SetKeyColor(int index, DeviceColor color)
+        public void SetKeyColor(int index, DeviceColor color)
         {
             if (this.disposed)
             {
@@ -443,14 +461,13 @@ namespace DeckSurf.SDK.Models
             }
             catch (IOException ex)
             {
+                this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
                 throw new DeviceCommunicationException("A USB I/O failure occurred while setting the key color.", ex) { IsTransient = true };
             }
             catch (ObjectDisposedException ex)
             {
                 throw new DeviceDisconnectedException("The device was disconnected during the SetKeyColor operation.", ex) { DeviceSerial = this.Serial };
             }
-
-            return true;
         }
 
         /// <summary>
@@ -463,6 +480,36 @@ namespace DeckSurf.SDK.Models
         /// <param name="height">Image height.</param>
         /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
         public abstract bool SetScreen(byte[] image, int offset, int width, int height);
+
+        /// <inheritdoc/>
+        public Task SetKeyAsync(int keyId, byte[] image, bool alreadyResized = false, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => this.SetKey(keyId, image, alreadyResized), cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task SetBrightnessAsync(byte percentage, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => this.SetBrightness(percentage), cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task SetKeyColorAsync(int index, DeviceColor color, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => this.SetKeyColor(index, color), cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> SetScreenAsync(byte[] image, int offset, int width, int height, CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => this.SetScreen(image, offset, width, height), cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public Task ClearButtonsAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.Run(() => this.ClearButtons(), cancellationToken);
+        }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -588,11 +635,13 @@ namespace DeckSurf.SDK.Models
             catch (ObjectDisposedException)
             {
                 // Device was disconnected.
+                this.logger.LogError("Device {Serial} disconnected", this.Serial);
                 this.DeviceDisconnected?.Invoke(this, EventArgs.Empty);
                 return;
             }
             catch (IOException ex)
             {
+                this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
                 this.DeviceErrorOccurred?.Invoke(this, new DeviceErrorEventArgs(ex, DeviceErrorCategory.CommunicationFailure, isTransient: true, recoveryHint: "Check the USB connection and try reconnecting the device.", operationName: nameof(this.KeyPressCallback)));
                 return;
             }
