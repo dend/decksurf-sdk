@@ -76,7 +76,7 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
         {
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
+            this.UnderlyingInputStream.EndRead(result);
 
             var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
             var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());

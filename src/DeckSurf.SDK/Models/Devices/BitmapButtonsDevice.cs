@@ -104,7 +104,7 @@ namespace DeckSurf.SDK.Models.Devices
         {
             ArgumentNullException.ThrowIfNull(keyPressBuffer);
 
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
+            this.UnderlyingInputStream.EndRead(result);
 
             if (keyPressBuffer[0] != 0x01)
             {

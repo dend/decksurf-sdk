@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -22,14 +22,28 @@ namespace DeckSurf.SDK.StartBoard
                 Console.WriteLine($"{connectedDevice.Name} ({connectedDevice.Serial})");
             }
 
-            var device = devices[0];
+            if (devices.Count == 0)
+            {
+                Console.WriteLine("No Stream Deck devices found. Exiting.");
+                return;
+            }
+
+            using var device = devices[0];
+            device.DeviceDisconnected += (sender, e) =>
+            {
+                Console.WriteLine("Device was disconnected.");
+                exitSignal.Set();
+            };
             device.StartListening();
             device.ButtonPressed += Device_ButtonPressed;
 
             byte[] testImage = File.ReadAllBytes(args[0]);
 
-            var image = ImageHelper.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180, DeviceImageFormat.Jpeg);
-            device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
+            if (device.IsScreenSupported)
+            {
+                var image = ImageHelper.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180, DeviceImageFormat.Jpeg);
+                device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
+            }
 
             device.SetKey(1, testImage);
 

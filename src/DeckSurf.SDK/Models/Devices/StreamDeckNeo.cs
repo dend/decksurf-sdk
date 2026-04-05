@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
+using DeckSurf.SDK.Exceptions;
 using DeckSurf.SDK.Util;
 
 namespace DeckSurf.SDK.Models.Devices
@@ -58,38 +60,49 @@ namespace DeckSurf.SDK.Models.Devices
             var iteration = 0;
             var remainingBytes = image.Length;
 
-            using var stream = this.Open();
-            while (remainingBytes > 0)
+            try
             {
-                var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.ScreenImageHeaderSize);
-                var bytesSent = iteration * (this.PacketSize - this.ScreenImageHeaderSize);
+                using var stream = this.Open();
+                while (remainingBytes > 0)
+                {
+                    var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.ScreenImageHeaderSize);
+                    var bytesSent = iteration * (this.PacketSize - this.ScreenImageHeaderSize);
 
-                byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
+                    byte isLastChunk = sliceLength == remainingBytes ? (byte)1 : (byte)0;
 
-                var binaryLength = DataHelper.GetLittleEndianBytesFromInt(sliceLength);
-                var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
+                    var binaryLength = DataHelper.GetLittleEndianBytesFromInt(sliceLength);
+                    var binaryIteration = DataHelper.GetLittleEndianBytesFromInt(iteration);
 
-                byte[] header =
-                [
-                    0x02,
-                    0x0B,
-                    0x00,
-                    isLastChunk,
-                    binaryLength[0],
-                    binaryLength[1],
-                    binaryIteration[0],
-                    binaryIteration[1],
-                ];
+                    byte[] header =
+                    [
+                        0x02,
+                        0x0B,
+                        0x00,
+                        isLastChunk,
+                        binaryLength[0],
+                        binaryLength[1],
+                        binaryIteration[0],
+                        binaryIteration[1],
+                    ];
 
-                var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
-                var padding = new byte[this.PacketSize - payload.Length];
+                    var payload = header.Concat(new ArraySegment<byte>(image, bytesSent, sliceLength)).ToArray();
+                    var padding = new byte[this.PacketSize - payload.Length];
 
-                var finalPayload = payload.Concat(padding).ToArray();
+                    var finalPayload = payload.Concat(padding).ToArray();
 
-                stream.Write(finalPayload);
+                    stream.Write(finalPayload);
 
-                remainingBytes -= sliceLength;
-                iteration++;
+                    remainingBytes -= sliceLength;
+                    iteration++;
+                }
+            }
+            catch (ObjectDisposedException ex)
+            {
+                throw new DeviceDisconnectedException("Device was disconnected during SetScreen operation.", ex) { DeviceSerial = this.Serial };
+            }
+            catch (IOException ex)
+            {
+                throw new DeviceCommunicationException("USB communication error during SetScreen.", ex) { IsTransient = true };
             }
 
             return true;
@@ -100,7 +113,7 @@ namespace DeckSurf.SDK.Models.Devices
         {
             ArgumentNullException.ThrowIfNull(keyPressBuffer);
 
-            int bytesRead = this.UnderlyingInputStream.EndRead(result);
+            this.UnderlyingInputStream.EndRead(result);
 
             var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
             var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());

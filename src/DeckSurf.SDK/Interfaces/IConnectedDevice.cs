@@ -135,16 +135,19 @@ namespace DeckSurf.SDK.Interfaces
         /// <summary>
         /// Initialize the device and start reading the input stream.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         void StartListening();
 
         /// <summary>
         /// Stops listening for events for the specific device.
         /// </summary>
+        /// <remarks>This method is safe to call multiple times and will not throw exceptions.</remarks>
         void StopListening();
 
         /// <summary>
         /// Clear the contents of the Stream Deck buttons.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while clearing buttons.</exception>
         void ClearButtons();
 
@@ -197,6 +200,9 @@ namespace DeckSurf.SDK.Interfaces
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
         /// <returns>True if successful, false if not.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
+        /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the screen image.</exception>
+        /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         bool SetScreen(byte[] image, int offset, int width, int height);
     }
 }
