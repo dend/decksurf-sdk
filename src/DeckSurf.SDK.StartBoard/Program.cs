@@ -37,6 +37,12 @@ namespace DeckSurf.SDK.StartBoard
             device.StartListening();
             device.ButtonPressed += Device_ButtonPressed;
 
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Usage: DeckSurf.SDK.StartBoard <image_path>");
+                return;
+            }
+
             byte[] testImage = File.ReadAllBytes(args[0]);
 
             if (device.IsScreenSupported)

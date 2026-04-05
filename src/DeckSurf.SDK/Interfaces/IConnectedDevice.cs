@@ -155,6 +155,7 @@ namespace DeckSurf.SDK.Interfaces
         /// Sets the brightness of the Stream Deck device display.
         /// </summary>
         /// <param name="percentage">Percentage, from 0 to 100, to which brightness should be set.</param>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting brightness.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
         void SetBrightness(byte percentage);
@@ -163,6 +164,7 @@ namespace DeckSurf.SDK.Interfaces
         /// Sets up the button mapping to associated plugins.
         /// </summary>
         /// <param name="buttonMap">List of mappings, usually loaded from a configuration file.</param>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="buttonMap"/> is <c>null</c>.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting a button image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
@@ -175,6 +177,7 @@ namespace DeckSurf.SDK.Interfaces
         /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key.</param>
         /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
         /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while writing the key image.</exception>
@@ -187,6 +190,7 @@ namespace DeckSurf.SDK.Interfaces
         /// <param name="index">Key index where the color must be set.</param>
         /// <param name="color">Color to set the key to.</param>
         /// <returns>True if successful. This method throws on failure rather than returning false.</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="IndexOutOfRangeException">Thrown when <paramref name="index"/> does not represent a valid key.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the key color.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
@@ -199,7 +203,7 @@ namespace DeckSurf.SDK.Interfaces
         /// <param name="offset">Offset from the left where the image needs to be set.</param>
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
-        /// <returns>True if successful, false if not.</returns>
+        /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="DeviceCommunicationException">Thrown when a USB I/O failure occurs while setting the screen image.</exception>
         /// <exception cref="DeviceDisconnectedException">Thrown when the device is disconnected during the operation.</exception>
