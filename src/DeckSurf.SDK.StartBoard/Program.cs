@@ -60,7 +60,7 @@ namespace DeckSurf.SDK.StartBoard
 
                 if (device.IsScreenSupported)
                 {
-                    var image = ImageHelper.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, DeviceRotation.Rotate180, DeviceImageFormat.Jpeg);
+                    var image = ImageHelper.ResizeImage(testImage, device.ScreenWidth, device.ScreenHeight, device.ImageRotation, device.KeyImageFormat);
                     device.SetScreen(image, 0, device.ScreenWidth, device.ScreenHeight);
                 }
 
