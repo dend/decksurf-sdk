@@ -2,12 +2,8 @@ name: Publish API Documentation
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.gitignore'
-      - '**/*.gitattributes'
+    tags:
+    - "[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
 
 permissions:
