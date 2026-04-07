@@ -28,7 +28,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenImageHeaderSize => 16;
 
         /// <inheritdoc/>
-        public override DeviceRotation ImageRotation => DeviceRotation.Rotate180;
+        public override DeviceRotation ImageRotation => DeviceRotation.None;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => false;
