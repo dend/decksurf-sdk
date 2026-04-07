@@ -21,13 +21,14 @@ namespace DeckSurf.SDK.Models
     /// Abstract class representing a connected Stream Deck device. Use specific implementations for a given connected model.
     /// </summary>
     /// <remarks>
-    /// This class is not thread-safe. Callers must synchronize access when invoking methods
-    /// from multiple threads. In particular, <see cref="SetKey"/>, <see cref="SetBrightness"/>,
-    /// and <see cref="SetKeyColor"/> should not be called concurrently for the same device.
+    /// USB write operations (<see cref="SetKey"/>, <see cref="SetBrightness"/>,
+    /// <see cref="SetKeyColor"/>) are internally serialized so that multi-packet writes
+    /// for one operation complete atomically before the next operation begins.
     /// </remarks>
     public abstract class ConnectedDevice : IConnectedDevice
     {
         private readonly ILogger logger;
+        private readonly object usbWriteLock = new();
         private byte[] keyPressBuffer = new byte[1024];
         private bool disposed;
 
@@ -293,19 +294,22 @@ namespace DeckSurf.SDK.Models
             brightnessRequest[1] = 0x08;
             brightnessRequest[2] = percentage;
 
-            try
+            lock (this.usbWriteLock)
             {
-                using var stream = this.Open();
-                stream.SetFeature(brightnessRequest);
-            }
-            catch (ObjectDisposedException ex)
-            {
-                throw new DeviceDisconnectedException("Device was disconnected during SetBrightness operation.", ex) { DeviceSerial = this.Serial };
-            }
-            catch (IOException ex)
-            {
-                this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
-                throw new DeviceCommunicationException("USB communication error during SetBrightness.", ex) { IsTransient = true };
+                try
+                {
+                    using var stream = this.Open();
+                    stream.SetFeature(brightnessRequest);
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    throw new DeviceDisconnectedException("Device was disconnected during SetBrightness operation.", ex) { DeviceSerial = this.Serial };
+                }
+                catch (IOException ex)
+                {
+                    this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
+                    throw new DeviceCommunicationException("USB communication error during SetBrightness.", ex) { IsTransient = true };
+                }
             }
         }
 
@@ -388,35 +392,38 @@ namespace DeckSurf.SDK.Models
             var iteration = 0;
             var remainingBytes = keyImage.Length;
 
-            try
+            lock (this.usbWriteLock)
             {
-                using var stream = this.Open();
-                while (remainingBytes > 0)
+                try
                 {
-                    var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.KeyImageHeaderSize);
-                    var bytesSent = iteration * (this.PacketSize - this.KeyImageHeaderSize);
+                    using var stream = this.Open();
+                    while (remainingBytes > 0)
+                    {
+                        var sliceLength = Math.Min(remainingBytes, this.PacketSize - this.KeyImageHeaderSize);
+                        var bytesSent = iteration * (this.PacketSize - this.KeyImageHeaderSize);
 
-                    // Get the device-specific header
-                    byte[] header = this.GetKeySetupHeader(keyId, sliceLength, iteration, remainingBytes);
+                        // Get the device-specific header
+                        byte[] header = this.GetKeySetupHeader(keyId, sliceLength, iteration, remainingBytes);
 
-                    byte[] finalPayload = new byte[this.PacketSize];
-                    Buffer.BlockCopy(header, 0, finalPayload, 0, header.Length);
-                    Buffer.BlockCopy(keyImage, bytesSent, finalPayload, header.Length, sliceLength);
+                        byte[] finalPayload = new byte[this.PacketSize];
+                        Buffer.BlockCopy(header, 0, finalPayload, 0, header.Length);
+                        Buffer.BlockCopy(keyImage, bytesSent, finalPayload, header.Length, sliceLength);
 
-                    stream.Write(finalPayload);
+                        stream.Write(finalPayload);
 
-                    remainingBytes -= sliceLength;
-                    iteration++;
+                        remainingBytes -= sliceLength;
+                        iteration++;
+                    }
                 }
-            }
-            catch (IOException ex)
-            {
-                this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
-                throw new DeviceCommunicationException("A USB I/O failure occurred while writing the key image.", ex) { IsTransient = true };
-            }
-            catch (ObjectDisposedException ex)
-            {
-                throw new DeviceDisconnectedException("The device was disconnected during the SetKey operation.", ex) { DeviceSerial = this.Serial };
+                catch (IOException ex)
+                {
+                    this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
+                    throw new DeviceCommunicationException("A USB I/O failure occurred while writing the key image.", ex) { IsTransient = true };
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    throw new DeviceDisconnectedException("The device was disconnected during the SetKey operation.", ex) { DeviceSerial = this.Serial };
+                }
             }
         }
 
@@ -453,19 +460,22 @@ namespace DeckSurf.SDK.Models
             payload[4] = color.G;
             payload[5] = color.B;
 
-            try
+            lock (this.usbWriteLock)
             {
-                using var stream = this.Open();
-                stream.SetFeature(payload);
-            }
-            catch (IOException ex)
-            {
-                this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
-                throw new DeviceCommunicationException("A USB I/O failure occurred while setting the key color.", ex) { IsTransient = true };
-            }
-            catch (ObjectDisposedException ex)
-            {
-                throw new DeviceDisconnectedException("The device was disconnected during the SetKeyColor operation.", ex) { DeviceSerial = this.Serial };
+                try
+                {
+                    using var stream = this.Open();
+                    stream.SetFeature(payload);
+                }
+                catch (IOException ex)
+                {
+                    this.logger.LogWarning("Transient USB error on device {Serial}: {Message}", this.Serial, ex.Message);
+                    throw new DeviceCommunicationException("A USB I/O failure occurred while setting the key color.", ex) { IsTransient = true };
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    throw new DeviceDisconnectedException("The device was disconnected during the SetKeyColor operation.", ex) { DeviceSerial = this.Serial };
+                }
             }
         }
 
