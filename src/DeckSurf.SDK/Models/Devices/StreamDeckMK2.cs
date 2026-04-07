@@ -5,7 +5,7 @@
 namespace DeckSurf.SDK.Models.Devices
 {
     /// <summary>
-    /// Implementation for a Stream Deck MK.2 connected device.
+    /// Implementation for a Stream Deck MK.2 connected device (Elgato model 20GBA9901).
     /// </summary>
     public class StreamDeckMK2(int vid, int pid, string path, string name, string serial) : JpegButtonsDevice(vid, pid, path, name, serial)
     {
