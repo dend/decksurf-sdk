@@ -11,12 +11,12 @@ namespace DeckSurf.SDK.Tests.Devices
     {
         public static IEnumerable<object[]> GetDeviceTestData()
         {
-            // Original: 15 buttons, 72px, 5x3, Jpeg, None, no screen, no knob
+            // Original: 15 buttons, 72px, 5x3, Jpeg, Rotate180, no screen, no knob
             yield return new object[]
             {
                 new StreamDeckOriginal(0, 0, "", "", ""),
                 DeviceModel.Original, 15, 72, 5, 3,
-                DeviceImageFormat.Jpeg, DeviceRotation.None,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -25,7 +25,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckOriginal2019(0, 0, "", "", ""),
                 DeviceModel.Original2019, 15, 72, 5, 3,
-                DeviceImageFormat.Jpeg, DeviceRotation.None,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -34,16 +34,16 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckMK2(0, 0, "", "", ""),
                 DeviceModel.MK2, 15, 72, 5, 3,
-                DeviceImageFormat.Jpeg, DeviceRotation.None,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
-            // XL: 32 buttons, 96px, 8x4, Jpeg, None, no screen, no knob
+            // XL: 32 buttons, 96px, 8x4, Jpeg, Rotate180, no screen, no knob
             yield return new object[]
             {
                 new StreamDeckXL(0, 0, "", "", ""),
                 DeviceModel.XL, 32, 96, 8, 4,
-                DeviceImageFormat.Jpeg, DeviceRotation.None,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -52,7 +52,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckXL2022(0, 0, "", "", ""),
                 DeviceModel.XL2022, 32, 96, 8, 4,
-                DeviceImageFormat.Jpeg, DeviceRotation.None,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 false, false, 0, 1024, 8,
             };
 
@@ -74,21 +74,21 @@ namespace DeckSurf.SDK.Tests.Devices
                 false, false, 0, 1024, 16,
             };
 
-            // Neo: 8 buttons, 96px, 4x2, Jpeg, None, screen (248x58), no knob, 2 touch buttons
+            // Neo: 8 buttons, 96px, 4x2, Jpeg, Rotate180, screen (248x58), no knob, 2 touch buttons
             yield return new object[]
             {
                 new StreamDeckNeo(0, 0, "", "", ""),
                 DeviceModel.Neo, 8, 96, 4, 2,
-                DeviceImageFormat.Jpeg, DeviceRotation.None,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 true, false, 2, 1024, 8,
             };
 
-            // Plus: 8 buttons, 120px, 4x2, Jpeg, None, screen (800x100), knob, 0 touch buttons
+            // Plus: 8 buttons, 120px, 4x2, Jpeg, Rotate180, screen (800x100), knob, 0 touch buttons
             yield return new object[]
             {
                 new StreamDeckPlus(0, 0, "", "", ""),
                 DeviceModel.Plus, 8, 120, 4, 2,
-                DeviceImageFormat.Jpeg, DeviceRotation.None,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
                 true, true, 0, 1024, 8,
             };
         }

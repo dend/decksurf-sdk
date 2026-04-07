@@ -22,7 +22,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int PacketSize => 1024;
 
         /// <inheritdoc/>
-        public override DeviceRotation ImageRotation => DeviceRotation.None;
+        public override DeviceRotation ImageRotation => DeviceRotation.Rotate180;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => true;
