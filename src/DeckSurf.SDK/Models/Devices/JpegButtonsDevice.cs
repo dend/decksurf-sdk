@@ -77,7 +77,15 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
         {
-            this.UnderlyingInputStream.EndRead(result);
+            // The stream is nulled by StopListening/Dispose while a read may still be
+            // pending; treat a completed read on a closed stream as a non-event.
+            var stream = this.UnderlyingInputStream;
+            if (stream is null)
+            {
+                return null;
+            }
+
+            stream.EndRead(result);
 
             var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
             var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());

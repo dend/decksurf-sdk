@@ -105,7 +105,15 @@ namespace DeckSurf.SDK.Models.Devices
         {
             ArgumentNullException.ThrowIfNull(keyPressBuffer);
 
-            this.UnderlyingInputStream.EndRead(result);
+            // The stream is nulled by StopListening/Dispose while a read may still be
+            // pending; treat a completed read on a closed stream as a non-event.
+            var stream = this.UnderlyingInputStream;
+            if (stream is null)
+            {
+                return null;
+            }
+
+            stream.EndRead(result);
 
             if (keyPressBuffer[0] != 0x01)
             {

@@ -96,8 +96,16 @@ namespace DeckSurf.SDK.Models.Devices
         {
             ArgumentNullException.ThrowIfNull(keyPressBuffer);
 
+            // The stream is nulled by StopListening/Dispose while a read may still be
+            // pending; treat a completed read on a closed stream as a non-event.
+            var stream = this.UnderlyingInputStream;
+            if (stream is null)
+            {
+                return null;
+            }
+
             var buttonMapOffset = 4;
-            this.UnderlyingInputStream.EndRead(result);
+            stream.EndRead(result);
 
             // Let's grab the first two bytes to understand the type of button we're dealing with.
             // They can be:
