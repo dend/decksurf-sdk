@@ -26,13 +26,18 @@ namespace DeckSurf.SDK.Core
         /// </summary>
         /// <param name="baseDirectory">
         /// Directory to scan. Both <c>{baseDirectory}\plugins</c> (recursive) and
-        /// <paramref name="baseDirectory"/> itself (top level) are searched; duplicate
+        /// <paramref name="baseDirectory"/> itself (top level, or fully recursive when
+        /// <paramref name="scanBaseRecursively"/> is set) are searched; duplicate
         /// assembly file names are loaded only once, preferring the <c>plugins</c> copy.
         /// </param>
         /// <param name="onWarning">Optional callback invoked with a human-readable message for every non-fatal load failure.</param>
+        /// <param name="scanBaseRecursively">
+        /// When <c>true</c>, the base directory is scanned recursively — appropriate for
+        /// user-configured plugin folders that contain one subdirectory per plugin.
+        /// </param>
         /// <returns>The instantiated plugins. Empty when no plugin assemblies are found.</returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="baseDirectory"/> is null or whitespace.</exception>
-        public static IReadOnlyList<IDeckSurfPlugin> LoadPlugins(string baseDirectory, Action<string> onWarning = null)
+        public static IReadOnlyList<IDeckSurfPlugin> LoadPlugins(string baseDirectory, Action<string> onWarning = null, bool scanBaseRecursively = false)
         {
             if (string.IsNullOrWhiteSpace(baseDirectory))
             {
@@ -52,11 +57,11 @@ namespace DeckSurf.SDK.Core
             }
 
             // Also scan the base directory itself (global tool layout where all
-            // DLLs are side-by-side).
+            // DLLs are side-by-side, or a user plugin folder when recursive).
             if (Directory.Exists(baseDirectory))
             {
                 dllPaths.AddRange(
-                    Directory.EnumerateFiles(baseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
+                    Directory.EnumerateFiles(baseDirectory, "*.dll", scanBaseRecursively ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                         .Where(path => assemblyPattern.IsMatch(Path.GetFileName(path))));
             }
 

@@ -78,6 +78,23 @@ namespace DeckSurf.SDK.Tests.Core
         }
 
         [Fact]
+        public void LoadPlugins_ScansBaseDirectoryRecursively_OnlyWhenRequested()
+        {
+            var nested = Path.Combine(testDirectory, "DeckSurf.Plugin.Broken");
+            Directory.CreateDirectory(nested);
+            File.WriteAllText(Path.Combine(nested, "DeckSurf.Plugin.Broken.dll"), "not a real assembly");
+
+            var defaultWarnings = new List<string>();
+            PluginLoader.LoadPlugins(testDirectory, defaultWarnings.Add);
+
+            var recursiveWarnings = new List<string>();
+            PluginLoader.LoadPlugins(testDirectory, recursiveWarnings.Add, scanBaseRecursively: true);
+
+            Assert.Empty(defaultWarnings);
+            Assert.Single(recursiveWarnings);
+        }
+
+        [Fact]
         public void LoadPlugins_ThrowsArgumentException_ForInvalidBaseDirectory()
         {
             Assert.Throws<ArgumentException>(() => PluginLoader.LoadPlugins(null!));
