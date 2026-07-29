@@ -99,5 +99,47 @@ namespace DeckSurf.SDK.Util
             var parsed = Parse(arguments);
             return parsed.TryGetValue(key, out var value) ? value : defaultValue;
         }
+
+        /// <summary>
+        /// Formats a set of key-value pairs into a comma-separated key=value string — the
+        /// inverse of <see cref="Parse"/>. Pairs with null values are serialized with an
+        /// empty value.
+        /// </summary>
+        /// <param name="values">The key-value pairs to serialize.</param>
+        /// <returns>A comma-separated string of key=value pairs, or an empty string when <paramref name="values"/> is empty.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is null.</exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown when a key or value contains a comma or a key contains an equals sign, since
+        /// the serialization format cannot represent those characters.
+        /// </exception>
+        public static string Format(IReadOnlyDictionary<string, string> values)
+        {
+            ArgumentNullException.ThrowIfNull(values);
+
+            var parts = new List<string>(values.Count);
+
+            foreach (var pair in values)
+            {
+                if (string.IsNullOrWhiteSpace(pair.Key))
+                {
+                    continue;
+                }
+
+                if (pair.Key.Contains(',') || pair.Key.Contains('='))
+                {
+                    throw new ArgumentException($"Parameter key '{pair.Key}' contains characters that cannot be represented in the command arguments format (',' or '=').", nameof(values));
+                }
+
+                var value = pair.Value ?? string.Empty;
+                if (value.Contains(','))
+                {
+                    throw new ArgumentException($"Value for parameter '{pair.Key}' contains a comma, which cannot be represented in the command arguments format.", nameof(values));
+                }
+
+                parts.Add($"{pair.Key.Trim()}={value.Trim()}");
+            }
+
+            return string.Join(",", parts);
+        }
     }
 }
