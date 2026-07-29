@@ -31,9 +31,18 @@ namespace DeckSurf.SDK.Models
 
         /// <summary>
         /// Gets or sets the numeric index of the button on the Stream Deck that is associated with a command.
+        /// For <see cref="MappingTarget.Knob"/> mappings this is the zero-based knob index.
         /// </summary>
         [JsonPropertyName("button_index")]
         public int ButtonIndex { get; set; }
+
+        /// <summary>
+        /// Gets or sets the hardware target of the mapping. Defaults to <see cref="MappingTarget.Key"/>,
+        /// which keeps profiles written before targets existed working unchanged.
+        /// </summary>
+        [JsonPropertyName("target")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public MappingTarget Target { get; set; } = MappingTarget.Key;
 
         /// <summary>
         /// Gets or sets the default image from the local file system that is loaded for a given Stream Deck button.
