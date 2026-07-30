@@ -121,6 +121,15 @@ namespace DeckSurf.SDK.Tests.Core
         }
 
         [Fact]
+        public void GetCommandTypes_TreatsUnannotatedCommandsAsCompatibleWithEveryModel()
+        {
+            var types = PluginLoader.GetCommandTypes(new UnannotatedPlugin(), DeviceModel.Mini);
+
+            var type = Assert.Single(types);
+            Assert.Equal(typeof(UnannotatedCommand), type);
+        }
+
+        [Fact]
         public void GetCommandTypes_ReturnsEmpty_ForPluginWithNullCommands()
         {
             var types = PluginLoader.GetCommandTypes(new NullCommandsPlugin());
@@ -174,6 +183,17 @@ namespace DeckSurf.SDK.Tests.Core
             public PluginMetadata Metadata => new() { Id = "DeckSurf.Plugin.Throwing", Version = "1.0.0", Author = "Test" };
 
             public List<Type> GetSupportedCommands() => [typeof(ThrowingCommand)];
+        }
+
+        private sealed class UnannotatedPlugin : IDeckSurfPlugin
+        {
+            public PluginMetadata Metadata => new() { Id = "DeckSurf.Plugin.Unannotated", Version = "1.0.0", Author = "Test" };
+
+            public List<Type> GetSupportedCommands() => [typeof(UnannotatedCommand)];
+        }
+
+        private sealed class UnannotatedCommand : TestCommand
+        {
         }
 
         [CompatibleWith(DeviceModel.XL)]

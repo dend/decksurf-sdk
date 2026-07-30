@@ -143,9 +143,11 @@ namespace DeckSurf.SDK.Core
 
         /// <summary>
         /// Gets the command types declared by a plugin, optionally filtered by device model
-        /// compatibility. Unlike <see cref="LoadCompatibleCommands"/>, this does not instantiate
-        /// the commands, which makes it suitable for reading command metadata and parameter
-        /// schemas without side effects.
+        /// compatibility. Commands with no <see cref="CompatibleWithAttribute"/> annotations
+        /// are considered compatible with every model; the attribute is only needed to
+        /// restrict a command to specific hardware. Unlike <see cref="LoadCompatibleCommands"/>,
+        /// this does not instantiate the commands, which makes it suitable for reading command
+        /// metadata and parameter schemas without side effects.
         /// </summary>
         /// <param name="plugin">The plugin whose command types should be listed.</param>
         /// <param name="model">When set, only command types compatible with this device model are returned.</param>
@@ -162,10 +164,13 @@ namespace DeckSurf.SDK.Core
                 return commandTypes;
             }
 
-            return [.. commandTypes
-                .Where(t => t.GetCustomAttributes(typeof(CompatibleWithAttribute), inherit: false)
+            return [.. commandTypes.Where(t =>
+            {
+                var attributes = t.GetCustomAttributes(typeof(CompatibleWithAttribute), inherit: false)
                     .Cast<CompatibleWithAttribute>()
-                    .Any(a => a.CompatibleModel == model.Value))];
+                    .ToArray();
+                return attributes.Length == 0 || attributes.Any(a => a.CompatibleModel == model.Value);
+            })];
         }
 
         [GeneratedRegex(@"^DeckSurf\.Plugin\..+\.dll$", RegexOptions.IgnoreCase)]
