@@ -11,6 +11,8 @@ namespace DeckSurf.SDK.Models
     /// </summary>
     public class CommandMapping
     {
+        private CommandArguments commandArguments = CommandArguments.Empty;
+
         /// <summary>
         /// Gets or sets the ID of the plugin that is associated with a button.
         /// </summary>
@@ -24,10 +26,17 @@ namespace DeckSurf.SDK.Models
         public string Command { get; set; }
 
         /// <summary>
-        /// Gets or sets a string value representing arguments that are passed to the command.
+        /// Gets or sets the arguments that are passed to the command. Stored in
+        /// profile JSON as an object of key/value pairs; the legacy comma-separated
+        /// string format is still accepted when reading. Never null. Assigning null
+        /// resets the mapping to <see cref="CommandArguments.Empty"/>.
         /// </summary>
         [JsonPropertyName("command_arguments")]
-        public string CommandArguments { get; set; }
+        public CommandArguments CommandArguments
+        {
+            get => this.commandArguments;
+            set => this.commandArguments = value ?? CommandArguments.Empty;
+        }
 
         /// <summary>
         /// Gets or sets the numeric index of the button on the Stream Deck that is associated with a command.

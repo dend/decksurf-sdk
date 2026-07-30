@@ -52,7 +52,6 @@ namespace DeckSurf.SDK.Util
                 switch (parameter.ParameterType)
                 {
                     case CommandParameterType.Integer:
-                    case CommandParameterType.DurationSeconds:
                         if (!int.TryParse(value, out var numericValue))
                         {
                             errors.Add($"'{label}' must be a whole number.");

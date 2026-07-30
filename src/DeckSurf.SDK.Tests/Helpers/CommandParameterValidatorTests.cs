@@ -1,4 +1,4 @@
-// Copyright (c) Den Delimarsky
+﻿// Copyright (c) Den Delimarsky
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,7 +15,7 @@ namespace DeckSurf.SDK.Tests.Helpers
             var schema = new[]
             {
                 new CommandParameterAttribute("mode", CommandParameterType.Choice) { Choices = ["clock", "timer"], Required = true },
-                new CommandParameterAttribute("duration", CommandParameterType.DurationSeconds) { MinValue = 1, MaxValue = 3600 },
+                new CommandParameterAttribute("duration", CommandParameterType.Integer) { MinValue = 1, MaxValue = 3600 },
                 new CommandParameterAttribute("verbose", CommandParameterType.Boolean),
             };
 
@@ -46,11 +46,26 @@ namespace DeckSurf.SDK.Tests.Helpers
         }
 
         [Fact]
+        public void Validate_TreatsSecretAsFreeFormText()
+        {
+            var schema = new[]
+            {
+                new CommandParameterAttribute("password", CommandParameterType.Secret) { Required = true, DisplayName = "Password" },
+            };
+
+            var missing = CommandParameterValidator.Validate(schema, new Dictionary<string, string>());
+            Assert.Contains("Password", Assert.Single(missing));
+
+            var present = CommandParameterValidator.Validate(schema, new Dictionary<string, string> { ["password"] = "s3cr=t,value" });
+            Assert.Empty(present);
+        }
+
+        [Fact]
         public void Validate_AllowsMissingOptionalParameter()
         {
             var schema = new[]
             {
-                new CommandParameterAttribute("duration", CommandParameterType.DurationSeconds),
+                new CommandParameterAttribute("duration", CommandParameterType.Integer),
             };
 
             var errors = CommandParameterValidator.Validate(schema, new Dictionary<string, string>());
@@ -78,7 +93,7 @@ namespace DeckSurf.SDK.Tests.Helpers
         {
             var schema = new[]
             {
-                new CommandParameterAttribute("duration", CommandParameterType.DurationSeconds) { MinValue = 1, MaxValue = 600 },
+                new CommandParameterAttribute("duration", CommandParameterType.Integer) { MinValue = 1, MaxValue = 600 },
             };
             var values = new Dictionary<string, string> { ["duration"] = value };
 

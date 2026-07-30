@@ -28,5 +28,14 @@ namespace DeckSurf.SDK.Models
         /// <see cref="CommandMapping.ButtonImagePath"/> is rendered to the screen on activation.
         /// </summary>
         Screen = 2,
+
+        /// <summary>
+        /// A touch key flanking the screen (Stream Deck Neo). <see cref="CommandMapping.ButtonIndex"/>
+        /// is the zero-based touch key index, left to right. Touch keys have no display of
+        /// their own; their backlight is driven with
+        /// <see cref="Interfaces.IConnectedDevice.SetKeyColor"/> at an index offset by
+        /// <see cref="Interfaces.IConnectedDevice.ButtonCount"/>.
+        /// </summary>
+        TouchButton = 3,
     }
 }
