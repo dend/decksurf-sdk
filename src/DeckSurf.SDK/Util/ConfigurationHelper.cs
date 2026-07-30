@@ -20,6 +20,14 @@ namespace DeckSurf.SDK.Util
 
         private static readonly JsonSerializerOptions IndentedSerializerOptions = new() { WriteIndented = true };
 
+        // The fixed superset of characters that are invalid in file names on any
+        // supported platform. Path.GetInvalidFileNameChars is platform-specific,
+        // and profile folders must stay portable between operating systems.
+        private static readonly char[] InvalidProfileNameCharacters =
+        [
+            '<', '>', ':', '"', '/', '\\', '|', '?', '*',
+        ];
+
         /// <summary>
         /// Returns the fully qualified path to the root directory that contains all
         /// DeckSurf configuration profiles.
@@ -168,7 +176,9 @@ namespace DeckSurf.SDK.Util
                 throw new ArgumentException("Profile name cannot be null or whitespace.", nameof(name));
             }
 
-            if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name is "." or "..")
+            if (name.IndexOfAny(InvalidProfileNameCharacters) >= 0
+                || name.Any(char.IsControl)
+                || name is "." or "..")
             {
                 throw new ArgumentException($"Profile name '{name}' contains invalid characters.", nameof(name));
             }
