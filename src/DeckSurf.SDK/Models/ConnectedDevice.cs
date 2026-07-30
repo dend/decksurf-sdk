@@ -536,7 +536,7 @@ namespace DeckSurf.SDK.Models
         public bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
         {
             // Raised before the USB write so observers (live previews) mirror the
-            // hardware; devices without screens simply return false from the core.
+            // hardware; devices without screens return false from the core.
             this.ScreenImageSet?.Invoke(this, new ScreenImageSetEventArgs(image, xOffset, yOffset, width, height));
 
             return this.SetScreenCore(image, xOffset, yOffset, width, height);

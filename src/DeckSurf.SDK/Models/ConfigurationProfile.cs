@@ -41,7 +41,7 @@ namespace DeckSurf.SDK.Models
         /// Gets or sets the mapping between buttons and the commands they trigger.
         /// </summary>
         [JsonPropertyName("button_map")]
-#pragma warning disable CA2227 // Collection properties should be read only — required for System.Text.Json deserialization
+#pragma warning disable CA2227 // Collection properties should be read only - required for System.Text.Json deserialization
         public List<CommandMapping> ButtonMap { get; set; } = [];
 #pragma warning restore CA2227
     }

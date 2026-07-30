@@ -2,7 +2,7 @@
 // Den Delimarsky licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Internal Windows API interop types — documentation not required
+// Internal Windows API interop types - documentation not required
 #pragma warning disable SA1600
 
 // Multiple Windows API interop types grouped in one file

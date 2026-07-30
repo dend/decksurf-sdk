@@ -52,7 +52,7 @@ namespace DeckSurf.SDK.Tests.Core
             // Matches the naming convention but is not a valid assembly.
             File.WriteAllText(Path.Combine(testDirectory, "DeckSurf.Plugin.Broken.dll"), "not a real assembly");
 
-            // Valid name pattern violation — never touched.
+            // Valid name pattern violation - never touched.
             File.WriteAllText(Path.Combine(testDirectory, "SomethingElse.dll"), "irrelevant");
 
             var warnings = new List<string>();

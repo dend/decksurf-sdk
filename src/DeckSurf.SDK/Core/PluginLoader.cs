@@ -32,7 +32,7 @@ namespace DeckSurf.SDK.Core
         /// </param>
         /// <param name="onWarning">Optional callback invoked with a human-readable message for every non-fatal load failure.</param>
         /// <param name="scanBaseRecursively">
-        /// When <c>true</c>, the base directory is scanned recursively — appropriate for
+        /// When <c>true</c>, the base directory is scanned recursively - appropriate for
         /// user-configured plugin folders that contain one subdirectory per plugin.
         /// </param>
         /// <returns>The instantiated plugins. Empty when no plugin assemblies are found.</returns>
