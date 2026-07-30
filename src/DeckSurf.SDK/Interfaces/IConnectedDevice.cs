@@ -98,6 +98,11 @@ namespace DeckSurf.SDK.Interfaces
         bool IsKnobSupported { get; }
 
         /// <summary>
+        /// Gets the number of knobs on the Stream Deck device. Zero for devices without knobs.
+        /// </summary>
+        int KnobCount { get; }
+
+        /// <summary>
         /// Gets a value indicating the button resolution for the Stream Deck device.
         /// </summary>
         int ButtonResolution { get; }

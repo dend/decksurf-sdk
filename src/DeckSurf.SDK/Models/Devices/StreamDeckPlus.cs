@@ -26,6 +26,9 @@ namespace DeckSurf.SDK.Models.Devices
         public override bool IsKnobSupported => true;
 
         /// <inheritdoc/>
+        public override int KnobCount => 4;
+
+        /// <inheritdoc/>
         public override int ButtonResolution => 120;
 
         /// <inheritdoc/>

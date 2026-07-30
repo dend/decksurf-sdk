@@ -133,6 +133,11 @@ namespace DeckSurf.SDK.Models
         public abstract bool IsKnobSupported { get; }
 
         /// <summary>
+        /// Gets the number of knobs on the Stream Deck device. Zero for devices without knobs.
+        /// </summary>
+        public virtual int KnobCount => 0;
+
+        /// <summary>
         /// Gets a value indicating the button resolution for the Stream Deck device.
         /// </summary>
         public abstract int ButtonResolution { get; }
