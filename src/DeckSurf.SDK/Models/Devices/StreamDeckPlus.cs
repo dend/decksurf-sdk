@@ -52,12 +52,6 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         public override int TouchButtonCount => 0;
 
-        /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
-        {
-            return this.WriteScreenCommand(0x0C, image, xOffset, yOffset, width, height);
-        }
-
         /// <summary>
         /// Sets a full-screen image on the Stream Deck Plus LCD.
         /// </summary>
@@ -92,6 +86,12 @@ namespace DeckSurf.SDK.Models.Devices
         public void SetBackgroundImage(byte[] image)
         {
             this.WriteScreenCommand(0x0D, image, 0, 0, this.ScreenWidth, this.ScreenHeight);
+        }
+
+        /// <inheritdoc/>
+        protected override bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            return this.WriteScreenCommand(0x0C, image, xOffset, yOffset, width, height);
         }
 
         /// <inheritdoc/>

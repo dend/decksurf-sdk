@@ -83,6 +83,20 @@ namespace DeckSurf.SDK.Models
         public event EventHandler<DeviceErrorEventArgs> DeviceErrorOccurred;
 
         /// <summary>
+        /// Event raised whenever an image is written to a key, carrying the image
+        /// content as passed to <see cref="SetKey"/> before device-specific
+        /// resizing or encoding. Lets hosts mirror the hardware in a live preview.
+        /// </summary>
+        public event EventHandler<KeyImageSetEventArgs> KeyImageSet;
+
+        /// <summary>
+        /// Event raised whenever an image is written to the device screen,
+        /// carrying the image content as passed to <see cref="SetScreen(byte[], int, int, int, int)"/>.
+        /// Lets hosts mirror the hardware in a live preview.
+        /// </summary>
+        public event EventHandler<ScreenImageSetEventArgs> ScreenImageSet;
+
+        /// <summary>
         /// Gets the vendor ID.
         /// </summary>
         public int VendorId { get; }
@@ -392,6 +406,10 @@ namespace DeckSurf.SDK.Models
 
             this.logger.LogDebug("Setting key {KeyId} with {ImageLength} bytes", keyId, image.Length);
 
+            // Raised before the USB write and outside the write lock so observers
+            // (live previews) never contend with device I/O.
+            this.KeyImageSet?.Invoke(this, new KeyImageSetEventArgs(keyId, image));
+
             var keyImage = alreadyResized ? image : ImageHelper.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.ImageRotation, this.KeyImageFormat);
 
             var iteration = 0;
@@ -515,7 +533,14 @@ namespace DeckSurf.SDK.Models
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
         /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
-        public abstract bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height);
+        public bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            // Raised before the USB write so observers (live previews) mirror the
+            // hardware; devices without screens simply return false from the core.
+            this.ScreenImageSet?.Invoke(this, new ScreenImageSetEventArgs(image, xOffset, yOffset, width, height));
+
+            return this.SetScreenCore(image, xOffset, yOffset, width, height);
+        }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -590,6 +615,17 @@ namespace DeckSurf.SDK.Models
         /// <param name="remainingBytes">The remaining bytes to be sent.</param>
         /// <returns>The device-specific header as a byte array.</returns>
         protected internal abstract byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes);
+
+        /// <summary>
+        /// Device-specific implementation of <see cref="SetScreen(byte[], int, int, int, int)"/>.
+        /// </summary>
+        /// <param name="image">Binary content of the image that needs to be set on the screen.</param>
+        /// <param name="xOffset">Horizontal offset from the left where the image needs to be set. Set to zero if setting the full image.</param>
+        /// <param name="yOffset">Vertical offset from the top where the image needs to be set. Set to zero if setting the full image.</param>
+        /// <param name="width">Image width.</param>
+        /// <param name="height">Image height.</param>
+        /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
+        protected abstract bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height);
 
         /// <summary>
         /// Handles the key press. Different devices carry different implementations.

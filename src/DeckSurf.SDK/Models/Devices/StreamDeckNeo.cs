@@ -50,7 +50,7 @@ namespace DeckSurf.SDK.Models.Devices
         public override int TouchButtonCount => 2;
 
         /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
+        protected override bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height)
         {
             ArgumentNullException.ThrowIfNull(image);
 

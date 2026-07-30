@@ -50,12 +50,6 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
-        {
-            return false;
-        }
-
-        /// <inheritdoc/>
         public override void SetBrightness(byte percentage)
         {
             percentage = Math.Min(percentage, (byte)100);
@@ -98,6 +92,12 @@ namespace DeckSurf.SDK.Models.Devices
             header[5] = (byte)keyId;
 
             return header;
+        }
+
+        /// <inheritdoc/>
+        protected override bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            return false;
         }
 
         /// <inheritdoc/>

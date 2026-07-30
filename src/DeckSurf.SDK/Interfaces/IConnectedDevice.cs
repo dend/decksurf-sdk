@@ -48,6 +48,19 @@ namespace DeckSurf.SDK.Interfaces
         event EventHandler<DeviceErrorEventArgs> DeviceErrorOccurred;
 
         /// <summary>
+        /// Event raised whenever an image is written to a key, carrying the image
+        /// content before device-specific resizing or encoding. Lets hosts mirror
+        /// the hardware in a live preview.
+        /// </summary>
+        event EventHandler<KeyImageSetEventArgs> KeyImageSet;
+
+        /// <summary>
+        /// Event raised whenever an image is written to the device screen. Lets
+        /// hosts mirror the hardware in a live preview.
+        /// </summary>
+        event EventHandler<ScreenImageSetEventArgs> ScreenImageSet;
+
+        /// <summary>
         /// Gets the vendor ID.
         /// </summary>
         int VendorId { get; }
