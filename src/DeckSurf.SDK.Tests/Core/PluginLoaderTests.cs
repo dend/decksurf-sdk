@@ -164,6 +164,46 @@ namespace DeckSurf.SDK.Tests.Core
             Assert.Throws<ArgumentNullException>(() => PluginLoader.GetCommandTypes(null!));
         }
 
+        [Fact]
+        public void GetCommandIconPath_ReturnsNull_ForCommandWithoutIcon()
+        {
+            Assert.Null(PluginLoader.GetCommandIconPath(typeof(UnannotatedCommand)));
+        }
+
+        [Fact]
+        public void GetCommandIconPath_ReturnsNull_WhenDeclaredIconFileIsMissing()
+        {
+            Assert.Null(PluginLoader.GetCommandIconPath(typeof(MissingIconCommand)));
+        }
+
+        [Fact]
+        public void GetCommandIconPath_ResolvesRelativeToAssemblyDirectory()
+        {
+            // The attribute path is resolved against this test assembly's directory,
+            // so create the icon file there for the duration of the test.
+            var assemblyDirectory = Path.GetDirectoryName(typeof(PluginLoaderTests).Assembly.Location)!;
+            var iconPath = Path.Combine(assemblyDirectory, "icons", "present.png");
+            Directory.CreateDirectory(Path.GetDirectoryName(iconPath)!);
+            File.WriteAllBytes(iconPath, [1, 2, 3]);
+
+            try
+            {
+                var resolved = PluginLoader.GetCommandIconPath(typeof(PresentIconCommand));
+
+                Assert.Equal(iconPath, resolved);
+            }
+            finally
+            {
+                File.Delete(iconPath);
+            }
+        }
+
+        [Fact]
+        public void GetCommandIconPath_ThrowsArgumentNullException_ForNullType()
+        {
+            Assert.Throws<ArgumentNullException>(() => PluginLoader.GetCommandIconPath(null!));
+        }
+
         private sealed class FakePlugin : IDeckSurfPlugin
         {
             public PluginMetadata Metadata => new() { Id = "DeckSurf.Plugin.Fake", Version = "1.0.0", Author = "Test" };
@@ -193,6 +233,16 @@ namespace DeckSurf.SDK.Tests.Core
         }
 
         private sealed class UnannotatedCommand : TestCommand
+        {
+        }
+
+        [CommandIcon("icons/does-not-exist.png")]
+        private sealed class MissingIconCommand : TestCommand
+        {
+        }
+
+        [CommandIcon("icons/present.png")]
+        private sealed class PresentIconCommand : TestCommand
         {
         }
 

@@ -173,6 +173,40 @@ namespace DeckSurf.SDK.Core
             })];
         }
 
+        /// <summary>
+        /// Resolves the absolute path of a command's display icon, declared with
+        /// <see cref="CommandIconAttribute"/>. The attribute's path is resolved
+        /// relative to the directory containing the command's assembly, so plugins
+        /// can ship icon files alongside their binaries.
+        /// </summary>
+        /// <param name="commandType">The command type whose icon should be resolved.</param>
+        /// <returns>
+        /// The absolute path of the icon file, or <c>null</c> when the command
+        /// declares no icon or the declared file does not exist on disk.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="commandType"/> is null.</exception>
+        public static string GetCommandIconPath(Type commandType)
+        {
+            ArgumentNullException.ThrowIfNull(commandType);
+
+            if (commandType.GetCustomAttributes(typeof(CommandIconAttribute), inherit: true)
+                    .Cast<CommandIconAttribute>()
+                    .FirstOrDefault() is not { } attribute
+                || string.IsNullOrWhiteSpace(attribute.RelativePath))
+            {
+                return null;
+            }
+
+            var assemblyDirectory = Path.GetDirectoryName(commandType.Assembly.Location);
+            if (string.IsNullOrEmpty(assemblyDirectory))
+            {
+                return null;
+            }
+
+            var iconPath = Path.GetFullPath(Path.Combine(assemblyDirectory, attribute.RelativePath));
+            return File.Exists(iconPath) ? iconPath : null;
+        }
+
         [GeneratedRegex(@"^DeckSurf\.Plugin\..+\.dll$", RegexOptions.IgnoreCase)]
         private static partial Regex PluginAssemblyRegex();
     }
