@@ -19,6 +19,14 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         public override DeviceModel Model => DeviceModel.Plus;
 
+        /// <summary>
+        /// Gets the image rotation for the Stream Deck Plus. Unlike every other
+        /// Stream Deck, the Plus mounts its key panel upright, so images are sent
+        /// as-is; the 180-degree rotation the other decks need would render
+        /// everything upside down on this hardware.
+        /// </summary>
+        public override DeviceRotation ImageRotation => DeviceRotation.None;
+
         /// <inheritdoc/>
         public override int ButtonCount => 8;
 

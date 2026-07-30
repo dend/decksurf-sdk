@@ -83,12 +83,14 @@ namespace DeckSurf.SDK.Tests.Devices
                 true, false, 2, 1024, 8,
             };
 
-            // Plus: 8 buttons, 120px, 4x2, Jpeg, Rotate180, screen (800x100), knob, 0 touch buttons
+            // Plus: 8 buttons, 120px, 4x2, Jpeg, no rotation (the Plus mounts its
+            // key panel upright, unlike every other deck), screen (800x100), knob,
+            // 0 touch buttons
             yield return new object[]
             {
                 new StreamDeckPlus(0, 0, "", "", ""),
                 DeviceModel.Plus, 8, 120, 4, 2,
-                DeviceImageFormat.Jpeg, DeviceRotation.Rotate180,
+                DeviceImageFormat.Jpeg, DeviceRotation.None,
                 true, true, 0, 1024, 8,
             };
         }
