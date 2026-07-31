@@ -58,5 +58,16 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         [JsonPropertyName("button_image_path")]
         public string ButtonImagePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the backlight color for <see cref="MappingTarget.TouchButton"/>
+        /// mappings, applied through <see cref="Interfaces.IConnectedDevice.SetKeyColor"/>
+        /// while the profile is active. Null leaves the host's default treatment.
+        /// Stored in profile JSON as a <c>#RRGGBB</c> string.
+        /// </summary>
+        [JsonPropertyName("button_color")]
+        [JsonConverter(typeof(DeviceColorJsonConverter))]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DeviceColor? ButtonColor { get; set; }
     }
 }
