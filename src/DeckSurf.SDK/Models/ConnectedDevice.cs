@@ -380,7 +380,7 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
         /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
-        /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
+        /// <param name="alreadyResized">If true, the image bytes are written to the device unmodified, so the buffer must already be encoded in the device's native <see cref="KeyImageFormat"/>, sized to <see cref="ButtonResolution"/>, and rotated per <see cref="ImageRotation"/>. The format is not validated in this mode: a mismatched buffer (for example, JPEG bytes sent to a BMP device such as the Stream Deck Mini) is transferred successfully, no exception is thrown, and the device firmware silently discards it, leaving the key unchanged. Produce device-ready buffers with <see cref="ImageHelper.ResizeImage(byte[], int, int, DeviceRotation, DeviceImageFormat)"/> or <see cref="ImageHelper.CreateBlankImage(int, int, DeviceColor, DeviceImageFormat)"/>, or pass false to let the SDK convert the image for the connected device.</param>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>

@@ -81,8 +81,16 @@ namespace DeckSurf.SDK.Util
         }
 
         /// <summary>
-        /// Creates a new blank square.
+        /// Creates a new blank square, always encoded as JPEG.
         /// </summary>
+        /// <remarks>
+        /// The output is JPEG regardless of the target device. Devices whose native key format is not JPEG
+        /// (for example, the Stream Deck Mini, which expects BMP) silently discard JPEG buffers passed to
+        /// <see cref="Models.ConnectedDevice.SetKey(int, byte[], bool)"/> with <c>alreadyResized: true</c>.
+        /// When the buffer is destined for a device key, prefer
+        /// <see cref="CreateBlankImage(int, int, DeviceColor, DeviceImageFormat)"/> with the device's
+        /// <see cref="Models.ConnectedDevice.KeyImageFormat"/> so the encoding matches the hardware.
+        /// </remarks>
         /// <param name="pixelSize">Size, in pixels, of the square sides.</param>
         /// <param name="color">The color of the blank square to be created.</param>
         /// <returns>If successful, returns a byte array representing the JPEG representation of the blank square.</returns>
