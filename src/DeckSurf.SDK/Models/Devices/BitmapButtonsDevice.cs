@@ -89,7 +89,10 @@ namespace DeckSurf.SDK.Models.Devices
             header[2] = binaryIteration[0];
             header[3] = binaryIteration[1];
             header[4] = finalizer;
-            header[5] = (byte)keyId;
+
+            // The V1 image report addresses keys with a 1-based index; sending
+            // zero is silently ignored by the firmware.
+            header[5] = (byte)(keyId + 1);
 
             return header;
         }
