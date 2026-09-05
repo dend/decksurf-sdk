@@ -23,5 +23,13 @@ namespace DeckSurf.SDK.Models
         /// Rotate the image 270 degrees.
         /// </summary>
         Rotate270,
+
+        /// <summary>
+        /// Rotate the image 270 degrees, then flip it vertically. The combined result is a transpose
+        /// across the main diagonal: the top-left corner stays in place while the top-right and
+        /// bottom-left corners swap. This is the orientation expected by BMP-based devices such as
+        /// the Stream Deck Mini, whose firmware otherwise displays rotated content mirrored.
+        /// </summary>
+        Rotate270FlipVertical,
     }
 }

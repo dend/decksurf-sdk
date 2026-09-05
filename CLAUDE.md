@@ -76,7 +76,7 @@ ConnectedDevice (abstract, implements IConnectedDevice)
 ├── JpegButtonsDevice (abstract) — JPEG/Rotate180 devices
 │   ├── StreamDeckOriginal, StreamDeckOriginal2019, StreamDeckMK2
 │   ├── StreamDeckXL, StreamDeckXL2022
-├── BitmapButtonsDevice (abstract) — BMP/Rotate270 devices
+├── BitmapButtonsDevice (abstract) — BMP/Rotate270FlipVertical devices
 │   ├── StreamDeckMini, StreamDeckMini2022
 ├── ScreenDevice (abstract) — Devices with LCD screens
 │   ├── StreamDeckNeo, StreamDeckPlus

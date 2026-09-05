@@ -29,7 +29,11 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenImageHeaderSize => 16;
 
         /// <inheritdoc/>
-        public override DeviceRotation ImageRotation => DeviceRotation.Rotate270;
+        /// <remarks>
+        /// The Mini firmware expects key images rotated 270 degrees and then flipped vertically.
+        /// Rotation alone renders content inverted on the hardware.
+        /// </remarks>
+        public override DeviceRotation ImageRotation => DeviceRotation.Rotate270FlipVertical;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => false;

@@ -71,7 +71,7 @@ namespace DeckSurf.SDK.Util
                         Sampler = KnownResamplers.Bicubic,
                         Mode = ResizeMode.Stretch,
                     });
-                    ctx.Rotate(ToRotateMode(rotation));
+                    ApplyOrientation(ctx, rotation);
                 });
 
                 using var outputStream = new MemoryStream();
@@ -184,14 +184,25 @@ namespace DeckSurf.SDK.Util
             }
         }
 
-        private static RotateMode ToRotateMode(DeviceRotation rotation)
+        private static void ApplyOrientation(IImageProcessingContext ctx, DeviceRotation rotation)
         {
-            return rotation switch
+            switch (rotation)
             {
-                DeviceRotation.Rotate180 => RotateMode.Rotate180,
-                DeviceRotation.Rotate270 => RotateMode.Rotate270,
-                _ => RotateMode.None,
-            };
+                case DeviceRotation.Rotate180:
+                    ctx.Rotate(RotateMode.Rotate180);
+                    break;
+                case DeviceRotation.Rotate270:
+                    ctx.Rotate(RotateMode.Rotate270);
+                    break;
+                case DeviceRotation.Rotate270FlipVertical:
+                    // Matches the reference Stream Deck Mini transform: rotate, then flip top-to-bottom.
+                    // Verified on Stream Deck Mini hardware; rotation alone renders content inverted.
+                    ctx.Rotate(RotateMode.Rotate270);
+                    ctx.Flip(FlipMode.Vertical);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private static IImageEncoder ToEncoder(DeviceImageFormat format)

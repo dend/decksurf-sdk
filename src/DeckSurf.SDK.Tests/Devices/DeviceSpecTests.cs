@@ -56,12 +56,12 @@ namespace DeckSurf.SDK.Tests.Devices
                 false, false, 0, 1024, 8,
             };
 
-            // Mini: 6 buttons, 80px, 3x2, Bmp, Rotate270, no screen, no knob
+            // Mini: 6 buttons, 80px, 3x2, Bmp, Rotate270FlipVertical, no screen, no knob
             yield return new object[]
             {
                 new StreamDeckMini(0, 0, "", "", ""),
                 DeviceModel.Mini, 6, 80, 3, 2,
-                DeviceImageFormat.Bmp, DeviceRotation.Rotate270,
+                DeviceImageFormat.Bmp, DeviceRotation.Rotate270FlipVertical,
                 false, false, 0, 1024, 16,
             };
 
@@ -70,7 +70,7 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 new StreamDeckMini2022(0, 0, "", "", ""),
                 DeviceModel.Mini2022, 6, 80, 3, 2,
-                DeviceImageFormat.Bmp, DeviceRotation.Rotate270,
+                DeviceImageFormat.Bmp, DeviceRotation.Rotate270FlipVertical,
                 false, false, 0, 1024, 16,
             };
 
