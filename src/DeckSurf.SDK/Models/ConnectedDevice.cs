@@ -83,6 +83,20 @@ namespace DeckSurf.SDK.Models
         public event EventHandler<DeviceErrorEventArgs> DeviceErrorOccurred;
 
         /// <summary>
+        /// Event raised whenever an image is written to a key, carrying the image
+        /// content as passed to <see cref="SetKey"/> before device-specific
+        /// resizing or encoding. Lets hosts mirror the hardware in a live preview.
+        /// </summary>
+        public event EventHandler<KeyImageSetEventArgs> KeyImageSet;
+
+        /// <summary>
+        /// Event raised whenever an image is written to the device screen,
+        /// carrying the image content as passed to <see cref="SetScreen(byte[], int, int, int, int)"/>.
+        /// Lets hosts mirror the hardware in a live preview.
+        /// </summary>
+        public event EventHandler<ScreenImageSetEventArgs> ScreenImageSet;
+
+        /// <summary>
         /// Gets the vendor ID.
         /// </summary>
         public int VendorId { get; }
@@ -131,6 +145,11 @@ namespace DeckSurf.SDK.Models
         /// Gets a value indicating whether the Stream Deck has knobs.
         /// </summary>
         public abstract bool IsKnobSupported { get; }
+
+        /// <summary>
+        /// Gets the number of knobs on the Stream Deck device. Zero for devices without knobs.
+        /// </summary>
+        public virtual int KnobCount => 0;
 
         /// <summary>
         /// Gets a value indicating the button resolution for the Stream Deck device.
@@ -361,7 +380,7 @@ namespace DeckSurf.SDK.Models
         /// </summary>
         /// <param name="keyId">Numeric ID of the key that needs to be set.</param>
         /// <param name="image">Binary content of the image (supports JPEG, PNG, BMP, GIF, and other formats recognized by ImageSharp) that needs to be set on the key. The image will be resized to match the expectations of the connected device.</param>
-        /// <param name="alreadyResized">If true, the image is assumed to already be resized and will not be resized again.</param>
+        /// <param name="alreadyResized">If true, the image bytes are written to the device unmodified, so the buffer must already be encoded in the device's native <see cref="KeyImageFormat"/>, sized to <see cref="ButtonResolution"/>, and rotated per <see cref="ImageRotation"/>. The format is not validated in this mode: a mismatched buffer (for example, JPEG bytes sent to a BMP device such as the Stream Deck Mini) is transferred successfully, no exception is thrown, and the device firmware silently discards it, leaving the key unchanged. Produce device-ready buffers with <see cref="ImageHelper.ResizeImage(byte[], int, int, DeviceRotation, DeviceImageFormat)"/> or <see cref="ImageHelper.CreateBlankImage(int, int, DeviceColor, DeviceImageFormat)"/>, or pass false to let the SDK convert the image for the connected device.</param>
         /// <exception cref="ObjectDisposedException">Thrown when the device has been disposed.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="keyId"/> is outside the valid button range.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="image"/> is null or empty.</exception>
@@ -386,6 +405,10 @@ namespace DeckSurf.SDK.Models
             }
 
             this.logger.LogDebug("Setting key {KeyId} with {ImageLength} bytes", keyId, image.Length);
+
+            // Raised before the USB write and outside the write lock so observers
+            // (live previews) never contend with device I/O.
+            this.KeyImageSet?.Invoke(this, new KeyImageSetEventArgs(keyId, image));
 
             var keyImage = alreadyResized ? image : ImageHelper.ResizeImage(image, this.ButtonResolution, this.ButtonResolution, this.ImageRotation, this.KeyImageFormat);
 
@@ -510,7 +533,14 @@ namespace DeckSurf.SDK.Models
         /// <param name="width">Image width.</param>
         /// <param name="height">Image height.</param>
         /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
-        public abstract bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height);
+        public bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            // Raised before the USB write so observers (live previews) mirror the
+            // hardware; devices without screens return false from the core.
+            this.ScreenImageSet?.Invoke(this, new ScreenImageSetEventArgs(image, xOffset, yOffset, width, height));
+
+            return this.SetScreenCore(image, xOffset, yOffset, width, height);
+        }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -585,6 +615,17 @@ namespace DeckSurf.SDK.Models
         /// <param name="remainingBytes">The remaining bytes to be sent.</param>
         /// <returns>The device-specific header as a byte array.</returns>
         protected internal abstract byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes);
+
+        /// <summary>
+        /// Device-specific implementation of <see cref="SetScreen(byte[], int, int, int, int)"/>.
+        /// </summary>
+        /// <param name="image">Binary content of the image that needs to be set on the screen.</param>
+        /// <param name="xOffset">Horizontal offset from the left where the image needs to be set. Set to zero if setting the full image.</param>
+        /// <param name="yOffset">Vertical offset from the top where the image needs to be set. Set to zero if setting the full image.</param>
+        /// <param name="width">Image width.</param>
+        /// <param name="height">Image height.</param>
+        /// <returns>True if successful. Returns false if the device does not support a screen. Throws on I/O failure.</returns>
+        protected abstract bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height);
 
         /// <summary>
         /// Handles the key press. Different devices carry different implementations.

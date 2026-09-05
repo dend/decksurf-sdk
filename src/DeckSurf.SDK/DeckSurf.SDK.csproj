@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Company>Den Delimarsky</Company>
     <Authors>Den Delimarsky</Authors>
-    <Version>0.0.7</Version>
+    <Version>0.1.4</Version>
     <ApplicationIcon>piglet.ico</ApplicationIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -21,8 +21,8 @@
     <RepositoryUrl>https://github.com/dend/decksurf-sdk</RepositoryUrl>
     <PackageTags>streamdeck,sdk,decksurf,hid,buttons</PackageTags>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>0.0.7.0</AssemblyVersion>
-    <FileVersion>0.0.7.0</FileVersion>
+    <AssemblyVersion>0.1.4.0</AssemblyVersion>
+    <FileVersion>0.1.4.0</FileVersion>
     <Description>Open-source SDK to manage your Stream Deck device from .NET.</Description>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -72,7 +72,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.201">
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.202">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

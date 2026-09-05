@@ -49,12 +49,6 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenSegmentWidth => -1;
 
         /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
-        {
-            return false;
-        }
-
-        /// <inheritdoc/>
         protected internal override byte[] GetKeySetupHeader(int keyId, int sliceLength, int iteration, int remainingBytes)
         {
             byte finalizer = sliceLength == remainingBytes ? (byte)1 : (byte)0;
@@ -75,9 +69,23 @@ namespace DeckSurf.SDK.Models.Devices
         }
 
         /// <inheritdoc/>
+        protected override bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            return false;
+        }
+
+        /// <inheritdoc/>
         protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
         {
-            this.UnderlyingInputStream.EndRead(result);
+            // The stream is nulled by StopListening/Dispose while a read may still be
+            // pending; treat a completed read on a closed stream as a non-event.
+            var stream = this.UnderlyingInputStream;
+            if (stream is null)
+            {
+                return null;
+            }
+
+            stream.EndRead(result);
 
             var buttonKind = GetButtonKind(new ArraySegment<byte>(keyPressBuffer, 0, 2).ToArray());
             var buttonCount = DataHelper.GetIntFromLittleEndianBytes(new ArraySegment<byte>(keyPressBuffer, 2, 2).ToArray());

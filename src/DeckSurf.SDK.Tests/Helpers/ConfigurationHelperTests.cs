@@ -162,7 +162,7 @@ namespace DeckSurf.SDK.Tests.Helpers
             {
                 Plugin = "plugin-alpha",
                 Command = "cmd-one",
-                CommandArguments = "--verbose",
+                CommandArguments = CommandArguments.FromLegacyString("--verbose"),
                 ButtonIndex = 0,
                 ButtonImagePath = "/tmp/img1.png",
             };
@@ -171,7 +171,7 @@ namespace DeckSurf.SDK.Tests.Helpers
             {
                 Plugin = "plugin-beta",
                 Command = "cmd-two",
-                CommandArguments = "--quiet",
+                CommandArguments = CommandArguments.FromLegacyString("--quiet"),
                 ButtonIndex = 5,
                 ButtonImagePath = "/tmp/img2.png",
             };
@@ -196,14 +196,14 @@ namespace DeckSurf.SDK.Tests.Helpers
             // Verify first mapping
             Assert.Equal("plugin-alpha", loaded.ButtonMap[0].Plugin);
             Assert.Equal("cmd-one", loaded.ButtonMap[0].Command);
-            Assert.Equal("--verbose", loaded.ButtonMap[0].CommandArguments);
+            Assert.Equal("--verbose", loaded.ButtonMap[0].CommandArguments.LegacyText);
             Assert.Equal(0, loaded.ButtonMap[0].ButtonIndex);
             Assert.Equal("/tmp/img1.png", loaded.ButtonMap[0].ButtonImagePath);
 
             // Verify second mapping
             Assert.Equal("plugin-beta", loaded.ButtonMap[1].Plugin);
             Assert.Equal("cmd-two", loaded.ButtonMap[1].Command);
-            Assert.Equal("--quiet", loaded.ButtonMap[1].CommandArguments);
+            Assert.Equal("--quiet", loaded.ButtonMap[1].CommandArguments.LegacyText);
             Assert.Equal(5, loaded.ButtonMap[1].ButtonIndex);
             Assert.Equal("/tmp/img2.png", loaded.ButtonMap[1].ButtonImagePath);
         }

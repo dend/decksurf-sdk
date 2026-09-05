@@ -19,11 +19,22 @@ namespace DeckSurf.SDK.Models.Devices
         /// <inheritdoc/>
         public override DeviceModel Model => DeviceModel.Plus;
 
+        /// <summary>
+        /// Gets the image rotation for the Stream Deck Plus. Unlike every other
+        /// Stream Deck, the Plus mounts its key panel upright, so images are sent
+        /// as-is; the 180-degree rotation the other decks need would render
+        /// everything upside down on this hardware.
+        /// </summary>
+        public override DeviceRotation ImageRotation => DeviceRotation.None;
+
         /// <inheritdoc/>
         public override int ButtonCount => 8;
 
         /// <inheritdoc/>
         public override bool IsKnobSupported => true;
+
+        /// <inheritdoc/>
+        public override int KnobCount => 4;
 
         /// <inheritdoc/>
         public override int ButtonResolution => 120;
@@ -48,12 +59,6 @@ namespace DeckSurf.SDK.Models.Devices
 
         /// <inheritdoc/>
         public override int TouchButtonCount => 0;
-
-        /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
-        {
-            return this.WriteScreenCommand(0x0C, image, xOffset, yOffset, width, height);
-        }
 
         /// <summary>
         /// Sets a full-screen image on the Stream Deck Plus LCD.
@@ -92,12 +97,26 @@ namespace DeckSurf.SDK.Models.Devices
         }
 
         /// <inheritdoc/>
+        protected override bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            return this.WriteScreenCommand(0x0C, image, xOffset, yOffset, width, height);
+        }
+
+        /// <inheritdoc/>
         protected override ButtonPressEventArgs HandleKeyPress(IAsyncResult result, byte[] keyPressBuffer)
         {
             ArgumentNullException.ThrowIfNull(keyPressBuffer);
 
+            // The stream is nulled by StopListening/Dispose while a read may still be
+            // pending; treat a completed read on a closed stream as a non-event.
+            var stream = this.UnderlyingInputStream;
+            if (stream is null)
+            {
+                return null;
+            }
+
             var buttonMapOffset = 4;
-            this.UnderlyingInputStream.EndRead(result);
+            stream.EndRead(result);
 
             // Let's grab the first two bytes to understand the type of button we're dealing with.
             // They can be:

@@ -95,7 +95,7 @@ namespace DeckSurf.SDK.Tests.Models
             {
                 Plugin = "volume-control",
                 Command = "mute-toggle",
-                CommandArguments = "--device=speakers",
+                CommandArguments = CommandArguments.FromLegacyString("--device=speakers"),
                 ButtonIndex = 3,
                 ButtonImagePath = "/images/mute.png",
             });
@@ -104,7 +104,7 @@ namespace DeckSurf.SDK.Tests.Models
             {
                 Plugin = "obs-integration",
                 Command = "scene-switch",
-                CommandArguments = "scene=Gaming",
+                CommandArguments = CommandArguments.FromDictionary(new Dictionary<string, string> { ["scene"] = "Gaming, Part 2" }),
                 ButtonIndex = 8,
                 ButtonImagePath = "/images/obs.png",
             });
@@ -122,7 +122,10 @@ namespace DeckSurf.SDK.Tests.Models
             {
                 Assert.Equal(original.ButtonMap[i].Plugin, deserialized.ButtonMap[i].Plugin);
                 Assert.Equal(original.ButtonMap[i].Command, deserialized.ButtonMap[i].Command);
-                Assert.Equal(original.ButtonMap[i].CommandArguments, deserialized.ButtonMap[i].CommandArguments);
+                Assert.Equal(original.ButtonMap[i].CommandArguments.LegacyText, deserialized.ButtonMap[i].CommandArguments.LegacyText);
+                Assert.Equal(
+                    original.ButtonMap[i].CommandArguments.OrderBy(p => p.Key),
+                    deserialized.ButtonMap[i].CommandArguments.OrderBy(p => p.Key));
                 Assert.Equal(original.ButtonMap[i].ButtonIndex, deserialized.ButtonMap[i].ButtonIndex);
                 Assert.Equal(original.ButtonMap[i].ButtonImagePath, deserialized.ButtonMap[i].ButtonImagePath);
             }

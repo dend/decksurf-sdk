@@ -29,7 +29,11 @@ namespace DeckSurf.SDK.Models.Devices
         public override int ScreenImageHeaderSize => 16;
 
         /// <inheritdoc/>
-        public override DeviceRotation ImageRotation => DeviceRotation.Rotate270;
+        /// <remarks>
+        /// The Mini firmware expects key images rotated 270 degrees and then flipped vertically.
+        /// Rotation alone renders content inverted on the hardware.
+        /// </remarks>
+        public override DeviceRotation ImageRotation => DeviceRotation.Rotate270FlipVertical;
 
         /// <inheritdoc/>
         public override bool IsScreenSupported => false;
@@ -48,12 +52,6 @@ namespace DeckSurf.SDK.Models.Devices
 
         /// <inheritdoc/>
         public override int ScreenSegmentWidth => -1;
-
-        /// <inheritdoc/>
-        public override bool SetScreen(byte[] image, int xOffset, int yOffset, int width, int height)
-        {
-            return false;
-        }
 
         /// <inheritdoc/>
         public override void SetBrightness(byte percentage)
@@ -95,9 +93,18 @@ namespace DeckSurf.SDK.Models.Devices
             header[2] = binaryIteration[0];
             header[3] = binaryIteration[1];
             header[4] = finalizer;
-            header[5] = (byte)keyId;
+
+            // The V1 image report addresses keys with a 1-based index; sending
+            // zero is silently ignored by the firmware.
+            header[5] = (byte)(keyId + 1);
 
             return header;
+        }
+
+        /// <inheritdoc/>
+        protected override bool SetScreenCore(byte[] image, int xOffset, int yOffset, int width, int height)
+        {
+            return false;
         }
 
         /// <inheritdoc/>
@@ -105,7 +112,15 @@ namespace DeckSurf.SDK.Models.Devices
         {
             ArgumentNullException.ThrowIfNull(keyPressBuffer);
 
-            this.UnderlyingInputStream.EndRead(result);
+            // The stream is nulled by StopListening/Dispose while a read may still be
+            // pending; treat a completed read on a closed stream as a non-event.
+            var stream = this.UnderlyingInputStream;
+            if (stream is null)
+            {
+                return null;
+            }
+
+            stream.EndRead(result);
 
             if (keyPressBuffer[0] != 0x01)
             {

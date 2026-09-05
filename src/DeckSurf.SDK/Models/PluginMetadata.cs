@@ -15,6 +15,12 @@ namespace DeckSurf.SDK.Models
         public string Id { get; set; }
 
         /// <summary>
+        /// Gets or sets the human-readable display name of the plugin. Consumers fall back
+        /// to <see cref="Id"/> when this is not set.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
         /// Gets or sets the plugin version.
         /// </summary>
         public string Version { get; set; }

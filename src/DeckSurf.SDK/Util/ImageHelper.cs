@@ -71,7 +71,7 @@ namespace DeckSurf.SDK.Util
                         Sampler = KnownResamplers.Bicubic,
                         Mode = ResizeMode.Stretch,
                     });
-                    ctx.Rotate(ToRotateMode(rotation));
+                    ApplyOrientation(ctx, rotation);
                 });
 
                 using var outputStream = new MemoryStream();
@@ -81,8 +81,16 @@ namespace DeckSurf.SDK.Util
         }
 
         /// <summary>
-        /// Creates a new blank square.
+        /// Creates a new blank square, always encoded as JPEG.
         /// </summary>
+        /// <remarks>
+        /// The output is JPEG regardless of the target device. Devices whose native key format is not JPEG
+        /// (for example, the Stream Deck Mini, which expects BMP) silently discard JPEG buffers passed to
+        /// <see cref="Models.ConnectedDevice.SetKey(int, byte[], bool)"/> with <c>alreadyResized: true</c>.
+        /// When the buffer is destined for a device key, prefer
+        /// <see cref="CreateBlankImage(int, int, DeviceColor, DeviceImageFormat)"/> with the device's
+        /// <see cref="Models.ConnectedDevice.KeyImageFormat"/> so the encoding matches the hardware.
+        /// </remarks>
         /// <param name="pixelSize">Size, in pixels, of the square sides.</param>
         /// <param name="color">The color of the blank square to be created.</param>
         /// <returns>If successful, returns a byte array representing the JPEG representation of the blank square.</returns>
@@ -176,14 +184,25 @@ namespace DeckSurf.SDK.Util
             }
         }
 
-        private static RotateMode ToRotateMode(DeviceRotation rotation)
+        private static void ApplyOrientation(IImageProcessingContext ctx, DeviceRotation rotation)
         {
-            return rotation switch
+            switch (rotation)
             {
-                DeviceRotation.Rotate180 => RotateMode.Rotate180,
-                DeviceRotation.Rotate270 => RotateMode.Rotate270,
-                _ => RotateMode.None,
-            };
+                case DeviceRotation.Rotate180:
+                    ctx.Rotate(RotateMode.Rotate180);
+                    break;
+                case DeviceRotation.Rotate270:
+                    ctx.Rotate(RotateMode.Rotate270);
+                    break;
+                case DeviceRotation.Rotate270FlipVertical:
+                    // Matches the reference Stream Deck Mini transform: rotate, then flip top-to-bottom.
+                    // Verified on Stream Deck Mini hardware; rotation alone renders content inverted.
+                    ctx.Rotate(RotateMode.Rotate270);
+                    ctx.Flip(FlipMode.Vertical);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private static IImageEncoder ToEncoder(DeviceImageFormat format)

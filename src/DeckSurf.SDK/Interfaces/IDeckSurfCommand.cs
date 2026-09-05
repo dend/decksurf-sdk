@@ -52,5 +52,26 @@ namespace DeckSurf.SDK.Interfaces
             this.ExecuteOnAction(mappedCommand, mappedDevice, activatingButton);
             return Task.CompletedTask;
         }
+
+        /// <summary>
+        /// Function that is executed for every raw device event routed to the mapping,
+        /// including knob rotation and press events (<see cref="ButtonKind.Knob"/>) and
+        /// touch screen taps (<see cref="ButtonKind.Screen"/>). The default implementation
+        /// preserves legacy behavior by forwarding button-down events to
+        /// <see cref="ExecuteOnAction"/>; override it in commands that react to knobs,
+        /// touch, or button-up events.
+        /// </summary>
+        /// <param name="mappedCommand">Instance of a command mapped to a device control.</param>
+        /// <param name="mappedDevice">Connected Stream Deck device.</param>
+        /// <param name="eventArgs">The raw device event.</param>
+        void ExecuteOnEvent(CommandMapping mappedCommand, IConnectedDevice mappedDevice, ButtonPressEventArgs eventArgs)
+        {
+            ArgumentNullException.ThrowIfNull(eventArgs);
+
+            if (eventArgs.EventKind == ButtonEventKind.Down)
+            {
+                this.ExecuteOnAction(mappedCommand, mappedDevice, eventArgs.Id);
+            }
+        }
     }
 }

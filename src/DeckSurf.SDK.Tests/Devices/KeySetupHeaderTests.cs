@@ -64,7 +64,7 @@ namespace DeckSurf.SDK.Tests.Devices
             Assert.Equal(0x00, header[2]); // iteration low byte
             Assert.Equal(0x00, header[3]); // iteration high byte
             Assert.Equal(0x01, header[4]); // finalizer (last slice)
-            Assert.Equal(0x00, header[5]); // keyId
+            Assert.Equal(0x01, header[5]); // keyId 0 as 1-based wire index
             Assert.Equal(0x00, header[6]); // padding
             Assert.Equal(0x00, header[7]); // padding
 
@@ -90,7 +90,7 @@ namespace DeckSurf.SDK.Tests.Devices
             Assert.Equal(0x00, header[2]); // iteration low byte
             Assert.Equal(0x00, header[3]); // iteration high byte
             Assert.Equal(0x00, header[4]); // finalizer (not last slice)
-            Assert.Equal(0x03, header[5]); // keyId
+            Assert.Equal(0x04, header[5]); // keyId 3 as 1-based wire index
             Assert.Equal(0x00, header[6]); // padding
             Assert.Equal(0x00, header[7]); // padding
 
@@ -98,6 +98,19 @@ namespace DeckSurf.SDK.Tests.Devices
             {
                 Assert.Equal(0x00, header[i]);
             }
+        }
+
+        [Fact]
+        public void BmpDevice_GetKeySetupHeader_LastKey_UsesOneBasedWireIndex()
+        {
+            var device = new StreamDeckMini(0, 0, "", "", "");
+
+            // The V1 image report addresses keys 1-based. With a 0-based index
+            // the firmware drops writes to wire index 0 and the last physical
+            // key (keyId 5 on the six-key Mini) can never be addressed.
+            byte[] header = device.GetKeySetupHeader(5, 100, 0, 100);
+
+            Assert.Equal(0x06, header[5]);
         }
 
         [Fact]
@@ -168,7 +181,7 @@ namespace DeckSurf.SDK.Tests.Devices
             Assert.Equal(0x2C, header[2]); // iteration low byte
             Assert.Equal(0x01, header[3]); // iteration high byte
             Assert.Equal(0x01, header[4]); // finalizer
-            Assert.Equal(0x02, header[5]); // keyId
+            Assert.Equal(0x03, header[5]); // keyId 2 as 1-based wire index
         }
     }
 }
