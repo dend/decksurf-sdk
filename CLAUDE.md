@@ -6,7 +6,7 @@ DeckSurf SDK is an open-source .NET library for managing Elgato Stream Deck devi
 
 - **Target framework**: .NET 10
 - **Cross-platform**: Core functionality works on Windows, macOS, and Linux. Windows-only APIs are guarded with `[SupportedOSPlatform("windows")]`.
-- **Author**: Den Delimarsky
+- **Author**: Den
 
 ## Repository Structure
 
