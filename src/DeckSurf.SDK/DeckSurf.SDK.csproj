@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Company>Den Delimarsky</Company>
-    <Authors>Den Delimarsky</Authors>
+    <Company>Den</Company>
+    <Authors>Den</Authors>
     <Version>0.1.5</Version>
     <ApplicationIcon>piglet.ico</ApplicationIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Copyright>Copyright © 2026 by Den Delimarsky. All rights reserved.</Copyright>
+    <Copyright>Copyright © 2026 by Den. All rights reserved.</Copyright>
     <PackageProjectUrl>https://deck.surf</PackageProjectUrl>
     <PackageIcon>logo.png</PackageIcon>
     <PackageIconUrl />
