@@ -3,18 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using DeckSurf.SDK.Models;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace DeckSurf.SDK.Util
 {
@@ -23,6 +19,12 @@ namespace DeckSurf.SDK.Util
     /// </summary>
     public static class ImageHelper
     {
+        private const int JpegQuality = 75;
+
+        private const int BmpFileHeaderSize = 14;
+
+        private const int BmpInfoHeaderSize = 40;
+
         /// <summary>
         /// Resize an image buffer to the expected size, in pixels.
         /// </summary>
@@ -51,33 +53,21 @@ namespace DeckSurf.SDK.Util
                 throw new ArgumentException("The height must be greater than zero.", nameof(height));
             }
 
-            Image<Rgb24> image;
-            try
+            using SKBitmap? source = SKBitmap.Decode(buffer);
+            if (source == null)
             {
-                image = SixLabors.ImageSharp.Image.Load<Rgb24>(buffer);
-            }
-            catch (SixLabors.ImageSharp.UnknownImageFormatException ex)
-            {
-                throw new Exceptions.ImageProcessingException("The provided buffer is not a recognized image format.", ex);
+                throw new Exceptions.ImageProcessingException("The provided buffer is not a recognized image format.");
             }
 
-            using (image)
+            // Stretch to the target size. Unpremultiplied output keeps the colour channels as they are when alpha is dropped.
+            var targetInfo = new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+            using SKBitmap? resized = source.Resize(targetInfo, new SKSamplingOptions(SKCubicResampler.CatmullRom));
+            if (resized == null)
             {
-                image.Mutate(ctx =>
-                {
-                    ctx.Resize(new ResizeOptions
-                    {
-                        Size = new SixLabors.ImageSharp.Size(width, height),
-                        Sampler = KnownResamplers.Bicubic,
-                        Mode = ResizeMode.Stretch,
-                    });
-                    ApplyOrientation(ctx, rotation);
-                });
-
-                using var outputStream = new MemoryStream();
-                image.Save(outputStream, ToEncoder(format));
-                return outputStream.ToArray();
+                throw new Exceptions.ImageProcessingException("The image could not be resized.");
             }
+
+            return Encode(ApplyOrientation(ToRgb(resized), rotation), format);
         }
 
         /// <summary>
@@ -101,10 +91,7 @@ namespace DeckSurf.SDK.Util
                 throw new ArgumentException("The pixel size must be greater than zero.", nameof(pixelSize));
             }
 
-            using var image = new Image<Rgb24>(pixelSize, pixelSize, new Rgb24(color.R, color.G, color.B));
-            using var ms = new MemoryStream();
-            image.Save(ms, new JpegEncoder());
-            return ms.ToArray();
+            return EncodeJpeg(CreateSolid(pixelSize, pixelSize, color));
         }
 
         /// <summary>
@@ -128,10 +115,7 @@ namespace DeckSurf.SDK.Util
                 throw new ArgumentException("Height must be greater than zero.", nameof(height));
             }
 
-            using var image = new Image<Rgb24>(width, height, new Rgb24(color.R, color.G, color.B));
-            using var ms = new MemoryStream();
-            image.Save(ms, ToEncoder(format));
-            return ms.ToArray();
+            return Encode(CreateSolid(width, height, color), format);
         }
 
         /// <summary>
@@ -184,35 +168,137 @@ namespace DeckSurf.SDK.Util
             }
         }
 
-        private static void ApplyOrientation(IImageProcessingContext ctx, DeviceRotation rotation)
+        private static RgbImage CreateSolid(int width, int height, DeviceColor color)
         {
-            switch (rotation)
+            var pixels = new byte[width * height * 3];
+            for (int i = 0; i < pixels.Length; i += 3)
             {
-                case DeviceRotation.Rotate180:
-                    ctx.Rotate(RotateMode.Rotate180);
-                    break;
-                case DeviceRotation.Rotate270:
-                    ctx.Rotate(RotateMode.Rotate270);
-                    break;
-                case DeviceRotation.Rotate270FlipVertical:
-                    // Matches the reference Stream Deck Mini transform: rotate, then flip top-to-bottom.
-                    // Verified on Stream Deck Mini hardware; rotation alone renders content inverted.
-                    ctx.Rotate(RotateMode.Rotate270);
-                    ctx.Flip(FlipMode.Vertical);
-                    break;
-                default:
-                    break;
+                pixels[i] = color.R;
+                pixels[i + 1] = color.G;
+                pixels[i + 2] = color.B;
             }
+
+            return new RgbImage(width, height, pixels);
         }
 
-        private static IImageEncoder ToEncoder(DeviceImageFormat format)
+        private static RgbImage ToRgb(SKBitmap bitmap)
         {
-            return format switch
+            // The bitmap is Rgba8888: R, G, B, A per pixel. The alpha channel is dropped.
+            ReadOnlySpan<byte> rgba = bitmap.GetPixelSpan();
+            var pixels = new byte[bitmap.Width * bitmap.Height * 3];
+            for (int y = 0; y < bitmap.Height; y++)
             {
-                DeviceImageFormat.Jpeg => new JpegEncoder(),
-                DeviceImageFormat.Bmp => new BmpEncoder(),
-                _ => new JpegEncoder(),
-            };
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    rgba.Slice((y * bitmap.RowBytes) + (x * 4), 3).CopyTo(pixels.AsSpan(((y * bitmap.Width) + x) * 3));
+                }
+            }
+
+            return new RgbImage(bitmap.Width, bitmap.Height, pixels);
+        }
+
+        private static RgbImage ApplyOrientation(RgbImage image, DeviceRotation rotation)
+        {
+            if (rotation is not (DeviceRotation.Rotate180 or DeviceRotation.Rotate270 or DeviceRotation.Rotate270FlipVertical))
+            {
+                return image;
+            }
+
+            bool swapAxes = rotation != DeviceRotation.Rotate180;
+            int width = swapAxes ? image.Height : image.Width;
+            int height = swapAxes ? image.Width : image.Height;
+            var pixels = new byte[image.Pixels.Length];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    // Map each output pixel back to the source pixel it comes from.
+                    (int sourceX, int sourceY) = rotation switch
+                    {
+                        DeviceRotation.Rotate180 => (image.Width - 1 - x, image.Height - 1 - y),
+
+                        // 270 degrees clockwise, which is 90 degrees counter-clockwise.
+                        DeviceRotation.Rotate270 => (image.Width - 1 - y, x),
+
+                        // Rotate 270, then flip top-to-bottom: a transpose. This matches the reference
+                        // Stream Deck Mini transform, verified on hardware; rotation alone renders content inverted.
+                        _ => (y, x),
+                    };
+
+                    image.Pixels.AsSpan(((sourceY * image.Width) + sourceX) * 3, 3).CopyTo(pixels.AsSpan(((y * width) + x) * 3));
+                }
+            }
+
+            return new RgbImage(width, height, pixels);
+        }
+
+        private static byte[] Encode(RgbImage image, DeviceImageFormat format)
+        {
+            return format == DeviceImageFormat.Bmp ? EncodeBmp(image) : EncodeJpeg(image);
+        }
+
+        private static byte[] EncodeJpeg(RgbImage image)
+        {
+            var info = new SKImageInfo(image.Width, image.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            using var bitmap = new SKBitmap(info);
+            Span<byte> rgba = bitmap.GetPixelSpan();
+            for (int y = 0; y < image.Height; y++)
+            {
+                for (int x = 0; x < image.Width; x++)
+                {
+                    int target = (y * bitmap.RowBytes) + (x * 4);
+                    image.Pixels.AsSpan(((y * image.Width) + x) * 3, 3).CopyTo(rgba.Slice(target, 3));
+                    rgba[target + 3] = byte.MaxValue;
+                }
+            }
+
+            using SKData? data = bitmap.Encode(SKEncodedImageFormat.Jpeg, JpegQuality);
+            if (data == null)
+            {
+                throw new Exceptions.ImageProcessingException("The image could not be encoded as JPEG.");
+            }
+
+            return data.ToArray();
+        }
+
+        // Skia has no BMP encoder. This writes an uncompressed 24-bit BMP with a BITMAPINFOHEADER,
+        // stored bottom-up in BGR order, which is the format Stream Deck devices with BMP keys expect.
+        private static byte[] EncodeBmp(RgbImage image)
+        {
+            int rowSize = ((image.Width * 3) + 3) & ~3;
+            int pixelDataSize = rowSize * image.Height;
+            int dataOffset = BmpFileHeaderSize + BmpInfoHeaderSize;
+            var bmp = new byte[dataOffset + pixelDataSize];
+            Span<byte> span = bmp;
+
+            span[0] = (byte)'B';
+            span[1] = (byte)'M';
+            BinaryPrimitives.WriteInt32LittleEndian(span[2..], bmp.Length);
+            BinaryPrimitives.WriteInt32LittleEndian(span[10..], dataOffset);
+            BinaryPrimitives.WriteInt32LittleEndian(span[14..], BmpInfoHeaderSize);
+            BinaryPrimitives.WriteInt32LittleEndian(span[18..], image.Width);
+            BinaryPrimitives.WriteInt32LittleEndian(span[22..], image.Height);
+            BinaryPrimitives.WriteInt16LittleEndian(span[26..], 1);
+            BinaryPrimitives.WriteInt16LittleEndian(span[28..], 24);
+            BinaryPrimitives.WriteInt32LittleEndian(span[34..], pixelDataSize);
+            BinaryPrimitives.WriteInt32LittleEndian(span[38..], 2835);
+            BinaryPrimitives.WriteInt32LittleEndian(span[42..], 2835);
+
+            for (int y = 0; y < image.Height; y++)
+            {
+                int row = dataOffset + ((image.Height - 1 - y) * rowSize);
+                for (int x = 0; x < image.Width; x++)
+                {
+                    int source = ((y * image.Width) + x) * 3;
+                    int target = row + (x * 3);
+                    bmp[target] = image.Pixels[source + 2];
+                    bmp[target + 1] = image.Pixels[source + 1];
+                    bmp[target + 2] = image.Pixels[source];
+                }
+            }
+
+            return bmp;
         }
 
         [SupportedOSPlatform("windows")]
@@ -282,5 +368,7 @@ namespace DeckSurf.SDK.Util
 
             throw Marshal.GetExceptionForHR((int)hr);
         }
+
+        private readonly record struct RgbImage(int Width, int Height, byte[] Pixels);
     }
 }
