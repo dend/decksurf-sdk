@@ -29,6 +29,7 @@ namespace DeckSurf.SDK.Tests.Core
         [InlineData((int)DeviceModel.XL)]
         [InlineData((int)DeviceModel.XL2022)]
         [InlineData((int)DeviceModel.Plus)]
+        [InlineData((int)DeviceModel.PlusXL)]
         [InlineData((int)DeviceModel.Neo)]
         public void IsSupported_ValidVidWithEachValidPid_ReturnsTrue(int pid)
         {

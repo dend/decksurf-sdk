@@ -141,11 +141,9 @@ namespace DeckSurf.SDK.Models.Devices
                 touchPoint = new TouchPoint(DataHelper.GetIntFromLittleEndianBytes(xCoord), DataHelper.GetIntFromLittleEndianBytes(yCoord));
             }
 
-            // For whatever reason, the number of knobs is reported as 5, even though
-            // there are only 4 on the Stream Deck Plus. Because that's the only device
-            // where that value is used today, let's make sure that we decrement by 1.
-            // Also, for the knob, the header is 5 bytes long, because the fifth
-            // byte tells us whether the knob is rotated or not.
+            // The encoder payload length is the number of knobs + 1 (5 on the Plus,
+            // 7 on the Plus XL), because the first payload byte tells us whether the
+            // knob is rotated or pressed. Decrement by 1 and skip that byte.
             if (buttonKind == ButtonKind.Knob)
             {
                 buttonCount -= 1;
