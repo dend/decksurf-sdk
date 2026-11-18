@@ -53,7 +53,7 @@ namespace DeckSurf.SDK.Util
                 throw new ArgumentException("The height must be greater than zero.", nameof(height));
             }
 
-            using SKBitmap? source = SKBitmap.Decode(buffer);
+            using SKBitmap source = SKBitmap.Decode(buffer);
             if (source == null)
             {
                 throw new Exceptions.ImageProcessingException("The provided buffer is not a recognized image format.");
@@ -61,7 +61,7 @@ namespace DeckSurf.SDK.Util
 
             // Stretch to the target size. Unpremultiplied output keeps the colour channels as they are when alpha is dropped.
             var targetInfo = new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
-            using SKBitmap? resized = source.Resize(targetInfo, new SKSamplingOptions(SKCubicResampler.CatmullRom));
+            using SKBitmap resized = source.Resize(targetInfo, new SKSamplingOptions(SKCubicResampler.CatmullRom));
             if (resized == null)
             {
                 throw new Exceptions.ImageProcessingException("The image could not be resized.");
@@ -253,7 +253,7 @@ namespace DeckSurf.SDK.Util
                 }
             }
 
-            using SKData? data = bitmap.Encode(SKEncodedImageFormat.Jpeg, JpegQuality);
+            using SKData data = bitmap.Encode(SKEncodedImageFormat.Jpeg, JpegQuality);
             if (data == null)
             {
                 throw new Exceptions.ImageProcessingException("The image could not be encoded as JPEG.");
