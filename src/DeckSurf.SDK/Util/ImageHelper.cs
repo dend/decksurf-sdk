@@ -53,10 +53,18 @@ namespace DeckSurf.SDK.Util
                 throw new ArgumentException("The height must be greater than zero.", nameof(height));
             }
 
-            using SKBitmap source = SKBitmap.Decode(buffer);
-            if (source == null)
+            // SKCodec.Create returns null for unknown formats; SKBitmap.Decode would throw ArgumentNullException instead.
+            using SKData encoded = SKData.CreateCopy(buffer);
+            using SKCodec codec = SKCodec.Create(encoded);
+            if (codec == null)
             {
                 throw new Exceptions.ImageProcessingException("The provided buffer is not a recognized image format.");
+            }
+
+            using SKBitmap source = SKBitmap.Decode(codec);
+            if (source == null)
+            {
+                throw new Exceptions.ImageProcessingException("The provided buffer could not be decoded.");
             }
 
             // Stretch to the target size. Unpremultiplied output keeps the colour channels as they are when alpha is dropped.
