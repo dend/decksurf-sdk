@@ -2,13 +2,10 @@
 // Den licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using DeckSurf.SDK.Models;
 using DeckSurf.SDK.Models.Devices;
 using DeckSurf.SDK.Util;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 using Xunit;
 
 namespace DeckSurf.SDK.Tests.Helpers
@@ -21,10 +18,10 @@ namespace DeckSurf.SDK.Tests.Helpers
     {
         private const int Size = 8;
 
-        private static readonly Rgb24 Red = new(255, 0, 0);
-        private static readonly Rgb24 Green = new(0, 255, 0);
-        private static readonly Rgb24 Blue = new(0, 0, 255);
-        private static readonly Rgb24 White = new(255, 255, 255);
+        private static readonly SKColor Red = new(255, 0, 0);
+        private static readonly SKColor Green = new(0, 255, 0);
+        private static readonly SKColor Blue = new(0, 0, 255);
+        private static readonly SKColor White = new(255, 255, 255);
 
         [Fact]
         public void ResizeImage_None_PreservesQuadrants()
@@ -102,38 +99,40 @@ namespace DeckSurf.SDK.Tests.Helpers
 
         private static byte[] CreateQuadrantImage()
         {
-            using var image = new Image<Rgb24>(Size, Size);
+            using var image = new SKBitmap(new SKImageInfo(Size, Size, SKColorType.Rgba8888, SKAlphaType.Opaque));
             int half = Size / 2;
             for (int y = 0; y < Size; y++)
             {
                 for (int x = 0; x < Size; x++)
                 {
-                    image[x, y] = (x < half, y < half) switch
+                    SKColor color = (x < half, y < half) switch
                     {
                         (true, true) => Red,
                         (false, true) => Green,
                         (true, false) => Blue,
                         (false, false) => White,
                     };
+                    image.SetPixel(x, y, color);
                 }
             }
 
-            using var stream = new MemoryStream();
-            image.Save(stream, new BmpEncoder());
-            return stream.ToArray();
+            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return data.ToArray();
         }
 
         private static Quadrants Transform(DeviceRotation rotation)
         {
             byte[] output = ImageHelper.ResizeImage(CreateQuadrantImage(), Size, Size, rotation, DeviceImageFormat.Bmp);
-            using var image = Image.Load<Rgb24>(output);
+            Assert.Equal((byte)'B', output[0]);
+            Assert.Equal((byte)'M', output[1]);
+            using var image = SKBitmap.Decode(output);
 
             // Sample the centre of each quadrant so resampling at the edges cannot affect the result.
             int near = Size / 4;
             int far = Size - 1 - near;
-            return new Quadrants(image[near, near], image[far, near], image[near, far], image[far, far]);
+            return new Quadrants(image.GetPixel(near, near), image.GetPixel(far, near), image.GetPixel(near, far), image.GetPixel(far, far));
         }
 
-        private readonly record struct Quadrants(Rgb24 TopLeft, Rgb24 TopRight, Rgb24 BottomLeft, Rgb24 BottomRight);
+        private readonly record struct Quadrants(SKColor TopLeft, SKColor TopRight, SKColor BottomLeft, SKColor BottomRight);
     }
 }
