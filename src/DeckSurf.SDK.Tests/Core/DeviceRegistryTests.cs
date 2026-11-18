@@ -24,6 +24,7 @@ namespace DeckSurf.SDK.Tests.Core
         [InlineData((byte)DeviceModel.Mini, typeof(StreamDeckMini))]
         [InlineData((byte)DeviceModel.Mini2022, typeof(StreamDeckMini2022))]
         [InlineData((byte)DeviceModel.Plus, typeof(StreamDeckPlus))]
+        [InlineData((byte)DeviceModel.PlusXL, typeof(StreamDeckPlusXL))]
         [InlineData((byte)DeviceModel.Neo, typeof(StreamDeckNeo))]
         public void CreateDevice_ReturnsCorrectTypeForDeviceModel(byte pid, Type expectedType)
         {
@@ -38,6 +39,7 @@ namespace DeckSurf.SDK.Tests.Core
         [InlineData((byte)DeviceModel.MK2)]
         [InlineData((byte)DeviceModel.Mini)]
         [InlineData((byte)DeviceModel.Plus)]
+        [InlineData((byte)DeviceModel.PlusXL)]
         [InlineData((byte)DeviceModel.Neo)]
         public void CreateDevice_SetsVendorIdCorrectly(byte pid)
         {
@@ -52,6 +54,7 @@ namespace DeckSurf.SDK.Tests.Core
         [InlineData((byte)DeviceModel.MK2)]
         [InlineData((byte)DeviceModel.Mini)]
         [InlineData((byte)DeviceModel.Plus)]
+        [InlineData((byte)DeviceModel.PlusXL)]
         [InlineData((byte)DeviceModel.Neo)]
         public void CreateDevice_SetsPathCorrectly(byte pid)
         {
@@ -66,6 +69,7 @@ namespace DeckSurf.SDK.Tests.Core
         [InlineData((byte)DeviceModel.MK2)]
         [InlineData((byte)DeviceModel.Mini)]
         [InlineData((byte)DeviceModel.Plus)]
+        [InlineData((byte)DeviceModel.PlusXL)]
         [InlineData((byte)DeviceModel.Neo)]
         public void CreateDevice_SetsNameCorrectly(byte pid)
         {
@@ -80,6 +84,7 @@ namespace DeckSurf.SDK.Tests.Core
         [InlineData((byte)DeviceModel.MK2)]
         [InlineData((byte)DeviceModel.Mini)]
         [InlineData((byte)DeviceModel.Plus)]
+        [InlineData((byte)DeviceModel.PlusXL)]
         [InlineData((byte)DeviceModel.Neo)]
         public void CreateDevice_SetsSerialCorrectly(byte pid)
         {

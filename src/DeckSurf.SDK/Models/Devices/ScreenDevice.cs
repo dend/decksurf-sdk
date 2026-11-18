@@ -8,7 +8,7 @@ namespace DeckSurf.SDK.Models.Devices
 {
     /// <summary>
     /// Abstract base class for Stream Deck devices that support a screen in addition
-    /// to buttons. Covers the Neo and Plus models.
+    /// to buttons. Covers the Neo, Plus and Plus XL models.
     /// </summary>
     public abstract class ScreenDevice(int vid, int pid, string path, string name, string serial) : ConnectedDevice(vid, pid, path, name, serial)
     {

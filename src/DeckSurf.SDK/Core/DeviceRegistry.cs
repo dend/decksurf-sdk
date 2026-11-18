@@ -27,6 +27,7 @@ namespace DeckSurf.SDK.Core
             { DeviceModel.XL, (vid, pid, path, name, serial) => new StreamDeckXL(vid, pid, path, name, serial) },
             { DeviceModel.XL2022, (vid, pid, path, name, serial) => new StreamDeckXL2022(vid, pid, path, name, serial) },
             { DeviceModel.Plus, (vid, pid, path, name, serial) => new StreamDeckPlus(vid, pid, path, name, serial) },
+            { DeviceModel.PlusXL, (vid, pid, path, name, serial) => new StreamDeckPlusXL(vid, pid, path, name, serial) },
             { DeviceModel.Neo, (vid, pid, path, name, serial) => new StreamDeckNeo(vid, pid, path, name, serial) },
         };
 

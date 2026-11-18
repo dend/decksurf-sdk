@@ -80,6 +80,7 @@ ConnectedDevice (abstract, implements IConnectedDevice)
 │   ├── StreamDeckMini, StreamDeckMini2022
 ├── ScreenDevice (abstract) — Devices with LCD screens
 │   ├── StreamDeckNeo, StreamDeckPlus
+│   │   └── StreamDeckPlusXL — same protocol as the Plus, larger layout, rotated images
 ```
 
 - Add new devices by subclassing the appropriate base class and registering in `DeviceRegistry`.

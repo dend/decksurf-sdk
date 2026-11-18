@@ -55,6 +55,11 @@ namespace DeckSurf.SDK.Models
         Plus = 0x0084,
 
         /// <summary>
+        /// The <see href="https://www.elgato.com/us/en/p/stream-deck-plus-xl">Plus XL model</see> of the Stream Deck device.
+        /// </summary>
+        PlusXL = 0x00C6,
+
+        /// <summary>
         /// The <see href="https://www.elgato.com/us/en/p/stream-deck-neo">Neo model</see> of the Stream Deck device.
         /// </summary>
         Neo = 0x009A,

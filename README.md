@@ -73,6 +73,7 @@ Stream Deck Original (5×3):
 | Mini / Mini 2022 | 6 | 3×2 | 80×80 px |
 | Neo | 8 | 4×2 | 96×96 px |
 | Plus | 8 | 4×2 | 120×120 px |
+| Plus XL | 36 | 9×4 | 112×112 px |
 
 Images passed to `SetKey()` are **automatically resized** to the device's button resolution. For best results, use square images. Non-square images will be stretched.
 
@@ -161,7 +162,7 @@ DeviceManager.DeviceListChanged += (sender, e) =>
 };
 ```
 
-## Screen Support (Plus & Neo)
+## Screen Support (Plus, Plus XL & Neo)
 
 Devices with LCD screens expose screen operations:
 
@@ -275,6 +276,7 @@ The SDK logs device operations at appropriate levels: `Debug` for SetKey/SetBrig
 | Stream Deck XL | Full |
 | Stream Deck XL (2022) | Full |
 | Stream Deck Plus | Full |
+| Stream Deck Plus XL | Full |
 | Stream Deck Original | Full |
 | Stream Deck Original (2019) | Full |
 | Stream Deck MK.2 | Full |

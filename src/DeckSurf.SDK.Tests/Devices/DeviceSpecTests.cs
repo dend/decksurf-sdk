@@ -93,6 +93,16 @@ namespace DeckSurf.SDK.Tests.Devices
                 DeviceImageFormat.Jpeg, DeviceRotation.None,
                 true, true, 0, 1024, 8,
             };
+
+            // PlusXL: 36 buttons, 112px, 9x4, Jpeg, 90 degrees counter-clockwise (Rotate270),
+            // screen (1200x100), knob, 0 touch buttons
+            yield return new object[]
+            {
+                new StreamDeckPlusXL(0, 0, "", "", ""),
+                DeviceModel.PlusXL, 36, 112, 9, 4,
+                DeviceImageFormat.Jpeg, DeviceRotation.Rotate270,
+                true, true, 0, 1024, 8,
+            };
         }
 
         [Theory]
@@ -267,6 +277,19 @@ namespace DeckSurf.SDK.Tests.Devices
 
             Assert.Equal(800, device.ScreenWidth);
             Assert.Equal(100, device.ScreenHeight);
+        }
+
+        [Fact]
+        public void PlusXL_ReportsCorrectScreenAndKnobLayout()
+        {
+            var device = new StreamDeckPlusXL(0, 0, "", "", "");
+
+            Assert.Equal(1200, device.ScreenWidth);
+            Assert.Equal(100, device.ScreenHeight);
+            Assert.Equal(6, device.KnobCount);
+
+            // One touch strip segment per knob, as on the Plus.
+            Assert.Equal(device.ScreenWidth / device.KnobCount, device.ScreenSegmentWidth);
         }
 
         [Fact]
