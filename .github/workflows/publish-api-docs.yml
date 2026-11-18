@@ -55,11 +55,17 @@ jobs:
       run: Remove-Item -recurse ${{ github.workspace }}\_docs\docs\api\* -exclude *.md,.gitignore
     - name: Copy new files
       run: Copy-item -Force -Recurse -Verbose _ready_yaml\* -Destination ${{ github.workspace }}\_docs\docs\api
-    - name: Commit and push all the documentation changes
+    # Signed commit through the API, merged through a PR (required by the branch rulesets
+    # on dend/decksurf-docs). DOCS_PAT needs Contents and Pull requests write on that repo.
+    - name: Commit the documentation changes
       working-directory: _docs
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.DOCS_PAT }}
+        GH_REPO: dend/decksurf-docs
       run: |
         git add -A -v
-        git config --global user.name 'Den'
-        git config --global user.email '1389609+dend@users.noreply.github.com'
-        git commit -m "Docs update."
-        git push origin main
+        bash ../.github/scripts/commit-signed.sh \
+          "bot/api-docs-${{ github.run_id }}-${{ github.run_attempt }}" \
+          "Docs update for ${{ github.ref_name }}" \
+          main
