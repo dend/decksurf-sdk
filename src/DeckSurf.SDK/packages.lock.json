@@ -10,9 +10,9 @@
       },
       "Microsoft.CodeAnalysis.NetAnalyzers": {
         "type": "Direct",
-        "requested": "[10.0.400, )",
-        "resolved": "10.0.400",
-        "contentHash": "Uogs/xCuSxYuEYAU7oUPddK3MFcT3A+FkrBcx/wVse6P4joptMAfh/H9jtIhl9IkHARCvJHFjL3jhKFs9YMktA=="
+        "requested": "[11.0.100, )",
+        "resolved": "11.0.100",
+        "contentHash": "7oXelnecJ8xdGGoXtkoLZGHV07z07BDLjidGcaU3MwUGiTVDZWCGnJYdFqiN7aKVjTGzC5sxhaAnmxkj296+7Q=="
       },
       "Microsoft.Extensions.Logging.Abstractions": {
         "type": "Direct",
